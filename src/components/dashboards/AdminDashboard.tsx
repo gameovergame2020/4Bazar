@@ -52,8 +52,13 @@ const AdminDashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [cakes, setCakes] = useState<Cake[]>([]);
   const [users, setUsers] = useState<UserData[]>([]);
-  const [selectedTab, setSelectedTab] = useState('overview');
-  
+  const [selectedTab, setSelectedTab] = useState<'overview' | 'users' | 'orders' | 'system' | 'settings' | 'statistics'>('overview');
+  const [statistics, setStatistics] = useState<{
+    available: any;
+    orderBased: any;
+    business: any;
+  } | null>(null);
+
   const [metrics, setMetrics] = useState<SystemMetrics>({
     totalUsers: 0,
     totalOrders: 0,
@@ -77,29 +82,30 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (userData?.id) {
       loadData();
+      loadStatistics();
     }
   }, [userData]);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       // Load all data
       const [ordersData, cakesData] = await Promise.all([
         dataService.getOrders(),
         dataService.getCakes() // Barcha mahsulotlar (baker va shop)
       ]);
-      
+
       setOrders(ordersData);
       setCakes(cakesData);
-      
+
       // Calculate metrics
       const totalOrders = ordersData.length;
       const totalRevenue = ordersData
         .filter(order => order.status === 'delivered')
         .reduce((sum, order) => sum + order.totalPrice, 0);
       const totalProducts = cakesData.length;
-      
+
       // Simulate user data (in real app, you'd fetch from users collection)
       const mockUsers: UserData[] = [
         { id: '1', name: 'Aziza Karimova', email: 'aziza@example.com', phone: '+998901234567', role: 'customer', joinDate: '2024-01-15' },
@@ -109,7 +115,7 @@ const AdminDashboard = () => {
         { id: '5', name: 'Nigora Tosheva', email: 'nigora@example.com', phone: '+998901234571', role: 'operator', joinDate: '2024-01-12' }
       ];
       setUsers(mockUsers);
-      
+
       // Calculate user stats
       const stats = mockUsers.reduce((acc, user) => {
         acc[user.role]++;
@@ -123,7 +129,7 @@ const AdminDashboard = () => {
         admins: 1 // Current admin
       });
       setUserStats(stats);
-      
+
       setMetrics({
         totalUsers: mockUsers.length + 1,
         totalOrders,
@@ -134,11 +140,25 @@ const AdminDashboard = () => {
         serverLoad: 45,
         databaseSize: 2.4
       });
-      
+
     } catch (error) {
       console.error('Ma\'lumotlarni yuklashda xatolik:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadStatistics = async () => {
+    try {
+      const [available, orderBased, business] = await Promise.all([
+        dataService.getAvailableProductsStats(),
+        dataService.getOrderBasedProductsStats(),
+        dataService.getBusinessStats()
+      ]);
+
+      setStatistics({ available, orderBased, business });
+    } catch (error) {
+      console.error('Statistikani yuklashda xatolik:', error);
     }
   };
 
@@ -196,6 +216,7 @@ const AdminDashboard = () => {
             { id: 'overview', label: 'Umumiy ko\'rinish', icon: BarChart3 },
             { id: 'users', label: 'Foydalanuvchilar', icon: Users },
             { id: 'orders', label: 'Buyurtmalar', icon: Package },
+            { id: 'statistics', label: 'Statistika', icon: PieChart },
             { id: 'system', label: 'Tizim', icon: Server },
             { id: 'settings', label: 'Sozlamalar', icon: Settings }
           ].map((tab) => {
@@ -403,7 +424,7 @@ const AdminDashboard = () => {
               <span>Yangi foydalanuvchi</span>
             </button>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -473,7 +494,7 @@ const AdminDashboard = () => {
               <span>Eksport</span>
             </button>
           </div>
-          
+
           <div className="space-y-4">
             {orders.slice(0, 10).map((order) => (
               <div key={order.id} className="border border-gray-200 rounded-xl p-4">
@@ -512,6 +533,171 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {/* Statistics Tab */}
+      {selectedTab === 'statistics' && (
+        <div className="space-y-6">
+          {statistics ? (
+            <>
+              {/* Mavjud mahsulotlar statistikasi */}
+              <div className="bg-white rounded-2xl p-6 border border-gray-100">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Package size={24} className="text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Mavjud mahsulotlar (Shop)</h3>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{statistics.available.totalAvailable}</div>
+                    <div className="text-sm text-gray-600">Jami mavjud</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">{statistics.available.totalQuantity}</div>
+                    <div className="text-sm text-gray-600">Umumiy miqdor</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-orange-600">{statistics.available.lowStock}</div>
+                    <div className="text-sm text-gray-600">Kam qolgan (≤5)</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-red-600">{statistics.available.outOfStock}</div>
+                    <div className="text-sm text-gray-600">Tugagan</div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-md font-medium text-gray-900 mb-3">Kategoriya bo'yicha taqsimlash</h4>
+                  <div className="space-y-2">
+                    {Object.entries(statistics.available.categoryBreakdown).map(([category, count]) => (
+                      <div key={category} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                        <span className="text-gray-700">{category}</span>
+                        <span className="font-medium text-gray-900">{count} ta</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Buyurtma asosidagi mahsulotlar statistikasi */}
+              <div className="bg-white rounded-2xl p-6 border border-gray-100">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <ShoppingBag size={24} className="text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Buyurtma asosidagi mahsulotlar (Baker)</h3>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">{statistics.orderBased.totalOrderBased}</div>
+                    <div className="text-sm text-gray-600">Jami mahsulot</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600">{statistics.orderBased.totalOrdered}</div>
+                    <div className="text-sm text-gray-600">Jami buyurtma</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-orange-600">{statistics.orderBased.activeOrders}</div>
+                    <div className="text-sm text-gray-600">Faol buyurtmalar</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{statistics.orderBased.completedOrders}</div>
+                    <div className="text-sm text-gray-600">Tugallangan</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-red-600">{statistics.orderBased.cancelledOrders}</div>
+                    <div className="text-sm text-gray-600">Bekor qilingan</div>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+                    <span className="text-gray-700">Oylik o'sish</span>
+                    <span className={`font-bold ${
+                      statistics.orderBased.monthlyOrdersGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {statistics.orderBased.monthlyOrdersGrowth >= 0 ? '+' : ''}{statistics.orderBased.monthlyOrdersGrowth}%
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-md font-medium text-gray-900 mb-3">Kategoriya bo'yicha taqsimlash</h4>
+                  <div className="space-y-2">
+                    {Object.entries(statistics.orderBased.categoryBreakdown).map(([category, count]) => (
+                      <div key={category} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                        <span className="text-gray-700">{category}</span>
+                        <span className="font-medium text-gray-900">{count} ta</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Biznes statistikasi */}
+              <div className="bg-white rounded-2xl p-6 border border-gray-100">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <TrendingUp size={24} className="text-purple-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Biznes ko'rsatkichlari</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
+                      {statistics.business.totalRevenue.toLocaleString('uz-UZ')} so'm
+                    </div>
+                    <div className="text-sm text-gray-600">Jami daromad</div>
+                  </div>
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">{statistics.business.totalOrders}</div>
+                    <div className="text-sm text-gray-600">Jami buyurtmalar</div>
+                  </div>
+                  <div className="text-center p-4 bg-purple-50 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {Math.round(statistics.business.averageOrderValue).toLocaleString('uz-UZ')} so'm
+                    </div>
+                    <div className="text-sm text-gray-600">O'rtacha buyurtma</div>
+                  </div>
+                </div>
+
+                {/* Eng ko'p sotilgan mahsulotlar */}
+                <div className="mb-6">
+                  <h4 className="text-md font-medium text-gray-900 mb-3">Eng ko'p sotilgan mahsulotlar</h4>
+                  <div className="space-y-2">
+                    {statistics.business.topSellingProducts.map((product, index) => (
+                      <div key={product.cakeId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                            {index + 1}
+                          </div>
+                          <span className="text-gray-700">{product.cakeName}</span>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium text-gray-900">{product.totalSold} ta</div>
+                          <div className="text-sm text-gray-600">
+                            {product.revenue.toLocaleString('uz-UZ')} so'm
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center min-h-96">
+              <div className="text-center">
+                <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-gray-600">Statistika yuklanmoqda...</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* System Tab */}
       {selectedTab === 'system' && (
         <div className="space-y-6">
@@ -529,7 +715,7 @@ const AdminDashboard = () => {
                     style={{ width: `${metrics.serverLoad}%` }}
                   ></div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Xotira</span>
                   <span className="font-medium text-gray-900">67%</span>
@@ -537,7 +723,7 @@ const AdminDashboard = () => {
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div className="bg-green-500 h-2 rounded-full" style={{ width: '67%' }}></div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Disk</span>
                   <span className="font-medium text-gray-900">34%</span>
