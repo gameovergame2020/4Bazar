@@ -276,9 +276,9 @@ const CustomerDashboard = () => {
                   )}
                   <div className="absolute bottom-2 left-2">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      cake.available ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
+                      cake.productType === 'ready' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
                     }`}>
-                      {cake.available ? 'Mavjud' : 'Buyurtma'}
+                      {cake.productType === 'ready' ? 'Mavjud' : 'Buyurtma uchun'}
                     </span>
                   </div>
                 </div>
@@ -307,7 +307,7 @@ const CustomerDashboard = () => {
                   </div>
                 </div>
 
-                {cake.available && cake.quantity !== undefined && cake.quantity <= 5 && cake.quantity > 0 && (
+                {cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity <= 5 && cake.quantity > 0 && (
                   <p className="text-xs text-orange-600 mb-2">
                     Faqat {cake.quantity} ta qoldi!
                   </p>
@@ -327,7 +327,7 @@ const CustomerDashboard = () => {
                       </span>
                       <button
                         onClick={() => addToCart(cake.id!)}
-                        disabled={cake.available && cake.quantity !== undefined && cartQuantity >= cake.quantity}
+                        disabled={cake.productType === 'ready' && cake.quantity !== undefined && cartQuantity >= cake.quantity}
                         className="w-8 h-8 bg-orange-500 text-white rounded-lg flex items-center justify-center hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Plus size={16} />
@@ -336,10 +336,15 @@ const CustomerDashboard = () => {
                   ) : (
                     <button
                       onClick={() => addToCart(cake.id!)}
-                      disabled={cake.available && cake.quantity !== undefined && cake.quantity === 0}
+                      disabled={cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity === 0}
                       className="flex-1 bg-orange-500 text-white py-2 rounded-lg text-sm hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {cake.available && cake.quantity !== undefined && cake.quantity === 0 ? 'Tugadi' : 'Savatga'}
+                      {cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity === 0 
+                        ? 'Tugadi' 
+                        : cake.productType === 'ready' 
+                          ? 'Savatga' 
+                          : 'Buyurtma'
+                      }
                     </button>
                   )}
                 </div>
