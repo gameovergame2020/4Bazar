@@ -706,6 +706,21 @@ const BakerDashboard = () => {
                   </label>
                 </div>
               
+                {!cakeForm.available && (
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="customOrder"
+                      checked={true}
+                      readOnly
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="customOrder" className="ml-2 block text-sm text-gray-900">
+                      Buyurtma
+                    </label>
+                  </div>
+                )}
+
                 {cakeForm.available && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Soni *</label>
@@ -723,11 +738,10 @@ const BakerDashboard = () => {
               </div>
               
               {!cakeForm.available && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div></div>
-                  <div className="text-sm text-gray-500 italic">
-                    Mavjud emas - soni kiritish shart emas
-                  </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-700">
+                    <span className="font-medium">Buyurtma rejimi:</span> Tort mavjud emas, lekin mijozlar buyurtma bera olishadi. Siz buyurtmani qabul qilganingizdan keyin tortni tayyorlaysiz.
+                  </p>
                 </div>
               )}
               
