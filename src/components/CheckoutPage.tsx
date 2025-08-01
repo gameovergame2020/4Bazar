@@ -72,6 +72,16 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       return;
     }
 
+    // Mavjud mahsulot miqdorini tekshirish
+    for (const item of cartItems) {
+      if (item && item.cake.productType === 'ready' && item.cake.quantity !== undefined) {
+        if (item.quantity > item.cake.quantity) {
+          alert(`"${item.cake.name}" mahsulotidan faqat ${item.cake.quantity} ta mavjud. Savatingizda ${item.quantity} ta bor.`);
+          return;
+        }
+      }
+    }
+
     setLoading(true);
     try {
       // Har bir tort uchun alohida buyurtma yaratamiz
