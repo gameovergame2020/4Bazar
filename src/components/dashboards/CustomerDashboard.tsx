@@ -428,7 +428,11 @@ const CustomerDashboard = () => {
 
                 <p className="text-xs text-gray-500 mb-2">
                   {cake.productType === 'baked' 
-                    ? `Buyurtma qilingan: ${cake.quantity || 0} ta` 
+                    ? cake.available 
+                      ? cake.quantity !== undefined 
+                        ? `Qoldiq: ${cake.quantity} ta`
+                        : 'Miqdor: cheklanmagan'
+                      : `Buyurtma qilingan: ${cake.quantity || 0} ta` 
                     : cake.quantity !== undefined 
                       ? `Qoldi: ${cake.quantity} ta`
                       : 'Miqdor: cheklanmagan'
@@ -450,9 +454,12 @@ const CustomerDashboard = () => {
                       <button
                         onClick={() => addToCart(cake.id!)}
                         disabled={
-                          cake.productType === 'ready' &&
+                          (cake.productType === 'ready' &&
                           cake.quantity !== undefined &&
-                          cartQuantity >= cake.quantity
+                          cartQuantity >= cake.quantity) ||
+                          (cake.productType === 'baked' && cake.available &&
+                          cake.quantity !== undefined &&
+                          cartQuantity >= cake.quantity)
                         }
                         className="w-8 h-8 bg-orange-500 text-white rounded-lg flex items-center justify-center hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -463,9 +470,12 @@ const CustomerDashboard = () => {
                     <button
                       onClick={() => addToCart(cake.id!)}
                       disabled={
-                            cake.productType === 'ready' && 
+                            (cake.productType === 'ready' && 
                             cake.quantity !== undefined && 
-                            cake.quantity <= 0
+                            cake.quantity <= 0) ||
+                            (cake.productType === 'baked' && cake.available &&
+                            cake.quantity !== undefined && 
+                            cake.quantity <= 0)
                           }
                       className={`flex-1 py-2 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                         cake.productType === 'baked'

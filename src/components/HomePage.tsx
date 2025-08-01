@@ -440,7 +440,11 @@ const HomePage = () => {
                     </div>
                     <span className="text-xs text-gray-500">
                       {cake.productType === 'baked' 
-                        ? `Buyurtma qilingan: ${cake.quantity || 0}` 
+                        ? cake.available 
+                          ? cake.quantity !== undefined 
+                            ? `Qoldiq: ${cake.quantity} ta`
+                            : 'Miqdor: cheklanmagan'
+                          : `Buyurtma qilingan: ${cake.quantity || 0}` 
                         : cake.quantity !== undefined 
                           ? `Qoldi: ${cake.quantity}`
                           : 'Miqdor: cheklanmagan'
@@ -472,10 +476,12 @@ const HomePage = () => {
                         <button
                           onClick={() => addToCart(cake.id!)}
                           disabled={
-                            cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity
+                            (cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
+                            (cake.productType === 'baked' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity)
                           }
                           className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                          (cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity)
+                          ((cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
+                           (cake.productType === 'baked' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity))
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             : 'bg-orange-500 text-white hover:bg-orange-600'
                         }`}
@@ -561,7 +567,11 @@ const HomePage = () => {
                       </div>
                       <span className="text-xs text-gray-500">
                         {cake.productType === 'baked' 
-                          ? `Buyurtma qilingan: ${cake.quantity || 0}` 
+                          ? cake.available 
+                            ? cake.quantity !== undefined 
+                              ? `Qoldiq: ${cake.quantity} ta`
+                              : 'Miqdor: cheklanmagan'
+                            : `Buyurtma qilingan: ${cake.quantity || 0}` 
                           : cake.quantity !== undefined 
                             ? `Qoldi: ${cake.quantity}`
                             : 'Miqdor: cheklanmagan'
@@ -595,10 +605,12 @@ const HomePage = () => {
                         <button
                            onClick={() => addToCart(cake.id!)}
                           disabled={
-                            cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity
+                            (cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
+                            (cake.productType === 'baked' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity)
                           }
                           className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-                            (cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity)
+                            ((cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
+                             (cake.productType === 'baked' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity))
                               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                               : 'bg-orange-500 text-white hover:bg-orange-600'
                           }`}
