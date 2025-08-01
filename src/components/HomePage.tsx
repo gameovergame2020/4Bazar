@@ -98,7 +98,12 @@ const HomePage = () => {
     console.log('Checkout clicked, cart:', cart, 'keys length:', Object.keys(cart).length);
     if (Object.keys(cart).length > 0) {
       console.log('Switching to checkout view');
-      setCurrentView('checkout');
+      // Force React to re-render by temporarily changing view
+      setCurrentView('home');
+      setTimeout(() => {
+        setCurrentView('checkout');
+        console.log('View switched to checkout');
+      }, 50);
     } else {
       console.log('Cart is empty, not showing checkout');
       alert('Savat bo\'sh! Avval mahsulot qo\'shing.');
@@ -171,13 +176,15 @@ const HomePage = () => {
   if (currentView === 'checkout') {
     console.log('Rendering CheckoutPage with cart:', cart);
     return (
-      <CheckoutPage
-        cart={cart}
-        cakes={cakes}
-        onBack={handleBackFromCheckout}
-        onOrderComplete={handleOrderComplete}
-        removeFromCart={removeFromCart}
-      />
+      <div key="checkout-page" className="min-h-screen">
+        <CheckoutPage
+          cart={cart}
+          cakes={cakes}
+          onBack={handleBackFromCheckout}
+          onOrderComplete={handleOrderComplete}
+          removeFromCart={removeFromCart}
+        />
+      </div>
     );
   }
 
