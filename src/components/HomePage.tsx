@@ -13,6 +13,7 @@ const HomePage = () => {
   const [error, setError] = useState<string | null>(null);
   const [cart, setCart] = useState<{[key: string]: number}>({});
   const [showCheckout, setShowCheckout] = useState<boolean>(false);
+  const [forceRerender, setForceRerender] = useState(0);
 
   const categories = [
     { name: 'Hammasi', icon: Cake, value: '' },
@@ -98,11 +99,8 @@ const HomePage = () => {
     console.log('Checkout clicked, cart:', cart, 'keys length:', Object.keys(cart).length);
     if (Object.keys(cart).length > 0) {
       console.log('Setting showCheckout to true');
-      // Force re-render with timeout
-      setShowCheckout(false);
-      setTimeout(() => {
-        setShowCheckout(true);
-      }, 10);
+      setShowCheckout(true);
+      setForceRerender(prev => prev + 1);
     } else {
       console.log('Cart is empty, not showing checkout');
     }
@@ -110,11 +108,13 @@ const HomePage = () => {
 
   const handleBackFromCheckout = () => {
     setShowCheckout(false);
+    setForceRerender(prev => prev + 1);
   };
 
   const handleOrderComplete = () => {
     clearCart();
     setShowCheckout(false);
+    setForceRerender(prev => prev + 1);
   };
 
   // Handle remove from cart event
@@ -168,21 +168,20 @@ const HomePage = () => {
     );
   }
 
-  console.log('Render: showCheckout =', showCheckout, 'cart keys:', Object.keys(cart).length);
+  console.log('Render: showCheckout =', showCheckout, 'cart keys:', Object.keys(cart).length, 'forceRerender:', forceRerender);
 
   // CheckoutPage'ga o'tish uchun explicit check
-  if (showCheckout === true && Object.keys(cart).length > 0) {
+  if (showCheckout && Object.keys(cart).length > 0) {
     console.log('Rendering CheckoutPage with cart:', cart);
     return (
-      <div className="min-h-screen bg-gray-50">
-        <CheckoutPage
-          cart={cart}
-          cakes={cakes}
-          onBack={handleBackFromCheckout}
-          onOrderComplete={handleOrderComplete}
-          removeFromCart={removeFromCart}
-        />
-      </div>
+      <CheckoutPage
+        key={`checkout-${forceRerender}`}
+        cart={cart}
+        cakes={cakes}
+        onBack={handleBackFromCheckout}
+        onOrderComplete={handleOrderComplete}
+        removeFromCart={removeFromCart}
+      />
     );
   }
 
