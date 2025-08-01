@@ -12,8 +12,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cart, setCart] = useState<{[key: string]: number}>({});
-  const [showCheckout, setShowCheckout] = useState<boolean>(false);
-  const [forceRerender, setForceRerender] = useState(0);
+  const [currentView, setCurrentView] = useState<'home' | 'checkout'>('home');
 
   const categories = [
     { name: 'Hammasi', icon: Cake, value: '' },
@@ -98,23 +97,21 @@ const HomePage = () => {
   const handleCheckout = () => {
     console.log('Checkout clicked, cart:', cart, 'keys length:', Object.keys(cart).length);
     if (Object.keys(cart).length > 0) {
-      console.log('Setting showCheckout to true');
-      setShowCheckout(true);
-      setForceRerender(prev => prev + 1);
+      console.log('Switching to checkout view');
+      setCurrentView('checkout');
     } else {
       console.log('Cart is empty, not showing checkout');
+      alert('Savat bo\'sh! Avval mahsulot qo\'shing.');
     }
   };
 
   const handleBackFromCheckout = () => {
-    setShowCheckout(false);
-    setForceRerender(prev => prev + 1);
+    setCurrentView('home');
   };
 
   const handleOrderComplete = () => {
     clearCart();
-    setShowCheckout(false);
-    setForceRerender(prev => prev + 1);
+    setCurrentView('home');
   };
 
   // Handle remove from cart event
@@ -168,14 +165,13 @@ const HomePage = () => {
     );
   }
 
-  console.log('Render: showCheckout =', showCheckout, 'cart keys:', Object.keys(cart).length, 'forceRerender:', forceRerender);
+  console.log('Render: currentView =', currentView, 'cart keys:', Object.keys(cart).length);
 
-  // CheckoutPage'ga o'tish uchun explicit check
-  if (showCheckout && Object.keys(cart).length > 0) {
+  // CheckoutPage'ni ko'rsatish
+  if (currentView === 'checkout') {
     console.log('Rendering CheckoutPage with cart:', cart);
     return (
       <CheckoutPage
-        key={`checkout-${forceRerender}`}
         cart={cart}
         cakes={cakes}
         onBack={handleBackFromCheckout}
