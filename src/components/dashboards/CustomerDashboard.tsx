@@ -161,10 +161,36 @@ const CustomerDashboard = () => {
   };
 
   const addToCart = (cakeId: string) => {
-    setCart(prev => ({
-      ...prev,
-      [cakeId]: (prev[cakeId] || 0) + 1
-    }));
+    const cake = cakes.find(c => c.id === cakeId);
+    if (!cake) return;
+
+    const isBakerProduct = cake.productType === 'baked' || (cake.bakerId && !cake.shopId);
+
+    if (isBakerProduct && cake.available && cake.quantity !== undefined) {
+      // Baker mahsuloti mavjud va quantity belgilangan - qoldiq miqdorigacha cheklash
+      const currentCartQty = cart[cakeId] || 0;
+      if (currentCartQty < cake.quantity) {
+        setCart(prev => ({
+          ...prev,
+          [cakeId]: currentCartQty + 1
+        }));
+      }
+    } else if (cake.productType === 'ready' && cake.quantity !== undefined) {
+      // Shop mahsuloti - miqdor cheklovi
+      const currentCartQty = cart[cakeId] || 0;
+      if (currentCartQty < cake.quantity) {
+        setCart(prev => ({
+          ...prev,
+          [cakeId]: currentCartQty + 1
+        }));
+      }
+    } else {
+      // Cheklanmagan miqdor
+      setCart(prev => ({
+        ...prev,
+        [cakeId]: (prev[cakeId] || 0) + 1
+      }));
+    }
   };
 
   const removeFromCart = (cakeId: string) => {
