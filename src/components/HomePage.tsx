@@ -322,11 +322,14 @@ const HomePage = () => {
                       <span className="text-xs sm:text-sm font-medium text-gray-700">{cake.rating}</span>
                       <span className="text-xs sm:text-sm text-gray-500">({cake.reviewCount})</span>
                     </div>
-                    {cake.quantity !== undefined && (
-                      <span className="text-xs text-gray-500">
-                        {cake.productType === 'baked' ? `Buyurtma qilingan: ${cake.quantity}` : `Qoldi: ${cake.quantity}`}
-                      </span>
-                    )}
+                    <span className="text-xs text-gray-500">
+                      {cake.productType === 'baked' 
+                        ? `Buyurtma qilingan: ${cake.quantity || 0}` 
+                        : cake.quantity !== undefined 
+                          ? `Qoldi: ${cake.quantity}`
+                          : 'Miqdor: cheklanmagan'
+                      }
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between">
@@ -437,11 +440,14 @@ const HomePage = () => {
                         <span className="text-xs sm:text-sm font-medium text-gray-700">{cake.rating}</span>
                         <span className="text-xs sm:text-sm text-gray-500">({cake.reviewCount} sharh)</span>
                       </div>
-                      {cake.quantity !== undefined && (
-                        <span className="text-xs text-gray-500">
-                          {cake.productType === 'baked' ? `Buyurtma qilingan: ${cake.quantity}` : `Qoldi: ${cake.quantity}`}
-                        </span>
-                      )}
+                      <span className="text-xs text-gray-500">
+                        {cake.productType === 'baked' 
+                          ? `Buyurtma qilingan: ${cake.quantity || 0}` 
+                          : cake.quantity !== undefined 
+                            ? `Qoldi: ${cake.quantity}`
+                            : 'Miqdor: cheklanmagan'
+                        }
+                      </span>
                     </div>
                   </div>
                   <div className="text-right">

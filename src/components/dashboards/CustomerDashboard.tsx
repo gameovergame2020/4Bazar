@@ -347,11 +347,14 @@ const CustomerDashboard = () => {
                   </div>
                 </div>
 
-                {cake.quantity !== undefined && (
-                  <p className="text-xs text-gray-500 mb-2">
-                    {cake.productType === 'baked' ? `Buyurtma qilingan: ${cake.quantity} ta` : `Qoldi: ${cake.quantity} ta`}
-                  </p>
-                )}
+                <p className="text-xs text-gray-500 mb-2">
+                  {cake.productType === 'baked' 
+                    ? `Buyurtma qilingan: ${cake.quantity || 0} ta` 
+                    : cake.quantity !== undefined 
+                      ? `Qoldi: ${cake.quantity} ta`
+                      : 'Miqdor: cheklanmagan'
+                  }
+                </p>
 
                 <div className="flex items-center justify-between">
                   {cartQuantity > 0 ? (
