@@ -65,10 +65,15 @@ const HomePage = () => {
     .slice(0, 4);
 
   const addToCart = (cakeId: string) => {
-    setCart(prev => ({
-      ...prev,
-      [cakeId]: (prev[cakeId] || 0) + 1
-    }));
+    console.log('Adding to cart:', cakeId);
+    setCart(prev => {
+      const newCart = {
+        ...prev,
+        [cakeId]: (prev[cakeId] || 0) + 1
+      };
+      console.log('New cart state:', newCart);
+      return newCart;
+    });
   };
 
   const removeFromCart = (cakeId: string) => {
@@ -90,8 +95,12 @@ const HomePage = () => {
   };
 
   const handleCheckout = () => {
+    console.log('Checkout clicked, cart:', cart, 'keys length:', Object.keys(cart).length);
     if (Object.keys(cart).length > 0) {
+      console.log('Setting showCheckout to true');
       setShowCheckout(true);
+    } else {
+      console.log('Cart is empty, not showing checkout');
     }
   };
 
@@ -155,7 +164,10 @@ const HomePage = () => {
     );
   }
 
+  console.log('Render: showCheckout =', showCheckout, 'cart keys:', Object.keys(cart).length);
+
   if (showCheckout) {
+    console.log('Rendering CheckoutPage');
     return (
       <CheckoutPage
         cart={cart}
