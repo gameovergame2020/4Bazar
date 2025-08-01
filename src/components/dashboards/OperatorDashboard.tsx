@@ -64,6 +64,7 @@ const OperatorDashboard = () => {
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [orderItems, setOrderItems] = useState<{[cakeId: string]: number}>({});
   const [availableCakes, setAvailableCakes] = useState<any[]>([]);
+  const [newProductSearchQuery, setNewProductSearchQuery] = useState('');
 
   useEffect(() => {
     if (userData?.id) {
@@ -966,6 +967,7 @@ const OperatorDashboard = () => {
                 onClick={() => {
                   setEditingOrder(null);
                   setOrderItems({});
+                  setNewProductSearchQuery('');
                 }}
                 className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
               >
@@ -1048,9 +1050,28 @@ const OperatorDashboard = () => {
               {/* Yangi mahsulot qo'shish */}
               <div>
                 <h4 className="font-medium text-gray-900 mb-3">Yangi mahsulot qo'shish</h4>
+                
+                {/* Qidiruv maydoni */}
+                <div className="relative mb-3">
+                  <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Mahsulot nomini qidiring..."
+                    value={newProductSearchQuery}
+                    onChange={(e) => setNewProductSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 gap-3 max-h-40 overflow-y-auto">
                   {availableCakes
                     .filter(cake => !orderItems[cake.id!])
+                    .filter(cake => 
+                      cake.name.toLowerCase().includes(newProductSearchQuery.toLowerCase()) ||
+                      cake.description.toLowerCase().includes(newProductSearchQuery.toLowerCase()) ||
+                      cake.bakerName.toLowerCase().includes(newProductSearchQuery.toLowerCase()) ||
+                      (cake.shopName && cake.shopName.toLowerCase().includes(newProductSearchQuery.toLowerCase()))
+                    )
                     .map((cake) => {
                       const itemPrice = cake.discount 
                         ? cake.price * (1 - cake.discount / 100) 
@@ -1079,6 +1100,29 @@ const OperatorDashboard = () => {
                       );
                     })
                   }
+                  
+                  {/* Qidiruv natijasi yo'q bo'lsa */}
+                  {availableCakes
+                    .filter(cake => !orderItems[cake.id!])
+                    .filter(cake => 
+                      cake.name.toLowerCase().includes(newProductSearchQuery.toLowerCase()) ||
+                      cake.description.toLowerCase().includes(newProductSearchQuery.toLowerCase()) ||
+                      cake.bakerName.toLowerCase().includes(newProductSearchQuery.toLowerCase()) ||
+                      (cake.shopName && cake.shopName.toLowerCase().includes(newProductSearchQuery.toLowerCase()))
+                    ).length === 0 && newProductSearchQuery.trim() !== '' && (
+                    <div className="text-center py-4 text-gray-500">
+                      <Search size={32} className="mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm">"{newProductSearchQuery}" bo'yicha mahsulot topilmadi</p>
+                    </div>
+                  )}
+                  
+                  {/* Barcha mahsulotlar buyurtmada bo'lsa */}
+                  {availableCakes.filter(cake => !orderItems[cake.id!]).length === 0 && (
+                    <div className="text-center py-4 text-gray-500">
+                      <Plus size={32} className="mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm">Barcha mavjud mahsulotlar buyurtmaga qo'shilgan</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1111,6 +1155,7 @@ const OperatorDashboard = () => {
                   onClick={() => {
                     setEditingOrder(null);
                     setOrderItems({});
+                    setNewProductSearchQuery('');
                   }}
                   className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
                 >
