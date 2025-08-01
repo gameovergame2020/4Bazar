@@ -27,13 +27,20 @@ const CustomerDashboard = () => {
       console.log('Jami yuklangan tortlar:', allCakes);
 
       // Baker va Shop tortlarini ajratish
-      const bakerCakes = allCakes.filter(cake => cake.productType === 'baked');
-      const shopCakes = allCakes.filter(cake => cake.productType === 'ready');
-      const otherCakes = allCakes.filter(cake => !cake.productType || (cake.productType !== 'baked' && cake.productType !== 'ready'));
+      const bakerCakes = allCakes.filter(cake => 
+        cake.productType === 'baked' || (cake.bakerId && !cake.shopId)
+      );
+      const shopCakes = allCakes.filter(cake => 
+        cake.productType === 'ready' || (cake.shopId && !cake.bakerId)
+      );
+      const otherCakes = allCakes.filter(cake => 
+        !bakerCakes.includes(cake) && !shopCakes.includes(cake)
+      );
       
       console.log('Baker tortlari:', bakerCakes);
       console.log('Shop tortlari:', shopCakes);
       console.log('Boshqa tortlar:', otherCakes);
+      console.log('Jami tortlar soni:', allCakes.length);
       
       setCakes(allCakes);
 

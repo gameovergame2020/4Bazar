@@ -52,7 +52,7 @@ const BakerDashboard = () => {
 
   const loadData = async () => {
     if (!userData?.id) return;
-    
+
     try {
       setLoading(true);
 
@@ -142,7 +142,7 @@ const BakerDashboard = () => {
         category: cakeForm.category,
         bakerId: userData.id,
         bakerName: userData.name,
-        productType: 'baked',
+        productType: 'baked' as const,
         rating: 0,
         reviewCount: 0,
         available: cakeForm.available, // Checkboxdan olingan qiymat
