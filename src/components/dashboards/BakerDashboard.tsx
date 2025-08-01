@@ -532,9 +532,9 @@ const BakerDashboard = () => {
                 />
                 <div className="absolute top-2 right-2">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    cake.available ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                    cake.available ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
                   }`}>
-                    {cake.available ? 'Mavjud' : 'Tugagan'}
+                    {cake.available ? 'Mavjud' : 'Buyurtma'}
                   </span>
                 </div>
               </div>
