@@ -175,14 +175,45 @@ const HomePage = () => {
 
   const addToCart = (cakeId: string) => {
     console.log('Adding to cart:', cakeId);
-    setCart(prev => {
-      const newCart = {
-        ...prev,
-        [cakeId]: (prev[cakeId] || 0) + 1
-      };
-      console.log('New cart state:', newCart);
-      return newCart;
-    });
+    const cake = cakes.find(c => c.id === cakeId);
+    if (!cake) return;
+
+    // Baker mahsulotlari uchun cheklov yo'q
+    if (cake.productType === 'baked') {
+      setCart(prev => {
+        const newCart = {
+          ...prev,
+          [cakeId]: (prev[cakeId] || 0) + 1
+        };
+        console.log('New cart state:', newCart);
+        return newCart;
+      });
+      return;
+    }
+
+    // Shop mahsulotlari uchun miqdor cheklovi
+    if (cake.productType === 'ready' && cake.quantity !== undefined) {
+      const currentCartQty = cart[cakeId] || 0;
+      if (currentCartQty < cake.quantity) {
+        setCart(prev => {
+          const newCart = {
+            ...prev,
+            [cakeId]: currentCartQty + 1
+          };
+          console.log('New cart state:', newCart);
+          return newCart;
+        });
+      }
+    } else {
+      setCart(prev => {
+        const newCart = {
+          ...prev,
+          [cakeId]: (prev[cakeId] || 0) + 1
+        };
+        console.log('New cart state:', newCart);
+        return newCart;
+      });
+    }
   };
 
   const removeFromCart = (cakeId: string) => {
@@ -465,7 +496,7 @@ const HomePage = () => {
                         <ShoppingBasket size={14} />
                         <span>
                           {cake.productType === 'baked' ? 
-                            'Buyurtma berish'
+                            'Savatga qo\'shish'
                             : cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
                               ? 'Tugagan' 
                               : 'Savatchaga qo\'shish'
@@ -583,7 +614,7 @@ const HomePage = () => {
                         <ShoppingBasket size={14} />
                         <span className="hidden sm:inline">
                           {cake.productType === 'baked' ? 
-                            'Buyurtma'
+                            'Savatga'
                             : cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
                               ? 'Tugagan' 
                               : 'Savatchaga'
