@@ -290,38 +290,33 @@ const HomePage = () => {
                       )}
                     </div>
 
-                    {cake.available ? (
-                      getCartQuantity(cake.id!) > 0 ? (
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => removeFromCart(cake.id!)}
-                            className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center hover:bg-orange-600 transition-colors"
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <span className="font-medium text-gray-900">{getCartQuantity(cake.id!)}</span>
-                          <button
-                            onClick={() => addToCart(cake.id!)}
-                            className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center hover:bg-orange-600 transition-colors"
-                          >
-                            <Plus size={14} />
-                          </button>
-                        </div>
-                      ) : (
+                    {getCartQuantity(cake.id!) > 0 ? (
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => removeFromCart(cake.id!)}
+                          className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center hover:bg-orange-600 transition-colors"
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <span className="font-medium text-gray-900">{getCartQuantity(cake.id!)}</span>
                         <button
                           onClick={() => addToCart(cake.id!)}
-                          className="bg-orange-500 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm flex items-center space-x-1"
+                          className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center hover:bg-orange-600 transition-colors"
                         >
-                          <ShoppingBasket size={14} />
-                          <span>Qo'shish</span>
+                          <Plus size={14} />
                         </button>
-                      )
+                      </div>
                     ) : (
                       <button
-                        disabled
-                        className="bg-gray-300 text-gray-500 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm cursor-not-allowed"
+                        onClick={() => addToCart(cake.id!)}
+                        className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors text-sm flex items-center space-x-1 ${
+                          cake.available 
+                            ? 'bg-orange-500 text-white hover:bg-orange-600' 
+                            : 'bg-blue-500 text-white hover:bg-blue-600'
+                        }`}
                       >
-                        Tugagan
+                        <ShoppingBasket size={14} />
+                        <span>{cake.available ? 'Qo\'shish' : 'Buyurtma'}</span>
                       </button>
                     )}
                   </div>
@@ -390,40 +385,35 @@ const HomePage = () => {
                       )}
                     </div>
 
-                    {cake.available ? (
-                      getCartQuantity(cake.id!) > 0 ? (
-                        <div className="flex items-center space-x-1">
-                          <button
-                            onClick={() => removeFromCart(cake.id!)}
-                            className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center hover:bg-orange-600 transition-colors"
-                          >
-                            <Minus size={12} />
-                          </button>
-                          <span className="text-sm font-medium text-gray-900 min-w-[20px] text-center">
-                            {getCartQuantity(cake.id!)}
-                          </span>
-                          <button
-                            onClick={() => addToCart(cake.id!)}
-                            className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center hover:bg-orange-600 transition-colors"
-                          >
-                            <Plus size={12} />
-                          </button>
-                        </div>
-                      ) : (
+                    {getCartQuantity(cake.id!) > 0 ? (
+                      <div className="flex items-center space-x-1">
+                        <button
+                          onClick={() => removeFromCart(cake.id!)}
+                          className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center hover:bg-orange-600 transition-colors"
+                        >
+                          <Minus size={12} />
+                        </button>
+                        <span className="text-sm font-medium text-gray-900 min-w-[20px] text-center">
+                          {getCartQuantity(cake.id!)}
+                        </span>
                         <button
                           onClick={() => addToCart(cake.id!)}
-                          className="bg-orange-500 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm flex items-center space-x-1"
+                          className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center hover:bg-orange-600 transition-colors"
                         >
-                          <ShoppingBasket size={12} />
-                          <span>Qo'shish</span>
+                          <Plus size={12} />
                         </button>
-                      )
+                      </div>
                     ) : (
                       <button
-                        disabled
-                        className="bg-gray-300 text-gray-500 px-3 py-1.5 rounded-lg text-sm cursor-not-allowed"
+                        onClick={() => addToCart(cake.id!)}
+                        className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors text-sm flex items-center space-x-1 ${
+                          cake.available 
+                            ? 'bg-orange-500 text-white hover:bg-orange-600' 
+                            : 'bg-blue-500 text-white hover:bg-blue-600'
+                        }`}
                       >
-                        Tugagan
+                        <ShoppingBasket size={12} />
+                        <span>{cake.available ? 'Qo\'shish' : 'Buyurtma'}</span>
                       </button>
                     )}
                   </div>
