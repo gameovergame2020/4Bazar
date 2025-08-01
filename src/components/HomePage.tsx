@@ -493,14 +493,16 @@ const HomePage = () => {
                           cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             : cake.productType === 'baked'
-                              ? 'bg-blue-500 text-white hover:bg-blue-600'
+                              ? cake.available 
+                                ? 'bg-orange-500 text-white hover:bg-orange-600'
+                                : 'bg-blue-500 text-white hover:bg-blue-600'
                               : 'bg-orange-500 text-white hover:bg-orange-600'
                         }`}
                       >
                         <ShoppingBasket size={14} />
                         <span>
                           {cake.productType === 'baked' ? 
-                            'Savatga qo\'shish'
+                            cake.available ? 'Savatga qo\'shish' : 'Buyurtma berish'
                             : cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
                               ? 'Tugagan' 
                               : 'Savatchaga qo\'shish'
@@ -614,14 +616,16 @@ const HomePage = () => {
                           cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             : cake.productType === 'baked'
-                              ? 'bg-blue-500 text-white hover:bg-blue-600'
+                              ? cake.available 
+                                ? 'bg-orange-500 text-white hover:bg-orange-600'
+                                : 'bg-blue-500 text-white hover:bg-blue-600'
                               : 'bg-orange-500 text-white hover:bg-orange-600'
                         }`}
                       >
                         <ShoppingBasket size={14} />
                         <span className="hidden sm:inline">
                           {cake.productType === 'baked' ? 
-                            'Savatga'
+                            cake.available ? 'Savatga' : 'Buyurtma'
                             : cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
                               ? 'Tugagan' 
                               : 'Savatchaga'
