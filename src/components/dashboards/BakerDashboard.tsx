@@ -47,12 +47,12 @@ const BakerDashboard = () => {
   useEffect(() => {
     if (userData?.id) {
       loadData();
-      
+
       // Real-time tortlar holatini kuzatish
       const unsubscribe = dataService.subscribeToRealtimeCakes((updatedCakes) => {
         const bakerCakes = updatedCakes.filter(cake => cake.bakerId === userData.id);
         setMyCakes(bakerCakes);
-        
+
         // Quantity 0 bo'lgan tortlarni avtomatik "Buyurtma uchun" rejimiga o'tkazish
         bakerCakes.forEach(cake => {
           if (cake.available && cake.quantity !== undefined && cake.quantity <= 0) {
@@ -251,7 +251,7 @@ const BakerDashboard = () => {
       }
 
       const quantity = cakeForm.available ? parseInt(cakeForm.quantity) || 0 : 0;
-      
+
       const updates: Partial<Cake> = {
         name: cakeForm.name,
         description: cakeForm.description,
@@ -689,6 +689,7 @@ const BakerDashboard = () => {
               </div>
 
               <div className="flex space-x-2">
+                
                 <button
                   onClick={() => startEditCake(cake)}
                   className="flex-1 bg-blue-500 text-white py-2 rounded-lg text-sm hover:bg-blue-600 transition-colors flex items-center justify-center space-x-1"
