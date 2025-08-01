@@ -13,6 +13,7 @@ const HomePage = () => {
   const [error, setError] = useState<string | null>(null);
   const [cart, setCart] = useState<{[key: string]: number}>({});
   const [currentView, setCurrentView] = useState<'home' | 'checkout'>('home');
+  const [filteredCakes, setFilteredCakes] = useState<CakeType[]>([]);
 
   const categories = [
     { name: 'Hammasi', icon: Cake, value: '' },
@@ -44,6 +45,7 @@ const HomePage = () => {
 
       const cakesData = await dataService.getCakes(filters);
       setCakes(cakesData);
+      setFilteredCakes(cakesData);
     } catch (err) {
       console.error('Tortlarni yuklashda xatolik:', err);
       setError('Tortlarni yuklashda xatolik yuz berdi');
@@ -52,11 +54,34 @@ const HomePage = () => {
     }
   };
 
-  const filteredCakes = cakes.filter(cake => 
-    cake.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    cake.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    cake.bakerName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    loadCakes();
+
+    // Real-time tortlar holatini kuzatish
+    const unsubscribe = dataService.subscribeToRealtimeCakes((updatedCakes) => {
+      setCakes(updatedCakes);
+      setFilteredCakes(updatedCakes);
+    });
+
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
+  }, []);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query) {
+        setFilteredCakes(cakes.filter(cake =>
+            cake.name.toLowerCase().includes(query.toLowerCase()) ||
+            cake.description.toLowerCase().includes(query.toLowerCase()) ||
+            cake.bakerName.toLowerCase().includes(query.toLowerCase())
+        ));
+    } else {
+        loadCakes();
+    }
+};
 
   const recommendedCakes = filteredCakes.slice(0, 6);
   const topRatedCakes = filteredCakes
@@ -96,14 +121,14 @@ const HomePage = () => {
 
   const handleCheckout = () => {
     console.log('Checkout clicked, cart:', cart, 'keys length:', Object.keys(cart).length);
-    
+
     // Avval tizimga kirganligini tekshirish
     if (!isAuthenticated) {
       alert('Buyurtma berish uchun avval tizimga kirishingiz kerak!');
       // Login sahifasiga yo'naltirish (kerak bo'lsa)
       return;
     }
-    
+
     if (Object.keys(cart).length > 0) {
       console.log('Switching to checkout view');
       // Force React to re-render by temporarily changing view

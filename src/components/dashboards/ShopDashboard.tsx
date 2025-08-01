@@ -44,6 +44,25 @@ const ShopDashboard = () => {
   useEffect(() => {
     if (userData?.id) {
       loadData();
+      
+      // Real-time inventory kuzatish
+      const unsubscribe = dataService.subscribeToRealtimeCakes((updatedCakes) => {
+        const shopCakes = updatedCakes.filter(cake => cake.shopId === userData.id);
+        setInventory(shopCakes);
+        
+        // Statistikani yangilash
+        setStats(prev => ({
+          ...prev,
+          totalProducts: shopCakes.length,
+          lowStockItems: shopCakes.filter(cake => (cake.quantity || 0) < 5).length
+        }));
+      }, { shopId: userData.id });
+
+      return () => {
+        if (typeof unsubscribe === 'function') {
+          unsubscribe();
+        }
+      };
     }
   }, [userData]);
 

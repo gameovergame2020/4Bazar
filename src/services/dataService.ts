@@ -487,6 +487,44 @@ class DataService {
 
   // REAL-TIME YANGILANISHLAR
 
+  // Tortlarni real-time kuzatish
+  subscribeToRealtimeCakes(callback: (cakes: Cake[]) => void, filters?: { 
+    category?: string; 
+    bakerId?: string; 
+    shopId?: string;
+    available?: boolean;
+    productType?: 'baked' | 'ready';
+  }) {
+    let q = query(collection(db, 'cakes'), orderBy('createdAt', 'desc'));
+
+    if (filters?.category) {
+      q = query(q, where('category', '==', filters.category));
+    }
+    if (filters?.bakerId) {
+      q = query(q, where('bakerId', '==', filters.bakerId));
+    }
+    if (filters?.shopId) {
+      q = query(q, where('shopId', '==', filters.shopId));
+    }
+    if (filters?.productType) {
+      q = query(q, where('productType', '==', filters.productType));
+    }
+    if (filters?.available !== undefined) {
+      q = query(q, where('available', '==', filters.available));
+    }
+
+    return onSnapshot(q, (querySnapshot) => {
+      const cakes = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt.toDate(),
+        updatedAt: doc.data().updatedAt.toDate()
+      } as Cake));
+      
+      callback(cakes);
+    });
+  }
+
   // Buyurtmalar holatini real-time kuzatish
   subscribeToOrders(callback: (orders: Order[]) => void, filters?: { customerId?: string }) {
     let q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
