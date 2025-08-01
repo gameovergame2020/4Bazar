@@ -303,7 +303,7 @@ const HomePage = () => {
                       -{cake.discount}%
                     </div>
                   )}
-                  {!cake.available && (
+                  {cake.productType === 'ready' && !cake.available && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                       <span className="text-white font-medium">Tugagan</span>
                     </div>
