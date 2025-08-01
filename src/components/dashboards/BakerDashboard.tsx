@@ -51,6 +51,8 @@ const BakerDashboard = () => {
   }, [userData]);
 
   const loadData = async () => {
+    if (!userData?.id) return;
+    
     try {
       setLoading(true);
 
@@ -116,6 +118,11 @@ const BakerDashboard = () => {
       return;
     }
 
+    if (!userData?.id || !userData?.name) {
+      alert('Foydalanuvchi ma\'lumotlari topilmadi');
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -174,6 +181,11 @@ const BakerDashboard = () => {
   const handleEditCake = async () => {
     if (!editingCake || !cakeForm.name || !cakeForm.description || !cakeForm.price || (cakeForm.available && !cakeForm.quantity)) {
       alert('Barcha majburiy maydonlarni to\'ldiring (mavjud bo\'lsa soni ham kiritish kerak)');
+      return;
+    }
+
+    if (!userData?.id) {
+      alert('Foydalanuvchi ma\'lumotlari topilmadi');
       return;
     }
 
