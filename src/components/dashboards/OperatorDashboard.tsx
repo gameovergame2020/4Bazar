@@ -65,6 +65,11 @@ const OperatorDashboard = () => {
   const [orderItems, setOrderItems] = useState<{[cakeId: string]: number}>({});
   const [availableCakes, setAvailableCakes] = useState<any[]>([]);
   const [newProductSearchQuery, setNewProductSearchQuery] = useState('');
+  const [editingCustomerInfo, setEditingCustomerInfo] = useState({
+    customerName: '',
+    customerPhone: '',
+    deliveryAddress: ''
+  });
 
   useEffect(() => {
     if (userData?.id) {
@@ -261,6 +266,12 @@ const OperatorDashboard = () => {
     setEditingOrder(order);
     // Buyurtmadagi mahsulotlarni orderItems'ga ko'chirish
     setOrderItems({ [order.cakeId]: order.quantity });
+    // Mijoz ma'lumotlarini tahrirlash uchun tayyorlash
+    setEditingCustomerInfo({
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      deliveryAddress: order.deliveryAddress
+    });
   };
 
   const handleAddItemToOrder = (cakeId: string) => {
@@ -308,6 +319,9 @@ const OperatorDashboard = () => {
         quantity: totalQuantity,
         totalPrice: totalPrice,
         cakeName: itemNames.join(', '),
+        customerName: editingCustomerInfo.customerName,
+        customerPhone: editingCustomerInfo.customerPhone,
+        deliveryAddress: editingCustomerInfo.deliveryAddress,
         updatedAt: new Date()
       };
 
@@ -962,6 +976,11 @@ const OperatorDashboard = () => {
                   setEditingOrder(null);
                   setOrderItems({});
                   setNewProductSearchQuery('');
+                  setEditingCustomerInfo({
+                    customerName: '',
+                    customerPhone: '',
+                    deliveryAddress: ''
+                  });
                 }}
                 className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
               >
@@ -972,23 +991,62 @@ const OperatorDashboard = () => {
             <div className="space-y-6">
               {/* Buyurtma ma'lumotlari */}
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">Buyurtma ma'lumotlari</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <h4 className="font-medium text-gray-900 mb-3">Buyurtma ma'lumotlari</h4>
+                <div className="space-y-4">
                   <div>
-                    <span className="text-gray-600">ID:</span>
+                    <span className="text-gray-600 text-sm">Buyurtma ID:</span>
                     <span className="ml-2 font-medium">#{editingOrder.id?.slice(-8)}</span>
                   </div>
-                  <div>
-                    <span className="text-gray-600">Mijoz:</span>
-                    <span className="ml-2 font-medium">{editingOrder.customerName}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Telefon:</span>
-                    <span className="ml-2 font-medium">{editingOrder.customerPhone}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Manzil:</span>
-                    <span className="ml-2 font-medium">{editingOrder.deliveryAddress}</span>
+                  
+                  {/* Mijoz ma'lumotlarini tahrirlash */}
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Mijoz ismi
+                      </label>
+                      <input
+                        type="text"
+                        value={editingCustomerInfo.customerName}
+                        onChange={(e) => setEditingCustomerInfo(prev => ({
+                          ...prev,
+                          customerName: e.target.value
+                        }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        placeholder="Mijoz ismini kiriting"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Telefon raqami
+                      </label>
+                      <input
+                        type="tel"
+                        value={editingCustomerInfo.customerPhone}
+                        onChange={(e) => setEditingCustomerInfo(prev => ({
+                          ...prev,
+                          customerPhone: e.target.value
+                        }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        placeholder="+998 XX XXX XX XX"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Yetkazib berish manzili
+                      </label>
+                      <textarea
+                        value={editingCustomerInfo.deliveryAddress}
+                        onChange={(e) => setEditingCustomerInfo(prev => ({
+                          ...prev,
+                          deliveryAddress: e.target.value
+                        }))}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
+                        placeholder="To'liq manzilni kiriting"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1150,6 +1208,11 @@ const OperatorDashboard = () => {
                     setEditingOrder(null);
                     setOrderItems({});
                     setNewProductSearchQuery('');
+                    setEditingCustomerInfo({
+                      customerName: '',
+                      customerPhone: '',
+                      deliveryAddress: ''
+                    });
                   }}
                   className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
                 >
@@ -1157,7 +1220,12 @@ const OperatorDashboard = () => {
                 </button>
                 <button
                   onClick={handleSaveOrderChanges}
-                  disabled={Object.keys(orderItems).length === 0}
+                  disabled={
+                    Object.keys(orderItems).length === 0 || 
+                    !editingCustomerInfo.customerName.trim() ||
+                    !editingCustomerInfo.customerPhone.trim() ||
+                    !editingCustomerInfo.deliveryAddress.trim()
+                  }
                   className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   Saqlash
