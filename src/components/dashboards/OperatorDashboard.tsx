@@ -778,14 +778,6 @@ const OperatorDashboard = () => {
                       )}
                       
                       <button
-                        onClick={() => window.open(`tel:${order.customerPhone}`, '_self')}
-                        className="p-1 text-green-600 hover:text-green-700 hover:bg-green-50 rounded transition-colors"
-                        title="Qo'ng'iroq qilish"
-                      >
-                        <Phone size={16} />
-                      </button>
-
-                      <button
                         onClick={() => {
                           const note = prompt('Buyurtmaga eslatma qo\'shing:');
                           if (note && note.trim()) {
