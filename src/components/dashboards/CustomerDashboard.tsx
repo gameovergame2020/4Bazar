@@ -1,7 +1,87 @@
-import React from 'react';
-import { ShoppingBag, Heart, Clock, Star, Gift, Truck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingBag, Heart, Clock, Star, Gift, Truck, Plus, Minus } from 'lucide-react';
+import { dataService } from '../../services/dataService';
+import { useAuth } from '../../hooks/useAuth';
+
+interface Cake {
+  id?: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  imageUrl?: string;
+  discount?: number;
+  quantity: number;
+  shopId: string;
+  shopName?: string;
+}
 
 const CustomerDashboard = () => {
+  const { userData } = useAuth();
+  const [availableCakes, setAvailableCakes] = useState<Cake[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [cart, setCart] = useState<{[key: string]: number}>({});
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  const categories = [
+    { value: 'all', label: 'Hammasi' },
+    { value: 'birthday', label: "Tug'ilgan kun" },
+    { value: 'wedding', label: 'Nikoh' },
+    { value: 'anniversary', label: 'Yubiley' },
+    { value: 'custom', label: 'Maxsus' },
+    { value: 'cupcake', label: 'Cupcake' },
+    { value: 'cheesecake', label: 'Cheesecake' }
+  ];
+
+  useEffect(() => {
+    loadAvailableCakes();
+  }, []);
+
+  const loadAvailableCakes = async () => {
+    try {
+      setLoading(true);
+      const cakes = await dataService.getCakes();
+      // Faqat mavjud tortlarni ko'rsatish (quantity > 0)
+      const availableCakes = cakes.filter(cake => cake.quantity > 0);
+      setAvailableCakes(availableCakes);
+    } catch (error) {
+      console.error('Tortlarni yuklashda xatolik:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addToCart = (cakeId: string) => {
+    setCart(prev => ({
+      ...prev,
+      [cakeId]: (prev[cakeId] || 0) + 1
+    }));
+  };
+
+  const removeFromCart = (cakeId: string) => {
+    setCart(prev => {
+      const newCart = { ...prev };
+      if (newCart[cakeId] > 1) {
+        newCart[cakeId]--;
+      } else {
+        delete newCart[cakeId];
+      }
+      return newCart;
+    });
+  };
+
+  const getCartItemCount = (cakeId: string) => {
+    return cart[cakeId] || 0;
+  };
+
+  const getTotalCartItems = () => {
+    return Object.values(cart).reduce((sum, count) => sum + count, 0);
+  };
+
+  const filteredCakes = selectedCategory === 'all' 
+    ? availableCakes 
+    : availableCakes.filter(cake => cake.category === selectedCategory);
+
   const recentOrders = [
     {
       id: 1,
@@ -119,6 +199,138 @@ const CustomerDashboard = () => {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Available Products */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-100">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-gray-900">Mavjud tortlar</h3>
+          {getTotalCartItems() > 0 && (
+            <div className="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-sm font-medium">
+              Savatda: {getTotalCartItems()} ta mahsulot
+            </div>
+          )}
+        </div>
+
+        {/* Category Filter */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {categories.map((category) => (
+            <button
+              key={category.value}
+              onClick={() => setSelectedCategory(category.value)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                selectedCategory === category.value
+                  ? 'bg-orange-500 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {category.label}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+            <span className="ml-3 text-gray-600">Mahsulotlar yuklanmoqda...</span>
+          </div>
+        ) : filteredCakes.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600">Hozircha bu kategoriyada mahsulot yo'q</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCakes.map((cake) => {
+              const discountedPrice = cake.discount 
+                ? cake.price * (1 - cake.discount / 100) 
+                : cake.price;
+              const cartCount = getCartItemCount(cake.id!);
+
+              return (
+                <div key={cake.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all duration-200">
+                  {cake.imageUrl ? (
+                    <img 
+                      src={cake.imageUrl}
+                      alt={cake.name}
+                      className="w-full h-48 rounded-lg object-cover mb-4"
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center mb-4">
+                      <span className="text-gray-500">Rasm yo'q</span>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-gray-900 text-lg">{cake.name}</h4>
+                    <p className="text-sm text-gray-600 line-clamp-2">{cake.description}</p>
+                    
+                    {cake.shopName && (
+                      <p className="text-xs text-blue-600 font-medium">
+                        Do'kon: {cake.shopName}
+                      </p>
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        {cake.discount ? (
+                          <div className="flex items-center space-x-2">
+                            <span className="font-bold text-green-600 text-xl">
+                              {discountedPrice.toLocaleString('uz-UZ')} so'm
+                            </span>
+                            <span className="text-sm text-gray-500 line-through">
+                              {cake.price.toLocaleString('uz-UZ')} so'm
+                            </span>
+                            <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full">
+                              -{cake.discount}%
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="font-bold text-gray-900 text-xl">
+                            {cake.price.toLocaleString('uz-UZ')} so'm
+                          </span>
+                        )}
+                        <p className="text-xs text-gray-500">
+                          Mavjud: {cake.quantity} ta
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Add to cart controls */}
+                    <div className="flex items-center justify-between pt-3">
+                      {cartCount === 0 ? (
+                        <button
+                          onClick={() => addToCart(cake.id!)}
+                          className="flex-1 bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors font-medium"
+                        >
+                          Savatga qo'shish
+                        </button>
+                      ) : (
+                        <div className="flex items-center space-x-3 flex-1">
+                          <button
+                            onClick={() => removeFromCart(cake.id!)}
+                            className="bg-gray-200 hover:bg-gray-300 p-2 rounded-lg transition-colors"
+                          >
+                            <Minus size={16} />
+                          </button>
+                          <span className="font-semibold text-lg min-w-[2rem] text-center">
+                            {cartCount}
+                          </span>
+                          <button
+                            onClick={() => addToCart(cake.id!)}
+                            disabled={cartCount >= cake.quantity}
+                            className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white p-2 rounded-lg transition-colors"
+                          >
+                            <Plus size={16} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Favorites */}
