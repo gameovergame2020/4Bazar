@@ -415,19 +415,17 @@ const HomePage = () => {
 
       {/* Cart Icon */}
       {Object.keys(cart).length > 0 && (
-        <div 
-          className="fixed bottom-20 right-4 z-[9999] cursor-pointer"
+        <button 
           onClick={handleCheckout}
+          className="fixed bottom-20 right-4 z-[9999] bg-orange-500 text-white rounded-full p-3 shadow-lg hover:bg-orange-600 transition-colors"
         >
-          <div className="bg-orange-500 text-white rounded-full p-3 shadow-lg hover:bg-orange-600 transition-colors">
-            <div className="relative">
-              <ShoppingCart size={24} />
-              <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                {Object.values(cart).reduce((sum, qty) => sum + qty, 0)}
-              </div>
+          <div className="relative">
+            <ShoppingCart size={24} />
+            <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+              {Object.values(cart).reduce((sum, qty) => sum + qty, 0)}
             </div>
           </div>
-        </div>
+        </button>
       )}
     </div>
   );
