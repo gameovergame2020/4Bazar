@@ -90,16 +90,20 @@ const HomePage = () => {
   };
 
   const handleCheckout = () => {
+    console.log('handleCheckout called, cart:', cart);
     if (Object.keys(cart).length > 0) {
+      console.log('Setting showCheckout to true');
       setShowCheckout(true);
     }
   };
 
   const handleBackFromCheckout = () => {
+    console.log('handleBackFromCheckout called');
     setShowCheckout(false);
   };
 
   const handleOrderComplete = () => {
+    console.log('handleOrderComplete called');
     clearCart();
     setShowCheckout(false);
   };
@@ -156,20 +160,14 @@ const HomePage = () => {
   }
 
   if (showCheckout) {
+    console.log('Rendering CheckoutPage, showCheckout:', showCheckout, 'cart:', cart);
     return (
       <CheckoutPage
         cart={cart}
         cakes={cakes}
-        onBack={() => setShowCheckout(false)}
-        onOrderComplete={() => {
-          setCart({});
-          setShowCheckout(false);
-        }}
-        removeFromCart={(cakeId: string) => {
-          const newCart = { ...cart };
-          delete newCart[cakeId];
-          setCart(newCart);
-        }}
+        onBack={handleBackFromCheckout}
+        onOrderComplete={handleOrderComplete}
+        removeFromCart={removeFromCart}
       />
     );
   }
@@ -455,10 +453,7 @@ const HomePage = () => {
       {/* Cart Icon */}
       {Object.keys(cart).length > 0 && (
         <button 
-          onClick={() => {
-            console.log('Cart button clicked, cart:', cart);
-            setShowCheckout(true);
-          }}
+          onClick={handleCheckout}
           className="fixed bottom-6 right-4 z-[9999] bg-orange-500 text-white rounded-full p-3 shadow-lg hover:bg-orange-600 transition-colors focus:outline-none"
         >
           <div className="relative">
