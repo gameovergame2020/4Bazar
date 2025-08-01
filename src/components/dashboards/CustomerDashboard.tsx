@@ -51,7 +51,10 @@ const CustomerDashboard = () => {
         // Baker mahsulotlari uchun buyurtma qilingan miqdorni hisoblash
         if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
           const orderedQuantity = allOrders
-            .filter(order => order.cakeId === cake.id && order.status !== 'cancelled')
+            .filter(order => 
+              order.cakeId === cake.id && 
+              !['cancelled', 'ready', 'delivering', 'delivered'].includes(order.status)
+            )
             .reduce((total, order) => total + order.quantity, 0);
           
           return {

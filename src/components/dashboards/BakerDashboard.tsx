@@ -336,6 +336,16 @@ const BakerDashboard = () => {
         }
       }
 
+      // Agar buyurtma "Tayyor" holatiga o'tkazilsa, Baker mahsulotlari uchun buyurtma qilingan miqdorni kamaytirish
+      if (status === 'ready' && order) {
+        const cake = myCakes.find(c => c.id === order.cakeId);
+        if (cake && (cake.productType === 'baked' || (cake.bakerId && !cake.shopId))) {
+          // Baker mahsulotlari uchun buyurtma qilingan miqdorni kamaytirish
+          // Bu real-time da avtomatik yangilanadi, chunki orders ro'yxati o'zgaradi
+          console.log(`Buyurtma ${orderId} tayyor bo'ldi. Cake: ${cake.name}, Order quantity: ${order.quantity}`);
+        }
+      }
+
       // Buyurtma holatini local state'da yangilash
       setOrders(prev => 
         prev.map(order => 
