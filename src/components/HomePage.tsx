@@ -12,7 +12,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cart, setCart] = useState<{[key: string]: number}>({});
-  const [showCheckout, setShowCheckout] = useState(false);
+  const [showCheckout, setShowCheckout] = useState<boolean>(false);
 
   const categories = [
     { name: 'Hammasi', icon: Cake, value: '' },
@@ -90,20 +90,16 @@ const HomePage = () => {
   };
 
   const handleCheckout = () => {
-    console.log('handleCheckout called, cart:', cart);
     if (Object.keys(cart).length > 0) {
-      console.log('Setting showCheckout to true');
       setShowCheckout(true);
     }
   };
 
   const handleBackFromCheckout = () => {
-    console.log('handleBackFromCheckout called');
     setShowCheckout(false);
   };
 
   const handleOrderComplete = () => {
-    console.log('handleOrderComplete called');
     clearCart();
     setShowCheckout(false);
   };
@@ -160,7 +156,6 @@ const HomePage = () => {
   }
 
   if (showCheckout) {
-    console.log('Rendering CheckoutPage, showCheckout:', showCheckout, 'cart:', cart);
     return (
       <CheckoutPage
         cart={cart}
@@ -453,7 +448,11 @@ const HomePage = () => {
       {/* Cart Icon */}
       {Object.keys(cart).length > 0 && (
         <button 
-          onClick={handleCheckout}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleCheckout();
+          }}
           className="fixed bottom-6 right-4 z-[9999] bg-orange-500 text-white rounded-full p-3 shadow-lg hover:bg-orange-600 transition-colors focus:outline-none"
         >
           <div className="relative">
