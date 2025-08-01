@@ -138,7 +138,7 @@ const BakerDashboard = () => {
         productType: 'baked',
         rating: 0,
         reviewCount: 0,
-        available: true, // Baker mahsulotlari buyurtma uchun mavjud
+        available: cakeForm.available, // Checkboxdan olingan qiymat
         ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
         quantity: cakeForm.available ? parseInt(cakeForm.quantity) || 0 : 0,
         discount: parseFloat(cakeForm.discount) || 0
@@ -716,42 +716,46 @@ const BakerDashboard = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="available"
-                    checked={cakeForm.available}
-                    onChange={(e) => setCakeForm(prev => ({ 
-                      ...prev, 
-                      available: e.target.checked,
-                      quantity: e.target.checked ? prev.quantity : ''
-                    }))}
-                    className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="available" className="ml-2 block text-sm text-gray-900">
-                    Mavjud
-                  </label>
-                </div>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="available"
+                      checked={cakeForm.available}
+                      onChange={(e) => setCakeForm(prev => ({ 
+                        ...prev, 
+                        available: e.target.checked,
+                        quantity: e.target.checked ? prev.quantity : '0'
+                      }))}
+                      className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="available" className="ml-2 block text-sm text-gray-900">
+                      Hozir mavjud
+                    </label>
+                  </div>
 
-                {!cakeForm.available && (
                   <div className="flex items-center">
                     <input
                       type="checkbox"
                       id="customOrder"
-                      checked={true}
-                      readOnly
+                      checked={!cakeForm.available}
+                      onChange={(e) => setCakeForm(prev => ({ 
+                        ...prev, 
+                        available: !e.target.checked,
+                        quantity: e.target.checked ? '0' : prev.quantity
+                      }))}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                     <label htmlFor="customOrder" className="ml-2 block text-sm text-gray-900">
-                      Buyurtma
+                      Buyurtma uchun
                     </label>
                   </div>
-                )}
+                </div>
 
                 {cakeForm.available && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Soni *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Mavjud tortlar soni *</label>
                     <input
                       type="number"
                       value={cakeForm.quantity}
