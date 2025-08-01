@@ -54,6 +54,11 @@ const BakerDashboard = () => {
       try {
         unsubscribe = dataService.subscribeToRealtimeCakes((updatedCakes) => {
           try {
+            // Loading ni to'xtatish
+            if (loading) {
+              setLoading(false);
+            }
+
             const bakerCakes = updatedCakes.filter(cake => cake.bakerId === userData.id);
             setMyCakes(bakerCakes);
 
@@ -89,15 +94,15 @@ const BakerDashboard = () => {
             }));
           } catch (error) {
             console.error('Real-time ma\'lumotlarni yangilashda xatolik:', error);
+            setLoading(false);
           }
         }, { bakerId: userData.id });
       } catch (error) {
         console.error('Real-time obuna qilishda xatolik:', error);
+        setLoading(false);
         // Real-time ishlamasa ham ma'lumotlarni yuklash
         setTimeout(() => {
-          if (loading) {
-            loadData();
-          }
+          loadData();
         }, 1000);
       }
 
@@ -106,8 +111,10 @@ const BakerDashboard = () => {
           unsubscribe();
         }
       };
+    } else {
+      setLoading(false);
     }
-  }, [userData, orders]);
+  }, [userData]);
 
   const loadData = async () => {
     if (!userData?.id) {
@@ -127,22 +134,28 @@ const BakerDashboard = () => {
       const ordersPromise = dataService.getOrders();
 
       // Add timeout to prevent infinite loading
-      const timeout = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Ma\'lumotlar yuklash vaqti tugadi')), 10000)
+      const timeout = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Ma\'lumotlar yuklash vaqti tugadi')), 8000)
       );
 
-      const [cakes, allOrders] = await Promise.race([
-        Promise.all([cakesPromise, ordersPromise]),
-        timeout
-      ]) as [any[], any[]];
+      try {
+        const [cakes, allOrders] = await Promise.race([
+          Promise.all([cakesPromise, ordersPromise]),
+          timeout
+        ]) as [any[], any[]];
 
-      setMyCakes(cakes || []);
+        setMyCakes(cakes || []);
 
-      // Load orders for baker's cakes
-      const bakerOrders = (allOrders || []).filter(order => 
-        cakes && cakes.some(cake => cake.id === order.cakeId)
-      );
-      setOrders(bakerOrders);
+        // Load orders for baker's cakes
+        const bakerOrders = (allOrders || []).filter(order => 
+          cakes && cakes.some(cake => cake.id === order.cakeId)
+        );
+        setOrders(bakerOrders);
+      } catch (timeoutError) {
+        console.warn('Ma\'lumotlar yuklash vaqti tugadi, offline rejimda ishlash');
+        setMyCakes([]);
+        setOrders([]);
+      }
 
       // Calculate stats
       const pendingOrders = bakerOrders.filter(order => 
@@ -472,15 +485,13 @@ const BakerDashboard = () => {
     }
   };
 
-  // Loading timeout effect
+  // Loading timeout effect - qisqa muddatli
   useEffect(() => {
     if (loading) {
       const timeoutId = setTimeout(() => {
-        if (loading) {
-          setLoading(false);
-          console.warn('Loading timeout - ma\'lumotlar yuklash to\'xtatildi');
-        }
-      }, 15000); // 15 soniya timeout
+        setLoading(false);
+        console.warn('Loading timeout - ma\'lumotlar yuklash to\'xtatildi');
+      }, 8000); // 8 soniya timeout
 
       return () => clearTimeout(timeoutId);
     }
@@ -492,15 +503,24 @@ const BakerDashboard = () => {
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Ma'lumotlar yuklanmoqda...</p>
-          <button 
-            onClick={() => {
-              setLoading(false);
-              loadData();
-            }}
-            className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-          >
-            Qayta urinish
-          </button>
+          <p className="text-sm text-gray-500 mt-2">Internet aloqasini tekshiring</p>
+          <div className="flex space-x-2 mt-4">
+            <button 
+              onClick={() => {
+                setLoading(false);
+                setTimeout(() => loadData(), 100);
+              }}
+              className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+            >
+              Qayta urinish
+            </button>
+            <button 
+              onClick={() => setLoading(false)}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+            >
+              Bekor qilish
+            </button>
+          </div>
         </div>
       </div>
     );
