@@ -759,25 +759,6 @@ const OperatorDashboard = () => {
                         <Eye size={16} />
                       </button>
                       
-                      {order.status === 'pending' && (
-                        <>
-                          <button
-                            onClick={() => handleOrderStatusUpdate(order.id!, 'accepted')}
-                            className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 transition-colors"
-                            title="Tasdiqlash"
-                          >
-                            ✓ Tasdiqlash
-                          </button>
-                          <button
-                            onClick={() => handleOrderStatusUpdate(order.id!, 'cancelled')}
-                            className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600 transition-colors"
-                            title="Rad etish"
-                          >
-                            ✗ Rad etish
-                          </button>
-                        </>
-                      )}
-                      
                       {order.status === 'accepted' && (
                         <button
                           onClick={() => handleOrderStatusUpdate(order.id!, 'preparing')}
