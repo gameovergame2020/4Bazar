@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { ArrowLeft, MapPin, Phone, User, CreditCard, Truck, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, User, CreditCard, Truck, Clock, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { dataService } from '../services/dataService';
 
@@ -28,7 +27,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const cartItems = Object.entries(cart).map(([cakeId, quantity]) => {
     const cake = cakes.find(c => c.id === cakeId);
     if (!cake) return null;
-    
+
     const price = cake.discount ? cake.price * (1 - cake.discount / 100) : cake.price;
     return {
       cake,
@@ -75,7 +74,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           });
         }
       }
-      
+
       setOrderPlaced(true);
       setTimeout(() => {
         onOrderComplete();
@@ -255,7 +254,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 sticky top-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Buyurtma xulosasi</h3>
-            
+
             <div className="space-y-3 mb-4">
               {cartItems.map((item) => item && (
                 <div key={item.cake.id} className="flex justify-between items-start group">
@@ -270,12 +269,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                       {item.total.toLocaleString('uz-UZ')} so'm
                     </span>
                     <button
-                      onClick={() => removeFromCart(item.cake.id!)}
-                      className="w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
-                      title="Mahsulotni olib tashlash"
-                    >
-                      <span className="text-xs">×</span>
-                    </button>
+                        onClick={() => removeFromCart(item.cake.id!)}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors p-2 rounded-lg cursor-pointer"
+                        title="Savatdan olib tashlash"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                   </div>
                 </div>
               ))}
