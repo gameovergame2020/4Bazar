@@ -528,51 +528,7 @@ const OperatorDashboard = () => {
         </div>
       </div>
 
-      {/* System Alerts */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-100">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Tizim ogohlantirishlari</h3>
-          <button
-            onClick={loadData}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
-          >
-            <RefreshCw size={16} />
-            <span>Yangilash</span>
-          </button>
-        </div>
-        
-        <div className="space-y-3">
-          {systemAlerts.filter(alert => !alert.resolved).map((alert) => (
-            <div key={alert.id} className={`border rounded-xl p-4 ${getAlertColor(alert.type)}`}>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <AlertTriangle size={16} />
-                    <h4 className="font-medium">{alert.title}</h4>
-                  </div>
-                  <p className="text-sm mb-2">{alert.message}</p>
-                  <p className="text-xs opacity-75">
-                    {alert.timestamp.toLocaleString('uz-UZ')}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleResolveAlert(alert.id)}
-                  className="ml-4 bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg text-sm transition-colors"
-                >
-                  Hal qilish
-                </button>
-              </div>
-            </div>
-          ))}
-          
-          {systemAlerts.filter(alert => !alert.resolved).length === 0 && (
-            <div className="text-center py-8">
-              <CheckCircle size={48} className="text-green-400 mx-auto mb-4" />
-              <p className="text-gray-500">Barcha muammolar hal qilindi</p>
-            </div>
-          )}
-        </div>
-      </div>
+      
 
       {/* Support Tickets */}
       <div className="bg-white rounded-2xl p-6 border border-gray-100">
