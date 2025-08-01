@@ -11,6 +11,7 @@ const CustomerDashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [cart, setCart] = useState<{[key: string]: number}>({});
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [productFilter, setProductFilter] = useState<'all' | 'baked' | 'ready'>('all');
 
   useEffect(() => {
     loadData();
@@ -111,6 +112,12 @@ const CustomerDashboard = () => {
   const favoriteCakes = cakes.filter(cake => favorites.includes(cake.id!));
   const totalCartItems = Object.values(cart).reduce((sum, count) => sum + count, 0);
 
+  // Filter cakes based on selected product type
+  const filteredCakes = cakes.filter(cake => {
+    if (productFilter === 'all') return true;
+    return cake.productType === productFilter;
+  });
+
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
@@ -199,9 +206,46 @@ const CustomerDashboard = () => {
 
       {/* Available Products */}
       <div className="bg-white rounded-2xl p-6 border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Buyurtma uchun mavjud tortlar</h3>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 sm:mb-0">Buyurtma uchun mavjud tortlar</h3>
+          
+          {/* Filter Tabs */}
+          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setProductFilter('all')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                productFilter === 'all'
+                  ? 'bg-white text-orange-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Barchasi
+            </button>
+            <button
+              onClick={() => setProductFilter('baked')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                productFilter === 'baked'
+                  ? 'bg-white text-orange-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Baker tortlari
+            </button>
+            <button
+              onClick={() => setProductFilter('ready')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                productFilter === 'ready'
+                  ? 'bg-white text-orange-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Shop tortlari
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {cakes.map((cake) => {
+          {filteredCakes.map((cake) => {
             const discountedPrice = cake.discount ? cake.price * (1 - cake.discount / 100) : cake.price;
             const cartQuantity = cart[cake.id!] || 0;
             
@@ -304,10 +348,17 @@ const CustomerDashboard = () => {
           })}
         </div>
 
-        {cakes.length === 0 && (
+        {filteredCakes.length === 0 && (
           <div className="text-center py-8">
             <ShoppingBag size={48} className="text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">Hozircha tortlar mavjud emas</p>
+            <p className="text-gray-500">
+              {productFilter === 'all' 
+                ? 'Hozircha tortlar mavjud emas'
+                : productFilter === 'baked'
+                ? 'Baker tortlari mavjud emas'
+                : 'Shop tortlari mavjud emas'
+              }
+            </p>
           </div>
         )}
       </div>
