@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Package, Clock, TrendingUp, Users, Star, Edit, Trash2, Eye, EyeOff, CheckCircle, XCircle, Phone, MapPin, Calendar, DollarSign, Camera, Upload, Save, X } from 'lucide-react';
+import { Plus, Package, Clock, TrendingUp, Users, Star, Edit, Trash2, Eye, EyeOff, CheckCircle, XCircle, Phone, MapPin, Calendar, DollarSign, Camera, Upload, Save, X, ShoppingBasket, Minus } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { dataService, Cake, Order } from '../../services/dataService';
 import { notificationService } from '../../services/notificationService';
+import { useCart } from '../../hooks/useCart';
 
 const BakerDashboard = () => {
   const { userData } = useAuth();
@@ -43,6 +44,8 @@ const BakerDashboard = () => {
     { value: 'cupcake', label: 'Cupcake' },
     { value: 'cheesecake', label: 'Cheesecake' }
   ];
+
+  const { addToCart, removeFromCart, getCartQuantity } = useCart();
 
   useEffect(() => {
     if (userData?.id) {
@@ -689,7 +692,7 @@ const BakerDashboard = () => {
               </div>
 
               <div className="flex space-x-2">
-                
+
                 <button
                   onClick={() => startEditCake(cake)}
                   className="flex-1 bg-blue-500 text-white py-2 rounded-lg text-sm hover:bg-blue-600 transition-colors flex items-center justify-center space-x-1"
