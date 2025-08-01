@@ -26,6 +26,9 @@ const CustomerDashboard = () => {
       const allCakes = await dataService.getCakes();
       console.log('Jami yuklangan tortlar:', allCakes);
 
+      // Barcha buyurtmalarni yuklash (Baker mahsulotlari uchun buyurtma sonini hisoblash uchun)
+      const allOrders = await dataService.getOrders();
+
       // Baker va Shop tortlarini filtrlash
       const filteredCakes = allCakes.filter(cake => {
         // Baker mahsulotlari - barcha holatda ko'rsatiladi (available: false ham)
@@ -44,6 +47,20 @@ const CustomerDashboard = () => {
 
         // Default: available bo'lganlarni ko'rsatish
         return cake.available === true;
+      }).map(cake => {
+        // Baker mahsulotlari uchun buyurtma qilingan miqdorni hisoblash
+        if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
+          const orderedQuantity = allOrders
+            .filter(order => order.cakeId === cake.id && order.status !== 'cancelled')
+            .reduce((total, order) => total + order.quantity, 0);
+          
+          return {
+            ...cake,
+            quantity: orderedQuantity
+          };
+        }
+        
+        return cake;
       });
 
       // Statistika uchun ajratish

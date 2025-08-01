@@ -44,8 +44,46 @@ const HomePage = () => {
       }
 
       const cakesData = await dataService.getCakes(filters);
-      setCakes(cakesData);
-      setFilteredCakes(cakesData);
+
+      // Barcha buyurtmalarni yuklash (Baker mahsulotlari uchun buyurtma sonini hisoblash uchun)
+      const allOrders = await dataService.getOrders();
+
+      // Filtrlash: faqat available tortlar yoki Baker mahsulotlari
+      const filteredCakes = cakesData.filter(cake => {
+        // Baker mahsulotlari - barcha holatda ko'rsatiladi (available: false ham)
+        const isBakerProduct = cake.productType === 'baked' || (cake.bakerId && !cake.shopId);
+
+        // Shop mahsulotlari - faqat available: true bo'lganda
+        const isShopProduct = cake.productType === 'ready' || (cake.shopId && !cake.bakerId);
+
+        if (isBakerProduct) {
+          return true; // Baker mahsulotlari doimo ko'rsatiladi
+        }
+
+        if (isShopProduct) {
+          return cake.available === true; // Shop mahsulotlari faqat available bo'lganda
+        }
+
+        // Default: available bo'lganlarni ko'rsatish
+        return cake.available === true;
+      }).map(cake => {
+        // Baker mahsulotlari uchun buyurtma qilingan miqdorni hisoblash
+        if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
+          const orderedQuantity = allOrders
+            .filter(order => order.cakeId === cake.id && order.status !== 'cancelled')
+            .reduce((total, order) => total + order.quantity, 0);
+
+          return {
+            ...cake,
+            quantity: orderedQuantity
+          };
+        }
+
+        return cake;
+      });
+
+      setCakes(filteredCakes);
+      setFilteredCakes(filteredCakes);
     } catch (err) {
       console.error('Tortlarni yuklashda xatolik:', err);
       setError('Tortlarni yuklashda xatolik yuz berdi');
