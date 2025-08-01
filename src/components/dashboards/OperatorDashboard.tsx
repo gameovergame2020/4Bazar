@@ -59,6 +59,9 @@ const OperatorDashboard = () => {
     activeUsers: 1247
   });
 
+  const [selectedOrderFilter, setSelectedOrderFilter] = useState('all');
+  const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
+
   useEffect(() => {
     if (userData?.id) {
       loadData();
@@ -181,6 +184,66 @@ const OperatorDashboard = () => {
       )
     );
   };
+
+  const handleOrderStatusUpdate = async (orderId: string, status: Order['status']) => {
+    try {
+      await dataService.updateOrderStatus(orderId, status);
+      
+      // Buyurtma holatini local state'da yangilash
+      setOrders(prev => 
+        prev.map(order => 
+          order.id === orderId ? { ...order, status, updatedAt: new Date() } : order
+        )
+      );
+
+      // Bildirishnoma yuborish
+      const order = orders.find(o => o.id === orderId);
+      if (order) {
+        await notificationService.createOrderNotification(
+          order.customerId,
+          orderId,
+          status,
+          order.cakeName
+        );
+      }
+
+      // Statistikani yangilash
+      loadData();
+    } catch (error) {
+      console.error('Buyurtma holatini yangilashda xatolik:', error);
+    }
+  };
+
+  const getOrderStatusColor = (status: Order['status']) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-600';
+      case 'accepted': return 'bg-blue-100 text-blue-600';
+      case 'preparing': return 'bg-purple-100 text-purple-600';
+      case 'ready': return 'bg-green-100 text-green-600';
+      case 'delivering': return 'bg-indigo-100 text-indigo-600';
+      case 'delivered': return 'bg-gray-100 text-gray-600';
+      case 'cancelled': return 'bg-red-100 text-red-600';
+      default: return 'bg-gray-100 text-gray-600';
+    }
+  };
+
+  const getOrderStatusText = (status: Order['status']) => {
+    switch (status) {
+      case 'pending': return 'Kutilmoqda';
+      case 'accepted': return 'Qabul qilindi';
+      case 'preparing': return 'Tayyorlanmoqda';
+      case 'ready': return 'Tayyor';
+      case 'delivering': return 'Yetkazilmoqda';
+      case 'delivered': return 'Yetkazildi';
+      case 'cancelled': return 'Bekor qilindi';
+      default: return status;
+    }
+  };
+
+  const filteredOrders = orders.filter(order => {
+    if (selectedOrderFilter === 'all') return true;
+    return order.status === selectedOrderFilter;
+  });
 
   const getAlertColor = (type: SystemAlert['type']) => {
     switch (type) {
@@ -482,35 +545,266 @@ const OperatorDashboard = () => {
         </div>
       </div>
 
-      {/* Recent Orders Overview */}
+      {/* Orders Management */}
       <div className="bg-white rounded-2xl p-6 border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">So'nggi buyurtmalar</h3>
-        <div className="space-y-3">
-          {orders.slice(0, 5).map((order) => (
-            <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-              <div>
-                <h4 className="font-medium text-gray-900">#{order.id?.slice(-6)} - {order.cakeName}</h4>
-                <p className="text-sm text-gray-600">{order.customerName} - {order.customerPhone}</p>
-              </div>
-              <div className="text-right">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  order.status === 'delivered' ? 'bg-green-100 text-green-600' :
-                  order.status === 'preparing' ? 'bg-yellow-100 text-yellow-600' :
-                  order.status === 'cancelled' ? 'bg-red-100 text-red-600' :
-                  'bg-blue-100 text-blue-600'
-                }`}>
-                  {order.status === 'delivered' ? 'Yetkazildi' :
-                   order.status === 'preparing' ? 'Tayyorlanmoqda' :
-                   order.status === 'cancelled' ? 'Bekor qilindi' : 'Kutilmoqda'}
-                </span>
-                <p className="text-sm text-gray-500 mt-1">
-                  {order.createdAt.toLocaleDateString('uz-UZ')}
-                </p>
-              </div>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Buyurtmalar boshqaruvi</h3>
+          <div className="flex items-center space-x-3">
+            <select
+              value={selectedOrderFilter}
+              onChange={(e) => setSelectedOrderFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+            >
+              <option value="all">Barchasi</option>
+              <option value="pending">Kutilmoqda</option>
+              <option value="accepted">Qabul qilindi</option>
+              <option value="preparing">Tayyorlanmoqda</option>
+              <option value="ready">Tayyor</option>
+              <option value="delivering">Yetkazilmoqda</option>
+              <option value="delivered">Yetkazildi</option>
+              <option value="cancelled">Bekor qilindi</option>
+            </select>
+            <button
+              onClick={loadData}
+              className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              <RefreshCw size={16} />
+              <span>Yangilash</span>
+            </button>
+          </div>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-3 px-4 font-medium text-gray-900">ID</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Mijoz</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Tort</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Summa</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Holat</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Sana</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Amallar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredOrders.map((order) => (
+                <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="py-3 px-4 font-medium text-gray-900">#{order.id?.slice(-6)}</td>
+                  <td className="py-3 px-4">
+                    <div>
+                      <p className="font-medium text-gray-900">{order.customerName}</p>
+                      <p className="text-sm text-gray-600">{order.customerPhone}</p>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div>
+                      <p className="font-medium text-gray-900">{order.cakeName}</p>
+                      <p className="text-sm text-gray-600">Miqdor: {order.quantity}</p>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 font-medium text-gray-900">
+                    {order.totalPrice.toLocaleString('uz-UZ')} so'm
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getOrderStatusColor(order.status)}`}>
+                      {getOrderStatusText(order.status)}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-gray-600 text-sm">
+                    {order.createdAt.toLocaleDateString('uz-UZ')}
+                    <br />
+                    <span className="text-xs text-gray-500">
+                      {order.createdAt.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setSelectedOrderForDetails(order)}
+                        className="p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                        title="Tafsilotlar"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      
+                      {order.status === 'pending' && (
+                        <>
+                          <button
+                            onClick={() => handleOrderStatusUpdate(order.id!, 'accepted')}
+                            className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 transition-colors"
+                            title="Tasdiqlash"
+                          >
+                            ✓ Tasdiqlash
+                          </button>
+                          <button
+                            onClick={() => handleOrderStatusUpdate(order.id!, 'cancelled')}
+                            className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600 transition-colors"
+                            title="Rad etish"
+                          >
+                            ✗ Rad etish
+                          </button>
+                        </>
+                      )}
+                      
+                      {order.status === 'accepted' && (
+                        <button
+                          onClick={() => handleOrderStatusUpdate(order.id!, 'preparing')}
+                          className="px-2 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600 transition-colors"
+                        >
+                          Tayyorlashga yuborish
+                        </button>
+                      )}
+                      
+                      {order.status === 'ready' && (
+                        <button
+                          onClick={() => handleOrderStatusUpdate(order.id!, 'delivering')}
+                          className="px-2 py-1 bg-indigo-500 text-white rounded text-xs hover:bg-indigo-600 transition-colors"
+                        >
+                          Yetkazishga yuborish
+                        </button>
+                      )}
+                      
+                      <button
+                        onClick={() => window.open(`tel:${order.customerPhone}`, '_self')}
+                        className="p-1 text-green-600 hover:text-green-700 hover:bg-green-50 rounded transition-colors"
+                        title="Qo'ng'iroq qilish"
+                      >
+                        <Phone size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          
+          {filteredOrders.length === 0 && (
+            <div className="text-center py-8">
+              <Monitor size={48} className="text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">
+                {selectedOrderFilter !== 'all' 
+                  ? `${getOrderStatusText(selectedOrderFilter as Order['status'])} buyurtmalar topilmadi` 
+                  : 'Hozircha buyurtmalar yo\'q'
+                }
+              </p>
             </div>
-          ))}
+          )}
         </div>
       </div>
+
+      {/* Order Details Modal */}
+      {selectedOrderForDetails && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Buyurtma tafsilotlari</h3>
+              <button
+                onClick={() => setSelectedOrderForDetails(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">{selectedOrderForDetails.cakeName}</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Buyurtma ID:</span>
+                    <span className="font-medium">#{selectedOrderForDetails.id?.slice(-8)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mijoz:</span>
+                    <span className="font-medium">{selectedOrderForDetails.customerName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Telefon:</span>
+                    <span className="font-medium">{selectedOrderForDetails.customerPhone}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Miqdor:</span>
+                    <span className="font-medium">{selectedOrderForDetails.quantity} dona</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Jami summa:</span>
+                    <span className="font-medium">{selectedOrderForDetails.totalPrice.toLocaleString('uz-UZ')} so'm</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Holat:</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getOrderStatusColor(selectedOrderForDetails.status)}`}>
+                      {getOrderStatusText(selectedOrderForDetails.status)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Yaratildi:</span>
+                    <span className="font-medium">
+                      {selectedOrderForDetails.createdAt.toLocaleDateString('uz-UZ')} {selectedOrderForDetails.createdAt.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h5 className="font-medium text-gray-900 mb-2">Yetkazib berish manzili:</h5>
+                <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                  {selectedOrderForDetails.deliveryAddress}
+                </p>
+              </div>
+
+              {selectedOrderForDetails.notes && (
+                <div>
+                  <h5 className="font-medium text-gray-900 mb-2">Qo'shimcha eslatma:</h5>
+                  <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                    {selectedOrderForDetails.notes}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex space-x-2 pt-4">
+                <button
+                  onClick={() => setSelectedOrderForDetails(null)}
+                  className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Yopish
+                </button>
+                <button 
+                  onClick={() => window.open(`tel:${selectedOrderForDetails.customerPhone}`, '_self')}
+                  className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-1"
+                >
+                  <Phone size={16} />
+                  <span>Qo'ng'iroq</span>
+                </button>
+              </div>
+
+              {/* Quick Status Update Buttons */}
+              {selectedOrderForDetails.status === 'pending' && (
+                <div className="flex space-x-2 pt-2">
+                  <button
+                    onClick={() => {
+                      handleOrderStatusUpdate(selectedOrderForDetails.id!, 'accepted');
+                      setSelectedOrderForDetails(null);
+                    }}
+                    className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors"
+                  >
+                    ✓ Tasdiqlash
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleOrderStatusUpdate(selectedOrderForDetails.id!, 'cancelled');
+                      setSelectedOrderForDetails(null);
+                    }}
+                    className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors"
+                  >
+                    ✗ Rad etish
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
