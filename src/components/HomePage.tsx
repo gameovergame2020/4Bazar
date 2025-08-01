@@ -376,7 +376,7 @@ const HomePage = () => {
                         <span>
                           {cake.productType === 'baked' ? 
                             ((!cake.available || (cake.quantity !== undefined && cake.quantity <= 0)) ? 'Buyurtma berish' : 'Savatchaga qo\'shish')
-                            : cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity <= 0 
+                            : cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
                               ? 'Tugagan' 
                               : 'Savatchaga qo\'shish'
                           }
@@ -488,7 +488,7 @@ const HomePage = () => {
                         <span className="hidden sm:inline">
                           {cake.productType === 'baked' ? 
                             ((!cake.available || (cake.quantity !== undefined && cake.quantity <= 0)) ? 'Buyurtma' : 'Savatchaga')
-                            : cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity <= 0 
+                            : cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
                               ? 'Tugagan' 
                               : 'Savatchaga'
                           }
