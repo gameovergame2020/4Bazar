@@ -20,7 +20,7 @@ const CustomerDashboard = () => {
       const unsubscribeCakes = dataService.subscribeToRealtimeCakes(async (updatedCakes) => {
         // Buyurtmalarni ham real-time yangilash
         const allOrders = await dataService.getOrders();
-        
+
         const processedCakes = updatedCakes.filter(cake => {
           // Baker mahsulotlari - barcha holatda ko'rsatiladi
           const isBakerProduct = cake.productType === 'baked' || (cake.bakerId && !cake.shopId);
@@ -116,13 +116,13 @@ const CustomerDashboard = () => {
               !['cancelled', 'ready', 'delivering', 'delivered'].includes(order.status)
             )
             .reduce((total, order) => total + order.quantity, 0);
-          
+
           return {
             ...cake,
             quantity: orderedQuantity
           };
         }
-        
+
         return cake;
       });
 
@@ -204,8 +204,7 @@ const CustomerDashboard = () => {
     }
   };
 
-  const getStatusColor = (status: Order['status']) => {
-    switch (status) {
+  const getStatusColor = (status: Order['status']) => {    switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-600';
       case 'accepted': return 'bg-blue-100 text-blue-600';
       case 'preparing': return 'bg-orange-100 text-orange-600';
@@ -450,7 +449,11 @@ const CustomerDashboard = () => {
                       </span>
                       <button
                         onClick={() => addToCart(cake.id!)}
-                        disabled={cake.productType === 'ready' && cake.quantity !== undefined && cartQuantity >= cake.quantity}
+                        disabled={
+                            cake.productType === 'ready' && 
+                            cake.quantity !== undefined && 
+                            cartQuantity >= cake.quantity
+                          }
                         className="w-8 h-8 bg-orange-500 text-white rounded-lg flex items-center justify-center hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Plus size={16} />
@@ -459,13 +462,16 @@ const CustomerDashboard = () => {
                   ) : (
                     <button
                       onClick={() => addToCart(cake.id!)}
-                      disabled={cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity === 0}
+                      disabled={
+                            cake.productType === 'ready' && 
+                            cake.quantity !== undefined && 
+                            cake.quantity <= 0
+                          }
                       className="flex-1 bg-orange-500 text-white py-2 rounded-lg text-sm hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {/* Baker mahsulotlari uchun doimo "Buyurtma berish" */}
                       {cake.productType === 'baked' 
                         ? 'Buyurtma berish'
-                        : cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity === 0 
+                        : cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity <= 0 
                           ? 'Tugadi' 
                           : 'Savatga'
                       }
