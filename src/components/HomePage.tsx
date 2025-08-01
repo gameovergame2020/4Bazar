@@ -98,7 +98,11 @@ const HomePage = () => {
     console.log('Checkout clicked, cart:', cart, 'keys length:', Object.keys(cart).length);
     if (Object.keys(cart).length > 0) {
       console.log('Setting showCheckout to true');
-      setShowCheckout(true);
+      // Force re-render with timeout
+      setShowCheckout(false);
+      setTimeout(() => {
+        setShowCheckout(true);
+      }, 10);
     } else {
       console.log('Cart is empty, not showing checkout');
     }
@@ -166,16 +170,19 @@ const HomePage = () => {
 
   console.log('Render: showCheckout =', showCheckout, 'cart keys:', Object.keys(cart).length);
 
-  if (showCheckout) {
-    console.log('Rendering CheckoutPage');
+  // CheckoutPage'ga o'tish uchun explicit check
+  if (showCheckout === true && Object.keys(cart).length > 0) {
+    console.log('Rendering CheckoutPage with cart:', cart);
     return (
-      <CheckoutPage
-        cart={cart}
-        cakes={cakes}
-        onBack={handleBackFromCheckout}
-        onOrderComplete={handleOrderComplete}
-        removeFromCart={removeFromCart}
-      />
+      <div className="min-h-screen bg-gray-50">
+        <CheckoutPage
+          cart={cart}
+          cakes={cakes}
+          onBack={handleBackFromCheckout}
+          onOrderComplete={handleOrderComplete}
+          removeFromCart={removeFromCart}
+        />
+      </div>
     );
   }
 
