@@ -16,7 +16,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { dataService, Order } from '../../services/dataService';
+import { dataService, Order, SupportTicket } from '../../services/dataService';
 import { notificationService } from '../../services/notificationService';
 
 interface SystemAlert {
@@ -28,16 +28,7 @@ interface SystemAlert {
   resolved: boolean;
 }
 
-interface SupportTicket {
-  id: string;
-  customerId: string;
-  customerName: string;
-  subject: string;
-  priority: 'low' | 'medium' | 'high';
-  status: 'open' | 'in_progress' | 'resolved';
-  createdAt: Date;
-  lastReply: Date;
-}
+
 
 const OperatorDashboard = () => {
   const { userData } = useAuth();
@@ -118,40 +109,9 @@ const OperatorDashboard = () => {
       ];
       setSystemAlerts(mockAlerts);
       
-      // Generate mock support tickets
-      const mockTickets: SupportTicket[] = [
-        {
-          id: 'T001',
-          customerId: 'user1',
-          customerName: 'Aziza Karimova',
-          subject: 'Buyurtma yetib kelmadi',
-          priority: 'high',
-          status: 'open',
-          createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
-          lastReply: new Date(Date.now() - 30 * 60 * 1000)
-        },
-        {
-          id: 'T002',
-          customerId: 'user2',
-          customerName: 'Bobur Saidov',
-          subject: 'To\'lov muammosi',
-          priority: 'medium',
-          status: 'in_progress',
-          createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000),
-          lastReply: new Date(Date.now() - 1 * 60 * 60 * 1000)
-        },
-        {
-          id: 'T003',
-          customerId: 'user3',
-          customerName: 'Malika Ahmedova',
-          subject: 'Tort sifati haqida',
-          priority: 'low',
-          status: 'resolved',
-          createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
-          lastReply: new Date(Date.now() - 2 * 60 * 60 * 1000)
-        }
-      ];
-      setSupportTickets(mockTickets);
+      // Load support tickets from Firebase
+      const tickets = await dataService.getSupportTickets();
+      setSupportTickets(tickets);
       
       // Calculate stats
       const totalOrders = allOrders.length;
@@ -159,9 +119,9 @@ const OperatorDashboard = () => {
         ['pending', 'accepted', 'preparing'].includes(order.status)
       ).length;
       const activeIssues = mockAlerts.filter(alert => !alert.resolved).length;
-      const resolvedToday = mockTickets.filter(ticket => 
+      const resolvedToday = tickets.filter(ticket => 
         ticket.status === 'resolved' && 
-        ticket.lastReply.toDateString() === new Date().toDateString()
+        ticket.lastReply && ticket.lastReply.toDateString() === new Date().toDateString()
       ).length;
       
       setStats({
@@ -191,11 +151,28 @@ const OperatorDashboard = () => {
   };
 
   const handleTicketStatusUpdate = async (ticketId: string, status: SupportTicket['status']) => {
-    setSupportTickets(prev => 
-      prev.map(ticket => 
-        ticket.id === ticketId ? { ...ticket, status, lastReply: new Date() } : ticket
-      )
-    );
+    try {
+      await dataService.updateSupportTicketStatus(ticketId, status, userData?.id);
+      
+      // Local state'ni yangilash
+      setSupportTickets(prev => 
+        prev.map(ticket => 
+          ticket.id === ticketId ? { 
+            ...ticket, 
+            status, 
+            lastReply: new Date(),
+            assignedTo: userData?.id,
+            updatedAt: new Date()
+          } : ticket
+        )
+      );
+
+      // Statistikani yangilash
+      loadData();
+    } catch (error) {
+      console.error('Ticket holatini yangilashda xatolik:', error);
+      alert('Ticket holatini yangilashda xatolik yuz berdi');
+    }
   };
 
   const handleOrderStatusUpdate = async (orderId: string, status: Order['status']) => {
@@ -394,12 +371,43 @@ const OperatorDashboard = () => {
     }
   };
 
-  const getStatusColor = (status: SupportTicket['status']) => {
+  const getTicketStatusColor = (status: SupportTicket['status']) => {
     switch (status) {
       case 'open': return 'bg-red-100 text-red-600';
       case 'in_progress': return 'bg-blue-100 text-blue-600';
       case 'resolved': return 'bg-green-100 text-green-600';
+      case 'closed': return 'bg-gray-100 text-gray-600';
       default: return 'bg-gray-100 text-gray-600';
+    }
+  };
+
+  const getTicketStatusText = (status: SupportTicket['status']) => {
+    switch (status) {
+      case 'open': return 'Ochiq';
+      case 'in_progress': return 'Jarayonda';
+      case 'resolved': return 'Hal qilindi';
+      case 'closed': return 'Yopildi';
+      default: return status;
+    }
+  };
+
+  const getPriorityText = (priority: SupportTicket['priority']) => {
+    switch (priority) {
+      case 'high': return 'Yuqori';
+      case 'medium': return 'O\'rta';
+      case 'low': return 'Past';
+      default: return priority;
+    }
+  };
+
+  const getCategoryText = (category: SupportTicket['category']) => {
+    switch (category) {
+      case 'delivery': return 'Yetkazib berish';
+      case 'payment': return 'To\'lov';
+      case 'quality': return 'Sifat';
+      case 'technical': return 'Texnik';
+      case 'other': return 'Boshqa';
+      default: return category;
     }
   };
 
@@ -544,6 +552,7 @@ const OperatorDashboard = () => {
               <option value="open">Ochiq</option>
               <option value="in_progress">Jarayonda</option>
               <option value="resolved">Hal qilindi</option>
+              <option value="closed">Yopildi</option>
             </select>
           </div>
         </div>
@@ -555,6 +564,7 @@ const OperatorDashboard = () => {
                 <th className="text-left py-3 px-4 font-medium text-gray-900">ID</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Mijoz</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Mavzu</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Kategoriya</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Muhimlik</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Holat</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Yaratildi</th>
@@ -564,41 +574,84 @@ const OperatorDashboard = () => {
             <tbody>
               {filteredTickets.map((ticket) => (
                 <tr key={ticket.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-4 font-medium text-gray-900">{ticket.id}</td>
-                  <td className="py-3 px-4 text-gray-700">{ticket.customerName}</td>
-                  <td className="py-3 px-4 text-gray-700">{ticket.subject}</td>
+                  <td className="py-3 px-4 font-medium text-gray-900">#{ticket.id?.slice(-6)}</td>
+                  <td className="py-3 px-4">
+                    <div>
+                      <p className="font-medium text-gray-900">{ticket.customerName}</p>
+                      <p className="text-sm text-gray-600">{ticket.customerPhone}</p>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-gray-700 max-w-xs truncate" title={ticket.subject}>
+                    {ticket.subject}
+                  </td>
+                  <td className="py-3 px-4 text-gray-600 text-sm">
+                    {getCategoryText(ticket.category)}
+                  </td>
                   <td className="py-3 px-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(ticket.priority)}`}>
-                      {ticket.priority === 'high' ? 'Yuqori' : 
-                       ticket.priority === 'medium' ? 'O\'rta' : 'Past'}
+                      {getPriorityText(ticket.priority)}
                     </span>
                   </td>
                   <td className="py-3 px-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(ticket.status)}`}>
-                      {ticket.status === 'open' ? 'Ochiq' :
-                       ticket.status === 'in_progress' ? 'Jarayonda' : 'Hal qilindi'}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTicketStatusColor(ticket.status)}`}>
+                      {getTicketStatusText(ticket.status)}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-gray-600 text-sm">
                     {ticket.createdAt.toLocaleDateString('uz-UZ')}
+                    <br />
+                    <span className="text-xs text-gray-500">
+                      {ticket.createdAt.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
                   </td>
                   <td className="py-3 px-4">
-                    <div className="flex space-x-2">
-                      <button className="p-1 text-blue-600 hover:text-blue-700">
+                    <div className="flex space-x-2 flex-wrap">
+                      <button 
+                        className="p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                        title="Tafsilotlar"
+                      >
                         <Eye size={16} />
                       </button>
-                      <button className="p-1 text-green-600 hover:text-green-700">
-                        <Phone size={16} />
-                      </button>
-                      <button className="p-1 text-purple-600 hover:text-purple-700">
-                        <Mail size={16} />
-                      </button>
-                      {ticket.status !== 'resolved' && (
+                      {ticket.customerPhone && (
+                        <button 
+                          onClick={() => window.open(`tel:${ticket.customerPhone}`, '_self')}
+                          className="p-1 text-green-600 hover:text-green-700 hover:bg-green-50 rounded transition-colors"
+                          title="Qo'ng'iroq qilish"
+                        >
+                          <Phone size={16} />
+                        </button>
+                      )}
+                      {ticket.customerEmail && (
+                        <button 
+                          onClick={() => window.open(`mailto:${ticket.customerEmail}`, '_self')}
+                          className="p-1 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition-colors"
+                          title="Email yuborish"
+                        >
+                          <Mail size={16} />
+                        </button>
+                      )}
+                      {ticket.status === 'open' && (
                         <button
-                          onClick={() => handleTicketStatusUpdate(ticket.id, 'resolved')}
+                          onClick={() => handleTicketStatusUpdate(ticket.id!, 'in_progress')}
+                          className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors"
+                        >
+                          Olish
+                        </button>
+                      )}
+                      {ticket.status === 'in_progress' && (
+                        <button
+                          onClick={() => handleTicketStatusUpdate(ticket.id!, 'resolved')}
                           className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 transition-colors"
                         >
                           Hal qilish
+                        </button>
+                      )}
+                      {ticket.status === 'resolved' && (
+                        <button
+                          onClick={() => handleTicketStatusUpdate(ticket.id!, 'closed')}
+                          className="px-2 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600 transition-colors"
+                        >
+                          Yopish
                         </button>
                       )}
                     </div>
