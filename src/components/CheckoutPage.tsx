@@ -93,20 +93,13 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           // Mahsulot quantity'sini kamaytirish
           if (item.cake.quantity !== undefined && item.cake.quantity > 0) {
             const newQuantity = Math.max(0, item.cake.quantity - item.quantity);
+            const isAvailable = newQuantity > 0;
             
-            // Shop mahsulotlari uchun available false qilish agar quantity 0 bo'lsa
-            if (item.cake.productType === 'ready') {
-              await dataService.updateCake(item.cake.id!, {
-                quantity: newQuantity,
-                available: newQuantity > 0
-              });
-            } 
-            // Baker mahsulotlari uchun faqat quantity yangilash
-            else if (item.cake.productType === 'baked') {
-              await dataService.updateCake(item.cake.id!, {
-                quantity: newQuantity
-              });
-            }
+            // Barcha mahsulot turlari uchun quantity va available holatini yangilash
+            await dataService.updateCake(item.cake.id!, {
+              quantity: newQuantity,
+              available: isAvailable
+            });
           }
         }
       }
