@@ -20,9 +20,23 @@ const CustomerDashboard = () => {
     try {
       setLoading(true);
 
-      // Barcha mavjud tortlarni yuklash (baker va shop tortlari)
-      const allCakes = await dataService.getCakes({ available: true });
-      console.log('Yuklangan tortlar:', allCakes);
+      // Baker tortlarini yuklash (buyurtma uchun)
+      const bakerCakes = await dataService.getCakes({ 
+        productType: 'baked',
+        available: true 
+      });
+      console.log('Baker tortlari:', bakerCakes);
+
+      // Shop tortlarini yuklash (tayyor tortlar)
+      const shopCakes = await dataService.getCakes({ 
+        productType: 'ready',
+        available: true 
+      });
+      console.log('Shop tortlari:', shopCakes);
+
+      // Barcha tortlarni birlashtirish
+      const allCakes = [...bakerCakes, ...shopCakes];
+      console.log('Jami yuklangan tortlar:', allCakes);
       setCakes(allCakes);
 
       // Customer buyurtmalarini yuklash
