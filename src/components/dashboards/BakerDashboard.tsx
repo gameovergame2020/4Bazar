@@ -641,7 +641,10 @@ const BakerDashboard = () => {
                   <input
                     type="number"
                     value={cakeForm.discount}
-                    onChange={(e) => setCakeForm(prev => ({ ...prev, discount: e.target.value }))}
+                    onChange={(e) => {
+                      const value = Math.min(100, Math.max(0, parseFloat(e.target.value) || 0));
+                      setCakeForm(prev => ({ ...prev, discount: value.toString() }));
+                    }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     placeholder="0"
                     min="0"
