@@ -470,25 +470,14 @@ const BakerDashboard = () => {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Ma'lumotlar yuklanmoqda...</p>
-          <p className="text-sm text-gray-500 mt-2">Internet aloqasini tekshiring</p>
-          <div className="flex space-x-2 mt-4">
-            <button 
-              onClick={() => {
-                setLoading(false);
-                setTimeout(() => loadData(), 100);
-              }}
-              className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-            >
-              Qayta urinish
-            </button>
-            <button 
-              onClick={() => setLoading(false)}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              Bekor qilish
-            </button>
+          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="space-y-2">
+            <p className="text-lg font-medium text-gray-700">Ma'lumotlar yuklanmoqda</p>
+            <div className="flex justify-center space-x-1">
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            </div>
           </div>
         </div>
       </div>
