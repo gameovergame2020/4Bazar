@@ -49,41 +49,57 @@ const BakerDashboard = () => {
       loadData();
 
       // Real-time tortlar holatini kuzatish
-      const unsubscribe = dataService.subscribeToRealtimeCakes((updatedCakes) => {
-        const bakerCakes = updatedCakes.filter(cake => cake.bakerId === userData.id);
-        setMyCakes(bakerCakes);
+      let unsubscribe: (() => void) | undefined;
+      
+      try {
+        unsubscribe = dataService.subscribeToRealtimeCakes((updatedCakes) => {
+          try {
+            const bakerCakes = updatedCakes.filter(cake => cake.bakerId === userData.id);
+            setMyCakes(bakerCakes);
 
-        // Quantity 0 bo'lgan tortlarni avtomatik "Buyurtma uchun" rejimiga o'tkazish
-        bakerCakes.forEach(cake => {
-          if (cake.available && cake.quantity !== undefined && cake.quantity <= 0) {
-            // Avtomatik ravishda available = false qilish
-            dataService.updateCake(cake.id!, {
-              available: false,
-              quantity: 0
-            }).catch(error => {
-              console.error('Tort holatini yangilashda xatolik:', error);
+            // Quantity 0 bo'lgan tortlarni avtomatik "Buyurtma uchun" rejimiga o'tkazish
+            bakerCakes.forEach(cake => {
+              if (cake.available && cake.quantity !== undefined && cake.quantity <= 0) {
+                // Avtomatik ravishda available = false qilish
+                dataService.updateCake(cake.id!, {
+                  available: false,
+                  quantity: 0
+                }).catch(error => {
+                  console.error('Tort holatini yangilashda xatolik:', error);
+                });
+              }
             });
+
+            // Statistikani yangilash
+            const pendingOrders = orders.filter(order => 
+              ['pending', 'accepted', 'preparing'].includes(order.status) &&
+              bakerCakes.some(cake => cake.id === order.cakeId)
+            ).length;
+
+            const totalProducts = bakerCakes.length;
+            const averageRating = bakerCakes.length > 0 
+              ? bakerCakes.reduce((sum, cake) => sum + (cake.rating || 0), 0) / bakerCakes.length 
+              : 0;
+
+            setStats(prev => ({
+              ...prev,
+              pendingOrders: pendingOrders,
+              totalProducts: totalProducts,
+              averageRating: Math.round(averageRating * 10) / 10
+            }));
+          } catch (error) {
+            console.error('Real-time ma\'lumotlarni yangilashda xatolik:', error);
           }
-        });
-
-        // Statistikani yangilash
-        const pendingOrders = orders.filter(order => 
-          ['pending', 'accepted', 'preparing'].includes(order.status) &&
-          bakerCakes.some(cake => cake.id === order.cakeId)
-        ).length;
-
-        const totalProducts = bakerCakes.length;
-        const averageRating = bakerCakes.length > 0 
-          ? bakerCakes.reduce((sum, cake) => sum + cake.rating, 0) / bakerCakes.length 
-          : 0;
-
-        setStats(prev => ({
-          ...prev,
-          pendingOrders: pendingOrders,
-          totalProducts: totalProducts,
-          averageRating: Math.round(averageRating * 10) / 10
-        }));
-      }, { bakerId: userData.id });
+        }, { bakerId: userData.id });
+      } catch (error) {
+        console.error('Real-time obuna qilishda xatolik:', error);
+        // Real-time ishlamasa ham ma'lumotlarni yuklash
+        setTimeout(() => {
+          if (loading) {
+            loadData();
+          }
+        }, 1000);
+      }
 
       return () => {
         if (typeof unsubscribe === 'function') {
@@ -94,22 +110,37 @@ const BakerDashboard = () => {
   }, [userData, orders]);
 
   const loadData = async () => {
-    if (!userData?.id) return;
+    if (!userData?.id) {
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
 
-      // Load baker's cakes
-      const cakes = await dataService.getCakes({ 
+      // Load baker's cakes with timeout
+      const cakesPromise = dataService.getCakes({ 
         bakerId: userData.id,
         productType: 'baked'
       });
-      setMyCakes(cakes);
+      
+      const ordersPromise = dataService.getOrders();
+
+      // Add timeout to prevent infinite loading
+      const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Ma\'lumotlar yuklash vaqti tugadi')), 10000)
+      );
+
+      const [cakes, allOrders] = await Promise.race([
+        Promise.all([cakesPromise, ordersPromise]),
+        timeout
+      ]) as [any[], any[]];
+
+      setMyCakes(cakes || []);
 
       // Load orders for baker's cakes
-      const allOrders = await dataService.getOrders();
-      const bakerOrders = allOrders.filter(order => 
-        cakes.some(cake => cake.id === order.cakeId)
+      const bakerOrders = (allOrders || []).filter(order => 
+        cakes && cakes.some(cake => cake.id === order.cakeId)
       );
       setOrders(bakerOrders);
 
@@ -118,9 +149,9 @@ const BakerDashboard = () => {
         ['pending', 'accepted', 'preparing'].includes(order.status)
       ).length;
 
-      const totalProducts = cakes.length;
-      const averageRating = cakes.length > 0 
-        ? cakes.reduce((sum, cake) => sum + cake.rating, 0) / cakes.length 
+      const totalProducts = cakes ? cakes.length : 0;
+      const averageRating = cakes && cakes.length > 0 
+        ? cakes.reduce((sum, cake) => sum + (cake.rating || 0), 0) / cakes.length 
         : 0;
 
       const uniqueCustomers = new Set(bakerOrders.map(order => order.customerId)).size;
@@ -131,13 +162,13 @@ const BakerDashboard = () => {
       const todayOrders = bakerOrders.filter(order => 
         order.createdAt >= today && order.status === 'delivered'
       );
-      const todayEarnings = todayOrders.reduce((sum, order) => sum + order.totalPrice, 0);
+      const todayEarnings = todayOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
 
       const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
       const monthlyOrders = bakerOrders.filter(order => 
         order.createdAt >= monthStart && order.status === 'delivered'
       );
-      const monthlyEarnings = monthlyOrders.reduce((sum, order) => sum + order.totalPrice, 0);
+      const monthlyEarnings = monthlyOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
 
       setStats({
         pendingOrders,
@@ -150,6 +181,17 @@ const BakerDashboard = () => {
 
     } catch (error) {
       console.error('Ma\'lumotlarni yuklashda xatolik:', error);
+      // Ma'lumot yuklanmasa ham default qiymatlar o'rnatish
+      setMyCakes([]);
+      setOrders([]);
+      setStats({
+        pendingOrders: 0,
+        totalProducts: 0,
+        averageRating: 0,
+        totalCustomers: 0,
+        todayEarnings: 0,
+        monthlyEarnings: 0
+      });
     } finally {
       setLoading(false);
     }
@@ -430,12 +472,35 @@ const BakerDashboard = () => {
     }
   };
 
+  // Loading timeout effect
+  useEffect(() => {
+    if (loading) {
+      const timeoutId = setTimeout(() => {
+        if (loading) {
+          setLoading(false);
+          console.warn('Loading timeout - ma\'lumotlar yuklash to\'xtatildi');
+        }
+      }, 15000); // 15 soniya timeout
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [loading]);
+
   if (loading && orders.length === 0 && myCakes.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Ma'lumotlar yuklanmoqda...</p>
+          <button 
+            onClick={() => {
+              setLoading(false);
+              loadData();
+            }}
+            className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+          >
+            Qayta urinish
+          </button>
         </div>
       </div>
     );
