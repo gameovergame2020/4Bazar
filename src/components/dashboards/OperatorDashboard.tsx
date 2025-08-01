@@ -118,7 +118,9 @@ const OperatorDashboard = () => {
       const pendingOrders = allOrders.filter(order => 
         ['pending', 'accepted', 'preparing'].includes(order.status)
       ).length;
-      const activeIssues = mockAlerts.filter(alert => !alert.resolved).length;
+      const activeIssues = tickets.filter(ticket => 
+        ['open', 'in_progress'].includes(ticket.status)
+      ).length;
       const resolvedToday = tickets.filter(ticket => 
         ticket.status === 'resolved' && 
         ticket.lastReply && ticket.lastReply.toDateString() === new Date().toDateString()
@@ -463,7 +465,15 @@ const OperatorDashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 border border-gray-100">
+        <div 
+          className="bg-white rounded-xl p-4 border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => {
+            const supportSection = document.getElementById('support-tickets-section');
+            if (supportSection) {
+              supportSection.scrollIntoView({ behavior: 'smooth' });
+            }
+          }}
+        >
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-red-100 rounded-lg">
               <AlertTriangle size={20} className="text-red-600" />
@@ -529,7 +539,7 @@ const OperatorDashboard = () => {
       
 
       {/* Support Tickets */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-100">
+      <div id="support-tickets-section" className="bg-white rounded-2xl p-6 border border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Qo'llab-quvvatlash so'rovlari</h3>
           <div className="flex items-center space-x-3">
