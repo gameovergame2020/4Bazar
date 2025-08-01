@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Star, Heart, Clock, ChefHat, Gift, Cake, Cookie, ShoppingCart, Plus, Minus, ShoppingBasket } from 'lucide-react';
 import { dataService, Cake as CakeType } from '../services/dataService';
 import { useAuth } from '../hooks/useAuth';
+import CheckoutPage from './CheckoutPage';
 
 const HomePage = () => {
   const { userData, isAuthenticated } = useAuth();
@@ -11,6 +12,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cart, setCart] = useState<{[key: string]: number}>({});
+  const [showCheckout, setShowCheckout] = useState(false);
 
   const categories = [
     { name: 'Hammasi', icon: Cake, value: '' },
@@ -83,6 +85,23 @@ const HomePage = () => {
 
   const getCartQuantity = (cakeId: string) => cart[cakeId] || 0;
 
+  const clearCart = () => {
+    setCart({});
+  };
+
+  const handleCheckout = () => {
+    setShowCheckout(true);
+  };
+
+  const handleBackFromCheckout = () => {
+    setShowCheckout(false);
+  };
+
+  const handleOrderComplete = () => {
+    clearCart();
+    setShowCheckout(false);
+  };
+
   const formatPrice = (price: number, discount?: number) => {
     const discountedPrice = discount ? price * (1 - discount / 100) : price;
     return new Intl.NumberFormat('uz-UZ').format(discountedPrice) + ' so\'m';
@@ -118,6 +137,17 @@ const HomePage = () => {
           </button>
         </div>
       </div>
+    );
+  }
+
+  if (showCheckout) {
+    return (
+      <CheckoutPage
+        cart={cart}
+        cakes={cakes}
+        onBack={handleBackFromCheckout}
+        onOrderComplete={handleOrderComplete}
+      />
     );
   }
 
@@ -410,7 +440,10 @@ const HomePage = () => {
                     return total;
                   }, 0).toLocaleString('uz-UZ')} so'm
                 </p>
-                <button className="bg-orange-500 text-white px-3 py-1 rounded mt-2 text-xs hover:bg-orange-600 transition-colors">
+                <button 
+                  onClick={handleCheckout}
+                  className="bg-orange-500 text-white px-3 py-1 rounded mt-2 text-xs hover:bg-orange-600 transition-colors"
+                >
                   Buyurtma berish
                 </button>
               </div>
