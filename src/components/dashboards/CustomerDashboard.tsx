@@ -26,19 +26,30 @@ const CustomerDashboard = () => {
       const allCakes = await dataService.getCakes();
       console.log('Jami yuklangan tortlar:', allCakes);
 
-      // Baker va Shop tortlarini ajratish va filtrlash
-      const bakerCakes = allCakes.filter(cake => 
+      // Baker va Shop tortlarini filtrlash
+      const filteredCakes = allCakes.filter(cake => {
+        // Baker mahsulotlari: available holatidan qat'iy nazar barcha ko'rsatiladi
+        if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
+          return true; // Baker mahsulotlari doimo ko'rsatiladi
+        }
+        
+        // Shop mahsulotlari: faqat available: true bo'lganlar ko'rsatiladi
+        if (cake.productType === 'ready' || (cake.shopId && !cake.bakerId)) {
+          return cake.available !== false;
+        }
+        
+        // Boshqa mahsulotlar uchun default available tekshirish
+        return cake.available !== false;
+      });
+
+      // Statistika uchun ajratish
+      const bakerCakes = filteredCakes.filter(cake => 
         cake.productType === 'baked' || (cake.bakerId && !cake.shopId)
       );
       
-      const shopCakes = allCakes.filter(cake => 
-        (cake.productType === 'ready' || (cake.shopId && !cake.bakerId)) && 
-        cake.available !== false  // Shop mahsulotlari uchun faqat available: true
+      const shopCakes = filteredCakes.filter(cake => 
+        cake.productType === 'ready' || (cake.shopId && !cake.bakerId)
       );
-
-      // Baker mahsulotlari: available holatidan qat'iy nazar barcha
-      // Shop mahsulotlari: faqat available: true bo'lganlar
-      const filteredCakes = [...bakerCakes, ...shopCakes];
       
       console.log('Baker tortlari (barcha):', bakerCakes);
       console.log('Shop tortlari (faqat available):', shopCakes);
