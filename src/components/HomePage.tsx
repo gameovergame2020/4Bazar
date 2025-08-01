@@ -363,20 +363,22 @@ const HomePage = () => {
                     ) : (
                       <button
                         onClick={() => addToCart(cake.id!)}
-                        disabled={cake.available && cake.quantity !== undefined && cake.quantity <= 0}
+                        disabled={cake.productType === 'ready' && cake.available && cake.quantity !== undefined && cake.quantity <= 0}
                         className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors text-sm flex items-center space-x-1 ${
-                          cake.available && cake.quantity !== undefined && cake.quantity <= 0
+                          cake.productType === 'ready' && cake.available && cake.quantity !== undefined && cake.quantity <= 0
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : cake.available 
-                              ? 'bg-orange-500 text-white hover:bg-orange-600' 
-                              : 'bg-blue-500 text-white hover:bg-blue-600'
+                            : (cake.productType === 'baked' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0)))
+                              ? 'bg-blue-500 text-white hover:bg-blue-600'
+                              : 'bg-orange-500 text-white hover:bg-orange-600'
                         }`}
                       >
                         <ShoppingBasket size={14} />
                         <span>
-                          {cake.available ? 
-                            (cake.quantity !== undefined && cake.quantity <= 0 ? 'Tugagan' : 'Savatchaga qo\'shish') 
-                            : 'Buyurtma berish'
+                          {cake.productType === 'baked' ? 
+                            ((!cake.available || (cake.quantity !== undefined && cake.quantity <= 0)) ? 'Buyurtma berish' : 'Savatchaga qo\'shish')
+                            : cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity <= 0 
+                              ? 'Tugagan' 
+                              : 'Savatchaga qo\'shish'
                           }
                         </span>
                       </button>
@@ -473,20 +475,22 @@ const HomePage = () => {
                     ) : (
                       <button
                         onClick={() => addToCart(cake.id!)}
-                        disabled={cake.available && cake.quantity !== undefined && cake.quantity <= 0}
+                        disabled={cake.productType === 'ready' && cake.available && cake.quantity !== undefined && cake.quantity <= 0}
                         className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors text-sm flex items-center space-x-1 ${
-                          cake.available && cake.quantity !== undefined && cake.quantity <= 0
+                          cake.productType === 'ready' && cake.available && cake.quantity !== undefined && cake.quantity <= 0
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : cake.available 
-                              ? 'bg-orange-500 text-white hover:bg-orange-600' 
-                              : 'bg-blue-500 text-white hover:bg-blue-600'
+                            : (cake.productType === 'baked' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0)))
+                              ? 'bg-blue-500 text-white hover:bg-blue-600'
+                              : 'bg-orange-500 text-white hover:bg-orange-600'
                         }`}
                       >
                         <ShoppingBasket size={14} />
                         <span className="hidden sm:inline">
-                          {cake.available ? 
-                            (cake.quantity !== undefined && cake.quantity <= 0 ? 'Tugagan' : 'Savatchaga') 
-                            : 'Buyurtma'
+                          {cake.productType === 'baked' ? 
+                            ((!cake.available || (cake.quantity !== undefined && cake.quantity <= 0)) ? 'Buyurtma' : 'Savatchaga')
+                            : cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity <= 0 
+                              ? 'Tugagan' 
+                              : 'Savatchaga'
                           }
                         </span>
                       </button>
