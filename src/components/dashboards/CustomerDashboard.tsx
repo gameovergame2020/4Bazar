@@ -361,12 +361,12 @@ const CustomerDashboard = () => {
                       disabled={cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity === 0}
                       className="flex-1 bg-orange-500 text-white py-2 rounded-lg text-sm hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {/* Faqat shop tortlari uchun 'Tugadi' ko'rsatish */}
-                      {cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity === 0 
-                        ? 'Tugadi' 
-                        : cake.productType === 'ready' 
-                          ? 'Savatga' 
-                          : 'Buyurtma berish'
+                      {/* Baker mahsulotlari uchun doimo "Buyurtma berish" */}
+                      {cake.productType === 'baked' 
+                        ? 'Buyurtma berish'
+                        : cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity === 0 
+                          ? 'Tugadi' 
+                          : 'Savatga'
                       }
                     </button>
                   )}
