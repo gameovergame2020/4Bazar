@@ -24,6 +24,13 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     deliveryTime: 'asap'
   });
 
+  // Savat bo'sh bo'lganda asosiy sahifaga qaytish
+  React.useEffect(() => {
+    if (Object.keys(cart).length === 0 && !orderPlaced) {
+      onBack();
+    }
+  }, [cart, onBack, orderPlaced]);
+
   const cartItems = Object.entries(cart).map(([cakeId, quantity]) => {
     const cake = cakes.find(c => c.id === cakeId);
     if (!cake) return null;
