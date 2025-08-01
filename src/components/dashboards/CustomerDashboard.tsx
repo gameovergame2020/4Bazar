@@ -13,7 +13,9 @@ const CustomerDashboard = () => {
   const [productFilter, setProductFilter] = useState<'all' | 'baked' | 'ready'>('all');
 
   useEffect(() => {
-    loadData();
+    if (userData) {
+      loadData();
+    }
   }, [userData]);
 
   const loadData = async () => {
@@ -22,15 +24,13 @@ const CustomerDashboard = () => {
 
       // Baker tortlarini yuklash (buyurtma uchun)
       const bakerCakes = await dataService.getCakes({ 
-        productType: 'baked',
-        available: true 
+        productType: 'baked'
       });
       console.log('Baker tortlari:', bakerCakes);
 
       // Shop tortlarini yuklash (tayyor tortlar)
       const shopCakes = await dataService.getCakes({ 
-        productType: 'ready',
-        available: true 
+        productType: 'ready'
       });
       console.log('Shop tortlari:', shopCakes);
 
@@ -49,6 +49,9 @@ const CustomerDashboard = () => {
 
     } catch (error) {
       console.error('Ma\'lumotlarni yuklashda xatolik:', error);
+      // Bo'sh array o'rnatish
+      setCakes([]);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -358,7 +361,7 @@ const CustomerDashboard = () => {
                         ? 'Tugadi' 
                         : cake.productType === 'ready' 
                           ? 'Savatga' 
-                          : 'Buyurtma'
+                          : 'Buyurtma berish'
                       }
                     </button>
                   )}
