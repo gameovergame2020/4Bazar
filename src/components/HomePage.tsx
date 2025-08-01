@@ -416,38 +416,15 @@ const HomePage = () => {
       {/* Cart Icon */}
       {Object.keys(cart).length > 0 && (
         <div className="fixed bottom-20 right-4 z-[9999]">
-          <div className="bg-orange-500 text-white rounded-full p-3 shadow-lg hover:bg-orange-600 transition-colors cursor-pointer group">
+          <div 
+            onClick={handleCheckout}
+            className="bg-orange-500 text-white rounded-full p-3 shadow-lg hover:bg-orange-600 transition-colors cursor-pointer"
+          >
             <div className="relative">
               <ShoppingCart size={24} />
               <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
                 {Object.values(cart).reduce((sum, qty) => sum + qty, 0)}
               </div>
-            </div>
-            
-            {/* Tooltip */}
-            <div className="absolute bottom-full right-0 mb-2 bg-gray-900 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-              <div className="text-center">
-                <p className="font-medium">
-                  {Object.values(cart).reduce((sum, qty) => sum + qty, 0)} ta mahsulot
-                </p>
-                <p className="text-xs text-gray-300">
-                  {Object.entries(cart).reduce((total, [cakeId, qty]) => {
-                    const cake = cakes.find(c => c.id === cakeId);
-                    if (cake) {
-                      const price = cake.discount ? cake.price * (1 - cake.discount / 100) : cake.price;
-                      return total + (price * qty);
-                    }
-                    return total;
-                  }, 0).toLocaleString('uz-UZ')} so'm
-                </p>
-                <button 
-                  onClick={handleCheckout}
-                  className="bg-orange-500 text-white px-3 py-1 rounded mt-2 text-xs hover:bg-orange-600 transition-colors"
-                >
-                  Buyurtma berish
-                </button>
-              </div>
-              <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
             </div>
           </div>
         </div>
