@@ -30,7 +30,7 @@ const BakerDashboard = () => {
     category: 'birthday',
     ingredients: '',
     image: null as File | null,
-    available: true,
+    available: false,
     quantity: '',
     discount: ''
   });
@@ -154,7 +154,7 @@ const BakerDashboard = () => {
         category: 'birthday',
         ingredients: '',
         image: null,
-        available: true,
+        available: false,
         quantity: '',
         discount: ''
       });
@@ -289,7 +289,7 @@ const BakerDashboard = () => {
       category: 'birthday',
       ingredients: '',
       image: null,
-      available: true,
+      available: false,
       quantity: '',
       discount: ''
     });
