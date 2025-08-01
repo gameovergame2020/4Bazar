@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  Shield, 
   Users, 
   TrendingUp, 
   DollarSign, 
   Package, 
-  AlertTriangle,
   Settings,
   BarChart3,
   PieChart,
@@ -14,8 +12,6 @@ import {
   Database,
   Server,
   Lock,
-  UserCheck,
-  UserX,
   Edit,
   Trash2,
   Plus,
@@ -25,7 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { dataService, Order, Cake } from '../../services/dataService';
-import { authService, UserData } from '../../services/authService';
+import { UserData } from '../../services/authService';
 
 interface SystemMetrics {
   totalUsers: number;
@@ -119,7 +115,11 @@ const AdminDashboard = () => {
 
       // Calculate user stats
       const stats = mockUsers.reduce((acc, user) => {
-        acc[user.role]++;
+        if (user.role === 'customer') acc.customers++;
+        else if (user.role === 'baker') acc.bakers++;
+        else if (user.role === 'shop') acc.shops++;
+        else if (user.role === 'courier') acc.couriers++;
+        else if (user.role === 'operator') acc.operators++;
         return acc;
       }, {
         customers: 0,
@@ -225,7 +225,7 @@ const AdminDashboard = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setSelectedTab(tab.id)}
+                onClick={() => setSelectedTab(tab.id as 'overview' | 'users' | 'orders' | 'system' | 'settings' | 'statistics')}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
                   selectedTab === tab.id
                     ? 'bg-red-500 text-white'
@@ -573,7 +573,7 @@ const AdminDashboard = () => {
                     {Object.entries(statistics.available.categoryBreakdown).map(([category, count]) => (
                       <div key={category} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                         <span className="text-gray-700">{category}</span>
-                        <span className="font-medium text-gray-900">{count} ta</span>
+                        <span className="font-medium text-gray-900">{count as number} ta</span>
                       </div>
                     ))}
                   </div>
@@ -629,7 +629,7 @@ const AdminDashboard = () => {
                     {Object.entries(statistics.orderBased.categoryBreakdown).map(([category, count]) => (
                       <div key={category} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                         <span className="text-gray-700">{category}</span>
-                        <span className="font-medium text-gray-900">{count} ta</span>
+                        <span className="font-medium text-gray-900">{count as number} ta</span>
                       </div>
                     ))}
                   </div>
@@ -668,7 +668,7 @@ const AdminDashboard = () => {
                 <div className="mb-6">
                   <h4 className="text-md font-medium text-gray-900 mb-3">Eng ko'p sotilgan mahsulotlar</h4>
                   <div className="space-y-2">
-                    {statistics.business.topSellingProducts.map((product, index) => (
+                    {statistics.business.topSellingProducts.map((product: { cakeId: string; cakeName: string; totalSold: number; revenue: number }, index: number) => (
                       <div key={product.cakeId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center space-x-3">
                           <div className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold">

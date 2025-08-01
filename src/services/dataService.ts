@@ -487,6 +487,66 @@ class DataService {
 
   // STATISTIKA FUNKSIYALARI
 
+  // MAVJUD MAHSULOTLAR (SHOP) UCHUN INVENTORY COLLECTION
+  async createInventoryEntry(productId: string, quantity: number): Promise<void> {
+    try {
+      await addDoc(collection(db, 'inventory'), {
+        productId,
+        quantity,
+        type: 'available',
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
+      });
+    } catch (error) {
+      console.error('Inventory entry yaratishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  async updateInventoryQuantity(productId: string, quantity: number): Promise<void> {
+    try {
+      const q = query(
+        collection(db, 'inventory'),
+        where('productId', '==', productId),
+        where('type', '==', 'available')
+      );
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const doc = querySnapshot.docs[0];
+        await updateDoc(doc.ref, {
+          quantity,
+          updatedAt: Timestamp.now()
+        });
+      } else {
+        await this.createInventoryEntry(productId, quantity);
+      }
+    } catch (error) {
+      console.error('Inventory miqdorini yangilashda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // BUYURTMA ASOSIDAGI MAHSULOTLAR (BAKER) UCHUN ORDERS COLLECTION
+  async getOrderedQuantity(productId: string): Promise<number> {
+    try {
+      const q = query(
+        collection(db, 'orders'),
+        where('cakeId', '==', productId),
+        where('status', 'in', ['pending', 'accepted', 'preparing'])
+      );
+      const querySnapshot = await getDocs(q);
+      
+      return querySnapshot.docs.reduce((total, doc) => {
+        const order = doc.data() as Order;
+        return total + order.quantity;
+      }, 0);
+    } catch (error) {
+      console.error('Buyurtma miqdorini olishda xatolik:', error);
+      throw error;
+    }
+  }
+
   // Mavjud mahsulotlar statistikasi (shop mahsulotlari - available: true)
   async getAvailableProductsStats(): Promise<{
     totalAvailable: number;
@@ -501,11 +561,28 @@ class DataService {
         cake.productType === 'ready' && cake.available === true
       );
 
+      // Inventory collection'dan miqdorlarni olish
+      const inventoryPromises = availableProducts.map(async (cake) => {
+        const q = query(
+          collection(db, 'inventory'),
+          where('productId', '==', cake.id),
+          where('type', '==', 'available')
+        );
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          return querySnapshot.docs[0].data().quantity;
+        }
+        return cake.quantity || 0;
+      });
+
+      const quantities = await Promise.all(inventoryPromises);
+
       const stats = {
         totalAvailable: availableProducts.length,
-        totalQuantity: availableProducts.reduce((sum, cake) => sum + (cake.quantity || 0), 0),
-        lowStock: availableProducts.filter(cake => (cake.quantity || 0) <= 5 && (cake.quantity || 0) > 0).length,
-        outOfStock: availableProducts.filter(cake => (cake.quantity || 0) === 0).length,
+        totalQuantity: quantities.reduce((sum, qty) => sum + qty, 0),
+        lowStock: quantities.filter(qty => qty <= 5 && qty > 0).length,
+        outOfStock: quantities.filter(qty => qty === 0).length,
         categoryBreakdown: {} as { [category: string]: number }
       };
 
