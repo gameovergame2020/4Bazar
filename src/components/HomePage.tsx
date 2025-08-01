@@ -322,8 +322,10 @@ const HomePage = () => {
                       <span className="text-xs sm:text-sm font-medium text-gray-700">{cake.rating}</span>
                       <span className="text-xs sm:text-sm text-gray-500">({cake.reviewCount})</span>
                     </div>
-                    {cake.quantity && (
-                      <span className="text-xs text-gray-500">Qoldi: {cake.quantity}</span>
+                    {cake.quantity !== undefined && (
+                      <span className="text-xs text-gray-500">
+                        {cake.productType === 'baked' ? `Buyurtma qilingan: ${cake.quantity}` : `Qoldi: ${cake.quantity}`}
+                      </span>
                     )}
                   </div>
 
@@ -432,8 +434,10 @@ const HomePage = () => {
                         <span className="text-xs sm:text-sm font-medium text-gray-700">{cake.rating}</span>
                         <span className="text-xs sm:text-sm text-gray-500">({cake.reviewCount} sharh)</span>
                       </div>
-                      {cake.quantity && (
-                        <span className="text-xs text-gray-500">Qoldi: {cake.quantity}</span>
+                      {cake.quantity !== undefined && (
+                        <span className="text-xs text-gray-500">
+                          {cake.productType === 'baked' ? `Buyurtma qilingan: ${cake.quantity}` : `Qoldi: ${cake.quantity}`}
+                        </span>
                       )}
                     </div>
                   </div>
