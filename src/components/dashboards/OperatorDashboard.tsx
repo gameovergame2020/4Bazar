@@ -747,13 +747,6 @@ const OperatorDashboard = () => {
                       {order.status === 'pending' && (
                         <>
                           <button
-                            onClick={() => handleEditOrder(order)}
-                            className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors"
-                            title="Tahrirlash"
-                          >
-                            ✎ Tahrirlash
-                          </button>
-                          <button
                             onClick={() => handleOrderStatusUpdate(order.id!, 'accepted')}
                             className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 transition-colors"
                             title="Tasdiqlash"
@@ -926,25 +919,36 @@ const OperatorDashboard = () => {
 
               {/* Quick Status Update Buttons */}
               {selectedOrderForDetails.status === 'pending' && (
-                <div className="flex space-x-2 pt-2">
+                <div className="space-y-2 pt-2">
                   <button
                     onClick={() => {
-                      handleOrderStatusUpdate(selectedOrderForDetails.id!, 'accepted');
+                      handleEditOrder(selectedOrderForDetails);
                       setSelectedOrderForDetails(null);
                     }}
-                    className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors"
+                    className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
                   >
-                    ✓ Tasdiqlash
+                    ✎ Buyurtmani tahrirlash
                   </button>
-                  <button
-                    onClick={() => {
-                      handleOrderStatusUpdate(selectedOrderForDetails.id!, 'cancelled');
-                      setSelectedOrderForDetails(null);
-                    }}
-                    className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors"
-                  >
-                    ✗ Rad etish
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => {
+                        handleOrderStatusUpdate(selectedOrderForDetails.id!, 'accepted');
+                        setSelectedOrderForDetails(null);
+                      }}
+                      className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors"
+                    >
+                      ✓ Tasdiqlash
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleOrderStatusUpdate(selectedOrderForDetails.id!, 'cancelled');
+                        setSelectedOrderForDetails(null);
+                      }}
+                      className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors"
+                    >
+                      ✗ Rad etish
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
