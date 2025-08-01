@@ -135,12 +135,12 @@ const BakerDashboard = () => {
         category: cakeForm.category,
         bakerId: userData.id,
         bakerName: userData.name,
-        productType: 'baked',
+        productType: cakeForm.available ? 'ready' : 'baked', // Mavjud bo'lsa 'ready', buyurtma bo'lsa 'baked'
         rating: 0,
         reviewCount: 0,
-        available: true, // Baker mahsulotlari buyurtma uchun mavjud
+        available: true, // Barcha baker tortlari Firebase'da ko'rinish uchun true
         ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
-        quantity: cakeForm.available ? parseInt(cakeForm.quantity) || 0 : 0,
+        quantity: cakeForm.available ? parseInt(cakeForm.quantity) || 0 : undefined, // Buyurtma tortlari uchun quantity yo'q
         discount: parseFloat(cakeForm.discount) || 0
       };
 
@@ -194,9 +194,10 @@ const BakerDashboard = () => {
         price: parseFloat(cakeForm.price),
         image: imageUrl,
         category: cakeForm.category,
-        available: cakeForm.available,
+        productType: cakeForm.available ? 'ready' : 'baked', // Mavjud bo'lsa 'ready', buyurtma bo'lsa 'baked'
+        available: true, // Barcha baker tortlari Firebase'da ko'rinish uchun true
         ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
-        quantity: cakeForm.available ? parseInt(cakeForm.quantity) || 0 : 0,
+        quantity: cakeForm.available ? parseInt(cakeForm.quantity) || 0 : undefined, // Buyurtma tortlari uchun quantity yo'q
         discount: parseFloat(cakeForm.discount) || 0
       };
 
@@ -298,7 +299,7 @@ const BakerDashboard = () => {
       category: cake.category,
       ingredients: cake.ingredients.join(', '),
       image: null,
-      available: cake.available,
+      available: cake.productType === 'ready', // productType'dan available holatini aniqlash
       quantity: cake.quantity?.toString() || '0',
       discount: cake.discount?.toString() || '0'
     });
@@ -557,9 +558,9 @@ const BakerDashboard = () => {
                 />
                 <div className="absolute top-2 right-2">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    cake.available ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
+                    cake.productType === 'ready' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
                   }`}>
-                    {cake.available ? 'Mavjud' : 'Buyurtma'}
+                    {cake.productType === 'ready' ? 'Mavjud' : 'Buyurtma'}
                   </span>
                 </div>
               </div>
