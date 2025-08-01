@@ -90,7 +90,9 @@ const HomePage = () => {
   };
 
   const handleCheckout = () => {
-    setShowCheckout(true);
+    if (Object.keys(cart).length > 0) {
+      setShowCheckout(true);
+    }
   };
 
   const handleBackFromCheckout = () => {
@@ -453,7 +455,10 @@ const HomePage = () => {
       {/* Cart Icon */}
       {Object.keys(cart).length > 0 && (
         <button 
-          onClick={handleCheckout}
+          onClick={() => {
+            console.log('Cart button clicked, cart:', cart);
+            setShowCheckout(true);
+          }}
           className="fixed bottom-6 right-4 z-[9999] bg-orange-500 text-white rounded-full p-3 shadow-lg hover:bg-orange-600 transition-colors focus:outline-none"
         >
           <div className="relative">
