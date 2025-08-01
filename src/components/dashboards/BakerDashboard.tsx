@@ -3,7 +3,6 @@ import { Plus, Package, Clock, TrendingUp, Users, Star, Edit, Trash2, Eye, EyeOf
 import { useAuth } from '../../hooks/useAuth';
 import { dataService, Cake, Order } from '../../services/dataService';
 import { notificationService } from '../../services/notificationService';
-import { useCart } from '../../hooks/useCart';
 
 const BakerDashboard = () => {
   const { userData } = useAuth();
@@ -44,8 +43,6 @@ const BakerDashboard = () => {
     { value: 'cupcake', label: 'Cupcake' },
     { value: 'cheesecake', label: 'Cheesecake' }
   ];
-
-  const { addToCart, removeFromCart, getCartQuantity } = useCart();
 
   useEffect(() => {
     if (userData?.id) {
