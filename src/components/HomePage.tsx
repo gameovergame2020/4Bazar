@@ -439,15 +439,8 @@ const HomePage = () => {
                         <span className="font-medium text-gray-900">{getCartQuantity(cake.id!)}</span>
                         <button
                           onClick={() => addToCart(cake.id!)}
-                          disabled={
-                          (cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
-                          (cake.productType === 'baked' && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
-                          (cake.productType === 'baked' && cake.quantity === undefined && getCartQuantity(cake.id!) >= (cake.availableStock || 0))
-                        }
                           className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                          (cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
-                          (cake.productType === 'baked' && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
-                          (cake.productType === 'baked' && cake.quantity === undefined && getCartQuantity(cake.id!) >= (cake.availableStock || 0))
+                          (cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity)
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             : 'bg-orange-500 text-white hover:bg-orange-600'
                         }`}
@@ -459,14 +452,10 @@ const HomePage = () => {
                       <button
                         onClick={() => addToCart(cake.id!)}
                         disabled={
-                          (cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))) ||
-                          (cake.productType === 'baked' && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
-                          (cake.productType === 'baked' && cake.quantity === undefined && getCartQuantity(cake.id!) >= (cake.availableStock || 0))
+                          (cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0)))
                         }
                         className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors text-sm flex items-center space-x-1 ${
-                          (cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))) ||
-                          (cake.productType === 'baked' && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
-                          (cake.productType === 'baked' && cake.quantity === undefined && getCartQuantity(cake.id!) >= (cake.availableStock || 0))
+                          (cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0)))
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             : cake.productType === 'baked' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
                               ? 'bg-blue-500 text-white hover:bg-blue-600'
@@ -568,15 +557,8 @@ const HomePage = () => {
                         </span>
                         <button
                            onClick={() => addToCart(cake.id!)}
-                          disabled={
-                          (cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
-                          (cake.productType === 'baked' && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
-                          (cake.productType === 'baked' && cake.quantity === undefined && getCartQuantity(cake.id!) >= (cake.availableStock || 0))
-                        }
                           className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-                            (cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
-                            (cake.productType === 'baked' && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
-                            (cake.productType === 'baked' && cake.quantity === undefined && getCartQuantity(cake.id!) >= (cake.availableStock || 0))
+                            (cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity)
                               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                               : 'bg-orange-500 text-white hover:bg-orange-600'
                           }`}
@@ -588,14 +570,10 @@ const HomePage = () => {
                       <button
                         onClick={() => addToCart(cake.id!)}
                         disabled={
-                          (cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))) ||
-                          (cake.productType === 'baked' && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
-                          (cake.productType === 'baked' && cake.quantity === undefined && getCartQuantity(cake.id!) >= (cake.availableStock || 0))
+                          (cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0)))
                         }
                         className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors text-sm flex items-center space-x-1 ${
-                          (cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))) ||
-                          (cake.productType === 'baked' && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
-                          (cake.productType === 'baked' && cake.quantity === undefined && getCartQuantity(cake.id!) >= (cake.availableStock || 0))
+                          (cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0)))
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             : cake.productType === 'baked' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
                               ? 'bg-blue-500 text-white hover:bg-blue-600'
