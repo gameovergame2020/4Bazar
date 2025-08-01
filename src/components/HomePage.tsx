@@ -444,9 +444,9 @@ const HomePage = () => {
                           ? cake.quantity !== undefined 
                             ? `Qoldiq: ${cake.quantity} ta`
                             : 'Miqdor: cheklanmagan'
-                          : `Buyurtma qilingan: ${cake.quantity || 0}` 
+                          : `Buyurtma qilingan: ${cake.quantity || 0} ta` 
                         : cake.quantity !== undefined 
-                          ? `Qoldi: ${cake.quantity}`
+                          ? `Qoldi: ${cake.quantity} ta`
                           : 'Miqdor: cheklanmagan'
                       }
                     </span>
@@ -571,9 +571,9 @@ const HomePage = () => {
                             ? cake.quantity !== undefined 
                               ? `Qoldiq: ${cake.quantity} ta`
                               : 'Miqdor: cheklanmagan'
-                            : `Buyurtma qilingan: ${cake.quantity || 0}` 
+                            : `Buyurtma qilingan: ${cake.quantity || 0} ta` 
                           : cake.quantity !== undefined 
-                            ? `Qoldi: ${cake.quantity}`
+                            ? `Qoldi: ${cake.quantity} ta`
                             : 'Miqdor: cheklanmagan'
                         }
                       </span>
