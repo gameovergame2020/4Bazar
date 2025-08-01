@@ -214,6 +214,41 @@ const OperatorDashboard = () => {
     }
   };
 
+  const handleRemoveOrderItem = async (orderId: string) => {
+    if (confirm('Bu buyurtmani o\'chirishni tasdiqlaysizmi?')) {
+      try {
+        // Buyurtmani bekor qilish holati bilan yangilash
+        await handleOrderStatusUpdate(orderId, 'cancelled');
+        
+        // Buyurtmani ro'yxatdan olib tashlash
+        setOrders(prev => prev.filter(order => order.id !== orderId));
+        
+        // Statistikani yangilash 
+        loadData();
+      } catch (error) {
+        console.error('Buyurtmani o\'chirishda xatolik:', error);
+        alert('Buyurtmani o\'chirishda xatolik yuz berdi');
+      }
+    }
+  };
+
+  const handleAddOrderNote = async (orderId: string, note: string) => {
+    try {
+      // Buyurtmaga eslatma qo'shish
+      await dataService.updateOrder(orderId, { notes: note });
+      
+      // Local state'ni yangilash
+      setOrders(prev => 
+        prev.map(order => 
+          order.id === orderId ? { ...order, notes: note, updatedAt: new Date() } : order
+        )
+      );
+    } catch (error) {
+      console.error('Eslatma qo\'shishda xatolik:', error);
+      alert('Eslatma qo\'shishda xatolik yuz berdi');
+    }
+  };
+
   const getOrderStatusColor = (status: Order['status']) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-600';
@@ -619,7 +654,7 @@ const OperatorDashboard = () => {
                     </span>
                   </td>
                   <td className="py-3 px-4">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 flex-wrap">
                       <button
                         onClick={() => setSelectedOrderForDetails(order)}
                         className="p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
@@ -672,6 +707,29 @@ const OperatorDashboard = () => {
                       >
                         <Phone size={16} />
                       </button>
+
+                      <button
+                        onClick={() => {
+                          const note = prompt('Buyurtmaga eslatma qo\'shing:');
+                          if (note && note.trim()) {
+                            handleAddOrderNote(order.id!, note.trim());
+                          }
+                        }}
+                        className="p-1 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded transition-colors"
+                        title="Eslatma qo'shish"
+                      >
+                        <MessageCircle size={16} />
+                      </button>
+
+                      {['pending', 'accepted', 'preparing'].includes(order.status) && (
+                        <button
+                          onClick={() => handleRemoveOrderItem(order.id!)}
+                          className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                          title="Buyurtmani o'chirish"
+                        >
+                          <AlertTriangle size={16} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

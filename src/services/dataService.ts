@@ -211,6 +211,21 @@ class DataService {
     }
   }
 
+  // Buyurtmani yangilash (umumiy)
+  async updateOrder(orderId: string, updates: Partial<Order>): Promise<void> {
+    try {
+      const updateData = {
+        ...updates,
+        updatedAt: Timestamp.now()
+      };
+      
+      await updateDoc(doc(db, 'orders', orderId), updateData);
+    } catch (error) {
+      console.error('Buyurtmani yangilashda xatolik:', error);
+      throw error;
+    }
+  }
+
   // SHARHLAR BILAN ISHLASH
 
   // Sharh qo'shish
