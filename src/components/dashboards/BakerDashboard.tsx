@@ -50,47 +50,58 @@ const BakerDashboard = () => {
       loadData();
 
       // Real-time subscription o'rnatish
-      let unsubscribe: (() => void) | undefined;
-      let timeoutId: NodeJS.Timeout;
-      
-      // 3 soniyadan keyin real-time subscription o'rnatish
-      timeoutId = setTimeout(() => {
+      const unsubscribe = dataService.subscribeToRealtimeCakes((updatedCakes) => {
         try {
-          unsubscribe = dataService.subscribeToRealtimeCakes((updatedCakes) => {
-            try {
-              const bakerCakes = updatedCakes.filter(cake => cake.bakerId === userData.id);
-              setMyCakes(bakerCakes);
-              
-              // Loading holatini to'xtatish
-              setLoading(false);
+          const bakerCakes = updatedCakes.filter(cake => cake.bakerId === userData.id);
+          setMyCakes(bakerCakes);
 
-              // Statistikani yangilash
-              const pendingOrders = orders.filter(order => 
-                ['pending', 'accepted', 'preparing'].includes(order.status) &&
-                bakerCakes.some(cake => cake.id === order.cakeId)
-              ).length;
+          // Buyurtmalarni yangilash
+          dataService.getOrders().then(allOrders => {
+            const bakerOrders = allOrders.filter(order => 
+              bakerCakes.some(cake => cake.id === order.cakeId)
+            );
+            setOrders(bakerOrders);
 
-              setStats(prev => ({
-                ...prev,
-                pendingOrders: pendingOrders,
-                totalProducts: bakerCakes.length,
-                averageRating: bakerCakes.length > 0 
-                  ? Math.round((bakerCakes.reduce((sum, cake) => sum + (cake.rating || 0), 0) / bakerCakes.length) * 10) / 10
-                  : 0
-              }));
-            } catch (error) {
-              console.error('Real-time ma\'lumotlarni yangilashda xatolik:', error);
-              setLoading(false);
-            }
-          }, { bakerId: userData.id });
+            // Statistikani yangilash
+            const pendingOrders = bakerOrders.filter(order => 
+              ['pending', 'accepted', 'preparing'].includes(order.status)
+            ).length;
+
+            const uniqueCustomers = new Set(bakerOrders.map(order => order.customerId)).size;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const todayOrders = bakerOrders.filter(order => 
+              order.createdAt >= today && order.status === 'delivered'
+            );
+            const todayEarnings = todayOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+
+            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+            const monthlyOrders = bakerOrders.filter(order => 
+              order.createdAt >= monthStart && order.status === 'delivered'
+            );
+            const monthlyEarnings = monthlyOrders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+
+            setStats({
+              pendingOrders,
+              totalProducts: bakerCakes.length,
+              averageRating: bakerCakes.length > 0 
+                ? Math.round((bakerCakes.reduce((sum, cake) => sum + (cake.rating || 0), 0) / bakerCakes.length) * 10) / 10
+                : 0,
+              totalCustomers: uniqueCustomers,
+              todayEarnings,
+              monthlyEarnings
+            });
+          }).catch(error => {
+            console.error('Buyurtmalarni yangilashda xatolik:', error);
+          });
         } catch (error) {
-          console.error('Real-time obuna qilishda xatolik:', error);
-          setLoading(false);
+          console.error('Real-time ma\'lumotlarni yangilashda xatolik:', error);
         }
-      }, 3000);
+      }, { bakerId: userData.id });
 
       return () => {
-        if (timeoutId) clearTimeout(timeoutId);
         if (typeof unsubscribe === 'function') {
           unsubscribe();
         }
@@ -173,10 +184,8 @@ const BakerDashboard = () => {
         monthlyEarnings: 0
       });
     } finally {
-      // 2 soniyadan keyin loading ni to'xtatish
-      setTimeout(() => {
-        setLoading(false);
-      }, 2000);
+      // Loading ni to'xtatish
+      setLoading(false);
     }
   };
 
@@ -455,17 +464,7 @@ const BakerDashboard = () => {
     }
   };
 
-  // Loading holatini boshqarish
-  useEffect(() => {
-    if (loading) {
-      const timeoutId = setTimeout(() => {
-        setLoading(false);
-        console.warn('Loading timeout - ma\'lumotlar yuklash to\'xtatildi');
-      }, 5000); // 5 soniya timeout
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [loading]);
+  
 
   if (loading && orders.length === 0 && myCakes.length === 0) {
     return (
