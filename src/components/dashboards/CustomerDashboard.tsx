@@ -27,11 +27,13 @@ const CustomerDashboard = () => {
       console.log('Jami yuklangan tortlar:', allCakes);
 
       // Baker va Shop tortlarini ajratish
+      // Baker mahsulotlari: available holatidan qat'iy nazar barcha ko'rsatiladi
       const bakerCakes = allCakes.filter(cake => 
         cake.productType === 'baked' || (cake.bakerId && !cake.shopId)
       );
+      // Shop mahsulotlari: faqat available bo'lganlar ko'rsatiladi
       const shopCakes = allCakes.filter(cake => 
-        cake.productType === 'ready' || (cake.shopId && !cake.bakerId)
+        (cake.productType === 'ready' || (cake.shopId && !cake.bakerId)) && cake.available !== false
       );
       const otherCakes = allCakes.filter(cake => 
         !bakerCakes.includes(cake) && !shopCakes.includes(cake)
