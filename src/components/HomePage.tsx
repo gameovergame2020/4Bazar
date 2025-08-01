@@ -96,6 +96,14 @@ const HomePage = () => {
 
   const handleCheckout = () => {
     console.log('Checkout clicked, cart:', cart, 'keys length:', Object.keys(cart).length);
+    
+    // Avval tizimga kirganligini tekshirish
+    if (!isAuthenticated) {
+      alert('Buyurtma berish uchun avval tizimga kirishingiz kerak!');
+      // Login sahifasiga yo'naltirish (kerak bo'lsa)
+      return;
+    }
+    
     if (Object.keys(cart).length > 0) {
       console.log('Switching to checkout view');
       // Force React to re-render by temporarily changing view

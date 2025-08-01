@@ -12,9 +12,10 @@ interface CheckoutPageProps {
 }
 
 const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrderComplete, removeFromCart }) => {
-  const { userData } = useAuth();
+  const { userData, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [formData, setFormData] = useState({
     customerName: userData?.name || '',
     customerPhone: userData?.phone || '',
@@ -24,12 +25,17 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     deliveryTime: 'asap'
   });
 
-  // Savat bo'sh bo'lganda asosiy sahifaga qaytish
+  // Savat bo'sh bo'lganda yoki foydalanuvchi tizimga kirmagan bo'lsa
   React.useEffect(() => {
     if (Object.keys(cart).length === 0 && !orderPlaced) {
       onBack();
     }
-  }, [cart, onBack, orderPlaced]);
+    
+    // Agar foydalanuvchi tizimga kirmagan bo'lsa, login oynasini ko'rsatish
+    if (!isAuthenticated && !showLoginPrompt) {
+      setShowLoginPrompt(true);
+    }
+  }, [cart, onBack, orderPlaced, isAuthenticated, showLoginPrompt]);
 
   const cartItems = Object.entries(cart).map(([cakeId, quantity]) => {
     const cake = cakes.find(c => c.id === cakeId);
@@ -93,6 +99,40 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       setLoading(false);
     }
   };
+
+  // Login talab qilish modali
+  if (showLoginPrompt) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <div className="bg-white rounded-2xl p-8 text-center shadow-lg">
+          <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <User size={32} className="text-orange-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Buyurtma berish uchun tizimga kiring</h2>
+          <p className="text-gray-600 mb-6">
+            Buyurtma berish uchun avval ro'yhatdan o'tishingiz yoki tizimga kirishingiz kerak
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => {
+                // Login sahifasiga o'tish logikasi
+                window.location.href = '/login';
+              }}
+              className="bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+            >
+              Tizimga kirish
+            </button>
+            <button
+              onClick={onBack}
+              className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+            >
+              Orqaga qaytish
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (orderPlaced) {
     return (
