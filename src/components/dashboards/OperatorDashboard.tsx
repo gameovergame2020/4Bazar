@@ -479,17 +479,7 @@ const OperatorDashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 border border-gray-100">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Activity size={20} className="text-purple-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.systemUptime}%</p>
-              <p className="text-sm text-gray-600">Tizim ishlashi</p>
-            </div>
-          </div>
-        </div>
+        
 
         <div className="bg-white rounded-xl p-4 border border-gray-100">
           <div className="flex items-center space-x-3">
