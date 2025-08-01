@@ -44,10 +44,9 @@ const OperatorDashboard = () => {
     pendingOrders: 0,
     activeIssues: 0,
     resolvedToday: 0,
-    systemUptime: 99.8,
-    avgResponseTime: 2.3,
-    customerSatisfaction: 4.7,
-    activeUsers: 1247
+    avgResponseTime: 0,
+    activeUsers: 0,
+    customerSatisfaction: 0
   });
 
   const [selectedOrderFilter, setSelectedOrderFilter] = useState('all');
@@ -112,6 +111,9 @@ const OperatorDashboard = () => {
       // Load support tickets from Firebase
       const tickets = await dataService.getSupportTickets();
       setSupportTickets(tickets);
+
+      // Load all cakes to calculate customer satisfaction from reviews
+      const allCakes = await dataService.getCakes({});
       
       // Calculate stats
       const totalOrders = allOrders.length;
@@ -125,16 +127,37 @@ const OperatorDashboard = () => {
         ticket.status === 'resolved' && 
         ticket.updatedAt && ticket.updatedAt.toDateString() === new Date().toDateString()
       ).length;
+
+      // Calculate average response time from resolved tickets
+      const resolvedTickets = tickets.filter(ticket => ticket.status === 'resolved');
+      const avgResponseTime = resolvedTickets.length > 0 
+        ? resolvedTickets.reduce((sum, ticket) => {
+            const responseTime = ticket.updatedAt.getTime() - ticket.createdAt.getTime();
+            return sum + (responseTime / (1000 * 60 * 60)); // Convert to hours
+          }, 0) / resolvedTickets.length
+        : 0;
+
+      // Calculate customer satisfaction from cake ratings
+      const cakesWithRatings = allCakes.filter(cake => cake.reviewCount > 0);
+      const customerSatisfaction = cakesWithRatings.length > 0
+        ? cakesWithRatings.reduce((sum, cake) => sum + cake.rating, 0) / cakesWithRatings.length
+        : 0;
+
+      // Calculate active users from unique customers in recent orders (last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const recentOrders = allOrders.filter(order => order.createdAt >= thirtyDaysAgo);
+      const uniqueCustomers = new Set(recentOrders.map(order => order.customerId));
+      const activeUsers = uniqueCustomers.size;
       
       setStats({
         totalOrders,
         pendingOrders,
         activeIssues,
         resolvedToday,
-        systemUptime: 99.8,
-        avgResponseTime: 2.3,
-        customerSatisfaction: 4.7,
-        activeUsers: 1247
+        avgResponseTime: Math.round(avgResponseTime * 10) / 10, // 1 xona aniqlik
+        activeUsers,
+        customerSatisfaction: Math.round(customerSatisfaction * 10) / 10 // 1 xona aniqlik
       });
       
     } catch (error) {
@@ -505,7 +528,7 @@ const OperatorDashboard = () => {
               <TrendingUp size={20} className="text-indigo-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.avgResponseTime}s</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.avgResponseTime}h</p>
               <p className="text-sm text-gray-600">O'rt. javob vaqti</p>
             </div>
           </div>
@@ -529,7 +552,7 @@ const OperatorDashboard = () => {
               <MessageCircle size={20} className="text-pink-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{stats.customerSatisfaction}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.customerSatisfaction || 0}</p>
               <p className="text-sm text-gray-600">Mijoz mamnuniyati</p>
             </div>
           </div>
