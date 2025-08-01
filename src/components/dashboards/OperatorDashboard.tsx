@@ -903,15 +903,9 @@ const OperatorDashboard = () => {
               )}
 
               <div className="flex space-x-2 pt-4">
-                <button
-                  onClick={() => setSelectedOrderForDetails(null)}
-                  className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Yopish
-                </button>
                 <button 
                   onClick={() => window.open(`tel:${selectedOrderForDetails.customerPhone}`, '_self')}
-                  className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-1"
+                  className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-1"
                 >
                   <Phone size={16} />
                   <span>Qo'ng'iroq</span>
