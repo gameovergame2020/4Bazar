@@ -61,6 +61,9 @@ const OperatorDashboard = () => {
 
   const [selectedOrderFilter, setSelectedOrderFilter] = useState('all');
   const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+  const [orderItems, setOrderItems] = useState<{[cakeId: string]: number}>({});
+  const [availableCakes, setAvailableCakes] = useState<any[]>([]);
 
   useEffect(() => {
     if (userData?.id) {
@@ -75,6 +78,10 @@ const OperatorDashboard = () => {
       // Load orders
       const allOrders = await dataService.getOrders();
       setOrders(allOrders);
+      
+      // Load available cakes for editing
+      const cakes = await dataService.getCakes({ available: true });
+      setAvailableCakes(cakes);
       
       // Generate mock system alerts
       const mockAlerts: SystemAlert[] = [
@@ -246,6 +253,80 @@ const OperatorDashboard = () => {
     } catch (error) {
       console.error('Eslatma qo\'shishda xatolik:', error);
       alert('Eslatma qo\'shishda xatolik yuz berdi');
+    }
+  };
+
+  const handleEditOrder = (order: Order) => {
+    setEditingOrder(order);
+    // Buyurtmadagi mahsulotlarni orderItems'ga ko'chirish
+    setOrderItems({ [order.cakeId]: order.quantity });
+  };
+
+  const handleAddItemToOrder = (cakeId: string) => {
+    setOrderItems(prev => ({
+      ...prev,
+      [cakeId]: (prev[cakeId] || 0) + 1
+    }));
+  };
+
+  const handleRemoveItemFromOrder = (cakeId: string) => {
+    setOrderItems(prev => {
+      const newItems = { ...prev };
+      if (newItems[cakeId] > 1) {
+        newItems[cakeId]--;
+      } else {
+        delete newItems[cakeId];
+      }
+      return newItems;
+    });
+  };
+
+  const handleSaveOrderChanges = async () => {
+    if (!editingOrder) return;
+
+    try {
+      // Yangi jami summa va miqdorni hisoblash
+      let totalPrice = 0;
+      let totalQuantity = 0;
+      const itemNames: string[] = [];
+
+      Object.entries(orderItems).forEach(([cakeId, quantity]) => {
+        const cake = availableCakes.find(c => c.id === cakeId);
+        if (cake) {
+          const itemPrice = cake.discount 
+            ? cake.price * (1 - cake.discount / 100) 
+            : cake.price;
+          totalPrice += itemPrice * quantity;
+          totalQuantity += quantity;
+          itemNames.push(`${cake.name} (${quantity}x)`);
+        }
+      });
+
+      // Buyurtmani yangilash
+      const updates = {
+        quantity: totalQuantity,
+        totalPrice: totalPrice,
+        cakeName: itemNames.join(', '),
+        updatedAt: new Date()
+      };
+
+      await dataService.updateOrder(editingOrder.id!, updates);
+
+      // Local state'ni yangilash
+      setOrders(prev => 
+        prev.map(order => 
+          order.id === editingOrder.id 
+            ? { ...order, ...updates }
+            : order
+        )
+      );
+
+      setEditingOrder(null);
+      setOrderItems({});
+      alert('Buyurtma muvaffaqiyatli yangilandi');
+    } catch (error) {
+      console.error('Buyurtmani yangilashda xatolik:', error);
+      alert('Buyurtmani yangilashda xatolik yuz berdi');
     }
   };
 
@@ -666,6 +747,13 @@ const OperatorDashboard = () => {
                       {order.status === 'pending' && (
                         <>
                           <button
+                            onClick={() => handleEditOrder(order)}
+                            className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors"
+                            title="Tahrirlash"
+                          >
+                            ✎ Tahrirlash
+                          </button>
+                          <button
                             onClick={() => handleOrderStatusUpdate(order.id!, 'accepted')}
                             className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 transition-colors"
                             title="Tasdiqlash"
@@ -859,6 +947,179 @@ const OperatorDashboard = () => {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Order Modal */}
+      {editingOrder && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Buyurtmani tahrirlash</h3>
+              <button
+                onClick={() => {
+                  setEditingOrder(null);
+                  setOrderItems({});
+                }}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              {/* Buyurtma ma'lumotlari */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">Buyurtma ma'lumotlari</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">ID:</span>
+                    <span className="ml-2 font-medium">#{editingOrder.id?.slice(-8)}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Mijoz:</span>
+                    <span className="ml-2 font-medium">{editingOrder.customerName}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Telefon:</span>
+                    <span className="ml-2 font-medium">{editingOrder.customerPhone}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Manzil:</span>
+                    <span className="ml-2 font-medium">{editingOrder.deliveryAddress}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Joriy mahsulotlar */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">Buyurtmadagi mahsulotlar</h4>
+                <div className="space-y-3">
+                  {Object.entries(orderItems).map(([cakeId, quantity]) => {
+                    const cake = availableCakes.find(c => c.id === cakeId);
+                    if (!cake) return null;
+
+                    const itemPrice = cake.discount 
+                      ? cake.price * (1 - cake.discount / 100) 
+                      : cake.price;
+
+                    return (
+                      <div key={cakeId} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                        <div className="flex-1">
+                          <h5 className="font-medium text-gray-900">{cake.name}</h5>
+                          <p className="text-sm text-gray-600">
+                            {itemPrice.toLocaleString('uz-UZ')} so'm / dona
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => handleRemoveItemFromOrder(cakeId)}
+                              className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                            >
+                              -
+                            </button>
+                            <span className="font-medium min-w-[30px] text-center">{quantity}</span>
+                            <button
+                              onClick={() => handleAddItemToOrder(cakeId)}
+                              className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600 transition-colors"
+                            >
+                              +
+                            </button>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium text-gray-900">
+                              {(itemPrice * quantity).toLocaleString('uz-UZ')} so'm
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Yangi mahsulot qo'shish */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">Yangi mahsulot qo'shish</h4>
+                <div className="grid grid-cols-1 gap-3 max-h-40 overflow-y-auto">
+                  {availableCakes
+                    .filter(cake => !orderItems[cake.id!])
+                    .map((cake) => {
+                      const itemPrice = cake.discount 
+                        ? cake.price * (1 - cake.discount / 100) 
+                        : cake.price;
+
+                      return (
+                        <div key={cake.id} className="flex items-center justify-between bg-blue-50 p-3 rounded-lg">
+                          <div className="flex-1">
+                            <h5 className="font-medium text-gray-900">{cake.name}</h5>
+                            <p className="text-sm text-gray-600">
+                              {itemPrice.toLocaleString('uz-UZ')} so'm / dona
+                            </p>
+                            {cake.discount && (
+                              <span className="text-xs text-red-600">
+                                -{cake.discount}% chegirma
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleAddItemToOrder(cake.id!)}
+                            className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                          >
+                            + Qo'shish
+                          </button>
+                        </div>
+                      );
+                    })
+                  }
+                </div>
+              </div>
+
+              {/* Jami summa */}
+              <div className="bg-green-50 p-4 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-gray-900">Jami summa:</span>
+                  <span className="text-xl font-bold text-green-600">
+                    {Object.entries(orderItems).reduce((total, [cakeId, quantity]) => {
+                      const cake = availableCakes.find(c => c.id === cakeId);
+                      if (!cake) return total;
+                      const itemPrice = cake.discount 
+                        ? cake.price * (1 - cake.discount / 100) 
+                        : cake.price;
+                      return total + (itemPrice * quantity);
+                    }, 0).toLocaleString('uz-UZ')} so'm
+                  </span>
+                </div>
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-sm text-gray-600">Jami miqdor:</span>
+                  <span className="font-medium text-gray-900">
+                    {Object.values(orderItems).reduce((sum, qty) => sum + qty, 0)} dona
+                  </span>
+                </div>
+              </div>
+
+              {/* Amallar */}
+              <div className="flex space-x-3 pt-4">
+                <button
+                  onClick={() => {
+                    setEditingOrder(null);
+                    setOrderItems({});
+                  }}
+                  className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Bekor qilish
+                </button>
+                <button
+                  onClick={handleSaveOrderChanges}
+                  disabled={Object.keys(orderItems).length === 0}
+                  className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  Saqlash
+                </button>
+              </div>
             </div>
           </div>
         </div>
