@@ -30,18 +30,18 @@ const CustomerDashboard = () => {
       const filteredCakes = allCakes.filter(cake => {
         // Baker mahsulotlari - barcha holatda ko'rsatiladi (available: false ham)
         const isBakerProduct = cake.productType === 'baked' || (cake.bakerId && !cake.shopId);
-        
+
         // Shop mahsulotlari - faqat available: true bo'lganda
         const isShopProduct = cake.productType === 'ready' || (cake.shopId && !cake.bakerId);
-        
+
         if (isBakerProduct) {
           return true; // Baker mahsulotlari doimo ko'rsatiladi
         }
-        
+
         if (isShopProduct) {
           return cake.available === true; // Shop mahsulotlari faqat available bo'lganda
         }
-        
+
         // Default: available bo'lganlarni ko'rsatish
         return cake.available === true;
       });
@@ -50,16 +50,16 @@ const CustomerDashboard = () => {
       const bakerCakes = filteredCakes.filter(cake => 
         cake.productType === 'baked' || (cake.bakerId && !cake.shopId)
       );
-      
+
       const shopCakes = filteredCakes.filter(cake => 
         cake.productType === 'ready' || (cake.shopId && !cake.bakerId)
       );
-      
+
       console.log('Baker tortlari (barcha):', bakerCakes);
       console.log('Shop tortlari (faqat available):', shopCakes);
       console.log('Jami filtrlangan tortlar:', filteredCakes);
       console.log('Jami tortlar soni:', allCakes.length);
-      
+
       setCakes(filteredCakes);
 
       // Customer buyurtmalarini yuklash
@@ -347,9 +347,9 @@ const CustomerDashboard = () => {
                   </div>
                 </div>
 
-                {cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity <= 5 && cake.quantity > 0 && (
-                  <p className="text-xs text-orange-600 mb-2">
-                    Faqat {cake.quantity} ta qoldi!
+                {cake.quantity !== undefined && (
+                  <p className="text-xs text-gray-500 mb-2">
+                    {cake.productType === 'baked' ? `Buyurtma qilingan: ${cake.quantity} ta` : `Qoldi: ${cake.quantity} ta`}
                   </p>
                 )}
 

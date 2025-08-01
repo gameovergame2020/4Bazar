@@ -653,7 +653,9 @@ const BakerDashboard = () => {
               <div className="mb-3">
                 {cake.available ? (
                   <div className="text-sm">
-                    <span className="text-gray-600">Mavjud: </span>
+                    <span className="text-gray-600">
+                      {cake.productType === 'baked' ? 'Buyurtma qilingan: ' : 'Qoldi: '}
+                    </span>
                     <span className={`font-medium ${
                       cake.quantity !== undefined && cake.quantity <= 0 
                         ? 'text-red-600' 
