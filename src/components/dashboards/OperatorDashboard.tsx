@@ -123,7 +123,7 @@ const OperatorDashboard = () => {
       ).length;
       const resolvedToday = tickets.filter(ticket => 
         ticket.status === 'resolved' && 
-        ticket.lastReply && ticket.lastReply.toDateString() === new Date().toDateString()
+        ticket.updatedAt && ticket.updatedAt.toDateString() === new Date().toDateString()
       ).length;
       
       setStats({
