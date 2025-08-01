@@ -450,10 +450,9 @@ const CustomerDashboard = () => {
                       <button
                         onClick={() => addToCart(cake.id!)}
                         disabled={
-                          (cake.productType === 'ready' &&
-                            cake.quantity !== undefined &&
-                            cartQuantity >= cake.quantity) ||
-                          (cake.productType === 'baked' && cake.quantity !== undefined && cartQuantity >= (cake.quantity - (cake.quantity || 0)))
+                          cake.productType === 'ready' &&
+                          cake.quantity !== undefined &&
+                          cartQuantity >= cake.quantity
                         }
                         className="w-8 h-8 bg-orange-500 text-white rounded-lg flex items-center justify-center hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >

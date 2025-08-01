@@ -178,8 +178,9 @@ const HomePage = () => {
     const cake = cakes.find(c => c.id === cakeId);
     if (!cake) return;
 
-    // Baker mahsulotlari uchun cheklov yo'q
-    if (cake.productType === 'baked') {
+    // Baker mahsulotlari uchun cheklov yo'q (available: true yoki false bo'lishidan qat'iy nazar)
+    const isBakerProduct = cake.productType === 'baked' || (cake.bakerId && !cake.shopId);
+    if (isBakerProduct) {
       setCart(prev => {
         const newCart = {
           ...prev,
@@ -470,6 +471,9 @@ const HomePage = () => {
                         <span className="font-medium text-gray-900">{getCartQuantity(cake.id!)}</span>
                         <button
                           onClick={() => addToCart(cake.id!)}
+                          disabled={
+                            cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity
+                          }
                           className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                           (cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity)
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -588,6 +592,9 @@ const HomePage = () => {
                         </span>
                         <button
                            onClick={() => addToCart(cake.id!)}
+                          disabled={
+                            cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity
+                          }
                           className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
                             (cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity)
                               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
