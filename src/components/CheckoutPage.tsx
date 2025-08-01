@@ -25,17 +25,21 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     deliveryTime: 'asap'
   });
 
-  // Savat bo'sh bo'lganda yoki foydalanuvchi tizimga kirmagan bo'lsa
+  // Savat bo'sh bo'lganda asosiy sahifaga qaytish
   React.useEffect(() => {
     if (Object.keys(cart).length === 0 && !orderPlaced) {
       onBack();
     }
-    
-    // Agar foydalanuvchi tizimga kirmagan bo'lsa, login oynasini ko'rsatish
-    if (!isAuthenticated && !showLoginPrompt) {
+  }, [cart, onBack, orderPlaced]);
+
+  // Foydalanuvchi tizimga kirmagan bo'lsa login oynasini ko'rsatish
+  React.useEffect(() => {
+    if (!isAuthenticated) {
       setShowLoginPrompt(true);
+    } else {
+      setShowLoginPrompt(false);
     }
-  }, [cart, onBack, orderPlaced, isAuthenticated, showLoginPrompt]);
+  }, [isAuthenticated]);
 
   const cartItems = Object.entries(cart).map(([cakeId, quantity]) => {
     const cake = cakes.find(c => c.id === cakeId);
