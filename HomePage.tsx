@@ -1,7 +1,9 @@
-<div className="fixed bottom-20 right-4 z-[9999]">
+{/* Cart Icon */}
+      {Object.keys(cart).length > 0 && (
+        <div className="fixed bottom-20 right-4 z-[9999]">
           <div 
             onClick={handleCheckout}
-            className="bg-orange-500 text-white rounded-full p-3 shadow-lg hover:bg-orange-600 transition-colors cursor-pointer group"
+            className="bg-orange-500 text-white rounded-full p-3 shadow-lg hover:bg-orange-600 transition-colors cursor-pointer"
           >
             <div className="relative">
               <ShoppingCart size={24} />
@@ -9,4 +11,6 @@
                 {Object.values(cart).reduce((sum, qty) => sum + qty, 0)}
               </div>
             </div>
-</div>
+          </div>
+        </div>
+      )}
