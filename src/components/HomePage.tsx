@@ -367,7 +367,7 @@ const HomePage = () => {
                         className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors text-sm flex items-center space-x-1 ${
                           cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : (cake.productType === 'baked' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0)))
+                            : cake.productType === 'baked' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
                               ? 'bg-blue-500 text-white hover:bg-blue-600'
                               : 'bg-orange-500 text-white hover:bg-orange-600'
                         }`}
@@ -479,7 +479,7 @@ const HomePage = () => {
                         className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors text-sm flex items-center space-x-1 ${
                           cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : (cake.productType === 'baked' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0)))
+                            : cake.productType === 'baked' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
                               ? 'bg-blue-500 text-white hover:bg-blue-600'
                               : 'bg-orange-500 text-white hover:bg-orange-600'
                         }`}
