@@ -204,6 +204,18 @@ const OperatorDashboard = () => {
     try {
       await dataService.updateOrderStatus(orderId, status);
       
+      const order = orders.find(o => o.id === orderId);
+      
+      // Agar buyurtma rad etilsa va mahsulot mavjud bo'lsa, sonini qaytarish
+      if (status === 'cancelled' && order) {
+        const cake = availableCakes.find(c => c.id === order.cakeId);
+        if (cake && cake.available && cake.quantity !== undefined) {
+          await dataService.updateCake(order.cakeId, {
+            quantity: cake.quantity + order.quantity
+          });
+        }
+      }
+      
       // Buyurtma holatini local state'da yangilash
       setOrders(prev => 
         prev.map(order => 
@@ -212,7 +224,6 @@ const OperatorDashboard = () => {
       );
 
       // Bildirishnoma yuborish
-      const order = orders.find(o => o.id === orderId);
       if (order) {
         await notificationService.createOrderNotification(
           order.customerId,

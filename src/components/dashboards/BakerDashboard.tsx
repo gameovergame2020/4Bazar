@@ -17,12 +17,12 @@ const BakerDashboard = () => {
     todayEarnings: 0,
     monthlyEarnings: 0
   });
-  
+
   // Form states
   const [showAddCakeForm, setShowAddCakeForm] = useState(false);
   const [editingCake, setEditingCake] = useState<Cake | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  
+
   const [cakeForm, setCakeForm] = useState({
     name: '',
     description: '',
@@ -53,47 +53,47 @@ const BakerDashboard = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       // Load baker's cakes
       const cakes = await dataService.getCakes({ 
         bakerId: userData.id,
         productType: 'baked'
       });
       setMyCakes(cakes);
-      
+
       // Load orders for baker's cakes
       const allOrders = await dataService.getOrders();
       const bakerOrders = allOrders.filter(order => 
         cakes.some(cake => cake.id === order.cakeId)
       );
       setOrders(bakerOrders);
-      
+
       // Calculate stats
       const pendingOrders = bakerOrders.filter(order => 
         ['pending', 'accepted', 'preparing'].includes(order.status)
       ).length;
-      
+
       const totalProducts = cakes.length;
       const averageRating = cakes.length > 0 
         ? cakes.reduce((sum, cake) => sum + cake.rating, 0) / cakes.length 
         : 0;
-      
+
       const uniqueCustomers = new Set(bakerOrders.map(order => order.customerId)).size;
-      
+
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       const todayOrders = bakerOrders.filter(order => 
         order.createdAt >= today && order.status === 'delivered'
       );
       const todayEarnings = todayOrders.reduce((sum, order) => sum + order.totalPrice, 0);
-      
+
       const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
       const monthlyOrders = bakerOrders.filter(order => 
         order.createdAt >= monthStart && order.status === 'delivered'
       );
       const monthlyEarnings = monthlyOrders.reduce((sum, order) => sum + order.totalPrice, 0);
-      
+
       setStats({
         pendingOrders,
         totalProducts,
@@ -102,7 +102,7 @@ const BakerDashboard = () => {
         todayEarnings,
         monthlyEarnings
       });
-      
+
     } catch (error) {
       console.error('Ma\'lumotlarni yuklashda xatolik:', error);
     } finally {
@@ -118,15 +118,15 @@ const BakerDashboard = () => {
 
     try {
       setLoading(true);
-      
+
       let imageUrl = 'https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg?auto=compress&cs=tinysrgb&w=400';
-      
+
       // Upload image if provided
       if (cakeForm.image) {
         const imagePath = `cakes/${userData.id}/${Date.now()}_${cakeForm.image.name}`;
         imageUrl = await dataService.uploadImage(cakeForm.image, imagePath);
       }
-      
+
       const newCake: Omit<Cake, 'id' | 'createdAt' | 'updatedAt'> = {
         name: cakeForm.name,
         description: cakeForm.description,
@@ -143,9 +143,9 @@ const BakerDashboard = () => {
         quantity: cakeForm.available ? parseInt(cakeForm.quantity) || 0 : 0,
         discount: parseFloat(cakeForm.discount) || 0
       };
-      
+
       await dataService.addCake(newCake);
-      
+
       // Reset form
       setCakeForm({
         name: '',
@@ -159,10 +159,10 @@ const BakerDashboard = () => {
         discount: ''
       });
       setShowAddCakeForm(false);
-      
+
       // Reload data
       await loadData();
-      
+
     } catch (error) {
       console.error('Tort qo\'shishda xatolik:', error);
       alert('Tort qo\'shishda xatolik yuz berdi');
@@ -179,15 +179,15 @@ const BakerDashboard = () => {
 
     try {
       setLoading(true);
-      
+
       let imageUrl = editingCake.image;
-      
+
       // Upload new image if provided
       if (cakeForm.image) {
         const imagePath = `cakes/${userData.id}/${Date.now()}_${cakeForm.image.name}`;
         imageUrl = await dataService.uploadImage(cakeForm.image, imagePath);
       }
-      
+
       const updates: Partial<Cake> = {
         name: cakeForm.name,
         description: cakeForm.description,
@@ -199,9 +199,9 @@ const BakerDashboard = () => {
         quantity: cakeForm.available ? parseInt(cakeForm.quantity) || 0 : 0,
         discount: parseFloat(cakeForm.discount) || 0
       };
-      
+
       await dataService.updateCake(editingCake.id!, updates);
-      
+
       // Reset form
       setEditingCake(null);
       setCakeForm({
@@ -215,10 +215,10 @@ const BakerDashboard = () => {
         quantity: '',
         discount: ''
       });
-      
+
       // Reload data
       await loadData();
-      
+
     } catch (error) {
       console.error('Tortni yangilashda xatolik:', error);
       alert('Tortni yangilashda xatolik yuz berdi');
@@ -229,7 +229,7 @@ const BakerDashboard = () => {
 
   const handleDeleteCake = async (cakeId: string) => {
     if (!confirm('Tortni o\'chirishni xohlaysizmi?')) return;
-    
+
     try {
       setLoading(true);
       await dataService.deleteCake(cakeId);
@@ -244,10 +244,37 @@ const BakerDashboard = () => {
 
   const handleOrderStatusUpdate = async (orderId: string, status: Order['status']) => {
     try {
-      const order = orders.find(o => o.id === orderId);
       await dataService.updateOrderStatus(orderId, status);
-      
-      // Mijozga bildirishnoma yuborish
+
+      const order = orders.find(o => o.id === orderId);
+
+      // Agar buyurtma rad etilsa va mahsulot mavjud bo'lsa, sonini qaytarish
+      if (status === 'cancelled' && order) {
+        const cake = myCakes.find(c => c.id === order.cakeId);
+        if (cake && cake.available && cake.quantity !== undefined) {
+          await dataService.updateCake(order.cakeId, {
+            quantity: cake.quantity + order.quantity
+          });
+
+          // Local state'dagi tort ma'lumotlarini yangilash
+          setMyCakes(prev => 
+            prev.map(c => 
+              c.id === order.cakeId 
+                ? { ...c, quantity: (c.quantity || 0) + order.quantity }
+                : c
+            )
+          );
+        }
+      }
+
+      // Buyurtma holatini local state'da yangilash
+      setOrders(prev => 
+        prev.map(order => 
+          order.id === orderId ? { ...order, status, updatedAt: new Date() } : order
+        )
+      );
+
+      // Bildirishnoma yuborish
       if (order) {
         await notificationService.createOrderNotification(
           order.customerId,
@@ -256,8 +283,6 @@ const BakerDashboard = () => {
           order.cakeName
         );
       }
-      
-      await loadData();
     } catch (error) {
       console.error('Buyurtma holatini yangilashda xatolik:', error);
       alert('Buyurtma holatini yangilashda xatolik yuz berdi');
@@ -428,7 +453,7 @@ const BakerDashboard = () => {
             {orders.filter(o => ['pending', 'accepted', 'preparing'].includes(o.status)).length} ta
           </span>
         </div>
-        
+
         <div className="space-y-4">
           {orders
             .filter(order => ['pending', 'accepted', 'preparing'].includes(order.status))
@@ -445,7 +470,7 @@ const BakerDashboard = () => {
                   {getStatusText(order.status)}
                 </span>
               </div>
-              
+
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
                   <span>Miqdor: {order.quantity}</span>
@@ -453,7 +478,7 @@ const BakerDashboard = () => {
                   <span>Sana: {order.createdAt.toLocaleDateString('uz-UZ')}</span>
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <button
                   onClick={() => setSelectedOrder(order)}
@@ -498,7 +523,7 @@ const BakerDashboard = () => {
               </div>
             </div>
           ))}
-          
+
           {orders.filter(o => ['pending', 'accepted', 'preparing'].includes(o.status)).length === 0 && (
             <div className="text-center py-8">
               <Clock size={48} className="text-gray-400 mx-auto mb-4" />
@@ -520,7 +545,7 @@ const BakerDashboard = () => {
             <span>Yangi tort</span>
           </button>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {myCakes.map((cake) => (
             <div key={cake.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
@@ -538,10 +563,10 @@ const BakerDashboard = () => {
                   </span>
                 </div>
               </div>
-              
+
               <h4 className="font-medium text-gray-900 mb-1">{cake.name}</h4>
               <p className="text-sm text-gray-600 mb-2 line-clamp-2">{cake.description}</p>
-              
+
               <div className="flex items-center justify-between mb-3">
                 <span className="font-bold text-gray-900">{formatPrice(cake.price)}</span>
                 <div className="flex items-center space-x-1">
@@ -550,7 +575,7 @@ const BakerDashboard = () => {
                   <span className="text-sm text-gray-500">({cake.reviewCount})</span>
                 </div>
               </div>
-              
+
               <div className="flex space-x-2">
                 <button
                   onClick={() => startEditCake(cake)}
@@ -570,7 +595,7 @@ const BakerDashboard = () => {
             </div>
           ))}
         </div>
-        
+
         {myCakes.length === 0 && (
           <div className="text-center py-8">
             <Package size={48} className="text-gray-400 mx-auto mb-4" />
@@ -600,7 +625,7 @@ const BakerDashboard = () => {
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Tort nomi *</label>
@@ -612,7 +637,7 @@ const BakerDashboard = () => {
                   placeholder="Masalan: Shokoladli tort"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Tavsif *</label>
                 <textarea
@@ -623,7 +648,7 @@ const BakerDashboard = () => {
                   placeholder="Tort haqida qisqacha ma'lumot"
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Narx (so'm) *</label>
@@ -635,7 +660,7 @@ const BakerDashboard = () => {
                     placeholder="250000"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Chegirma (%)</label>
                   <input
@@ -652,7 +677,7 @@ const BakerDashboard = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Kategoriya</label>
@@ -666,10 +691,10 @@ const BakerDashboard = () => {
                     ))}
                   </select>
                 </div>
-                
+
                 <div></div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Tarkibiy qismlar</label>
                 <input
@@ -680,7 +705,7 @@ const BakerDashboard = () => {
                   placeholder="Shokolad, un, tuxum, shakar (vergul bilan ajrating)"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Rasm</label>
                 <input
@@ -690,7 +715,7 @@ const BakerDashboard = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center">
                   <input
@@ -708,7 +733,7 @@ const BakerDashboard = () => {
                     Mavjud
                   </label>
                 </div>
-              
+
                 {!cakeForm.available && (
                   <div className="flex items-center">
                     <input
@@ -739,7 +764,7 @@ const BakerDashboard = () => {
                   </div>
                 )}
               </div>
-              
+
               {!cakeForm.available && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <p className="text-sm text-blue-700">
@@ -747,7 +772,7 @@ const BakerDashboard = () => {
                   </p>
                 </div>
               )}
-              
+
               <div className="flex space-x-3 pt-4">
                 <button
                   onClick={editingCake ? handleEditCake : handleAddCake}
@@ -788,7 +813,7 @@ const BakerDashboard = () => {
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <h4 className="font-medium text-gray-900 mb-2">{selectedOrder.cakeName}</h4>
@@ -825,19 +850,19 @@ const BakerDashboard = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div>
                 <h5 className="font-medium text-gray-900 mb-2">Yetkazib berish manzili:</h5>
                 <p className="text-sm text-gray-600">{selectedOrder.deliveryAddress}</p>
               </div>
-              
+
               {selectedOrder.notes && (
                 <div>
                   <h5 className="font-medium text-gray-900 mb-2">Qo'shimcha eslatma:</h5>
                   <p className="text-sm text-gray-600">{selectedOrder.notes}</p>
                 </div>
               )}
-              
+
               <div className="flex space-x-2 pt-4">
                 <button
                   onClick={() => setSelectedOrder(null)}
