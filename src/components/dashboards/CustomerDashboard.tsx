@@ -1,43 +1,121 @@
-import React from 'react';
-import { ShoppingBag, Heart, Clock, Star, Gift, Truck } from 'lucide-react';
+
+import React, { useState, useEffect } from 'react';
+import { ShoppingBag, Heart, Clock, Star, Gift, Truck, Plus, Minus } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
+import { dataService, Cake, Order } from '../../services/dataService';
 
 const CustomerDashboard = () => {
-  const recentOrders = [
-    {
-      id: 1,
-      name: 'Shokoladli Torta',
-      restaurant: 'Sweet Dreams',
-      status: 'delivered',
-      date: '2024-01-20',
-      price: '250,000',
-      image: 'https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg?auto=compress&cs=tinysrgb&w=150'
-    },
-    {
-      id: 2,
-      name: 'Red Velvet',
-      restaurant: 'Royal Cakes',
-      status: 'preparing',
-      date: '2024-01-22',
-      price: '320,000',
-      image: 'https://images.pexels.com/photos/1721932/pexels-photo-1721932.jpeg?auto=compress&cs=tinysrgb&w=150'
-    }
-  ];
+  const { userData } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [cakes, setCakes] = useState<Cake[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [cart, setCart] = useState<{[key: string]: number}>({});
+  const [favorites, setFavorites] = useState<string[]>([]);
 
-  const favorites = [
-    {
-      id: 1,
-      name: 'Cheese Cake',
-      restaurant: 'Cake Paradise',
-      price: '180,000',
-      image: 'https://images.pexels.com/photos/1126728/pexels-photo-1126728.jpeg?auto=compress&cs=tinysrgb&w=150'
+  useEffect(() => {
+    loadData();
+  }, [userData]);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      
+      // Barcha tortlarni yuklash (baker va shop tortlari)
+      const allCakes = await dataService.getCakes();
+      setCakes(allCakes);
+
+      // Customer buyurtmalarini yuklash
+      if (userData?.id) {
+        const customerOrders = await dataService.getOrders({ 
+          customerId: userData.id.toString() 
+        });
+        setOrders(customerOrders);
+      }
+
+    } catch (error) {
+      console.error('Ma\'lumotlarni yuklashda xatolik:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const addToCart = (cakeId: string) => {
+    setCart(prev => ({
+      ...prev,
+      [cakeId]: (prev[cakeId] || 0) + 1
+    }));
+  };
+
+  const removeFromCart = (cakeId: string) => {
+    setCart(prev => {
+      const newCart = { ...prev };
+      if (newCart[cakeId] > 1) {
+        newCart[cakeId]--;
+      } else {
+        delete newCart[cakeId];
+      }
+      return newCart;
+    });
+  };
+
+  const toggleFavorite = (cakeId: string) => {
+    setFavorites(prev => 
+      prev.includes(cakeId) 
+        ? prev.filter(id => id !== cakeId)
+        : [...prev, cakeId]
+    );
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('uz-UZ').format(price) + ' so\'m';
+  };
+
+  const getStatusText = (status: Order['status']) => {
+    switch (status) {
+      case 'pending': return 'Kutilmoqda';
+      case 'accepted': return 'Qabul qilindi';
+      case 'preparing': return 'Tayyorlanmoqda';
+      case 'ready': return 'Tayyor';
+      case 'delivering': return 'Yetkazilmoqda';
+      case 'delivered': return 'Yetkazildi';
+      case 'cancelled': return 'Bekor qilindi';
+      default: return 'Noma\'lum';
+    }
+  };
+
+  const getStatusColor = (status: Order['status']) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-600';
+      case 'accepted': return 'bg-blue-100 text-blue-600';
+      case 'preparing': return 'bg-orange-100 text-orange-600';
+      case 'ready': return 'bg-green-100 text-green-600';
+      case 'delivering': return 'bg-purple-100 text-purple-600';
+      case 'delivered': return 'bg-green-100 text-green-600';
+      case 'cancelled': return 'bg-red-100 text-red-600';
+      default: return 'bg-gray-100 text-gray-600';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Ma'lumotlar yuklanmoqda...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const recentOrders = orders.slice(0, 5);
+  const favoriteCakes = cakes.filter(cake => favorites.includes(cake.id!));
+  const totalCartItems = Object.values(cart).reduce((sum, count) => sum + count, 0);
 
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-6 text-white">
-        <h2 className="text-2xl font-bold mb-2">Xush kelibsiz!</h2>
+        <h2 className="text-2xl font-bold mb-2">Xush kelibsiz, {userData?.name || 'Mijoz'}!</h2>
         <p className="text-blue-100">Eng mazali tortlarni buyurtma qiling</p>
       </div>
 
@@ -49,7 +127,7 @@ const CustomerDashboard = () => {
               <ShoppingBag size={20} className="text-blue-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">24</p>
+              <p className="text-2xl font-bold text-gray-900">{orders.length}</p>
               <p className="text-sm text-gray-600">Buyurtmalar</p>
             </div>
           </div>
@@ -61,7 +139,7 @@ const CustomerDashboard = () => {
               <Heart size={20} className="text-pink-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">12</p>
+              <p className="text-2xl font-bold text-gray-900">{favorites.length}</p>
               <p className="text-sm text-gray-600">Sevimlilar</p>
             </div>
           </div>
@@ -82,68 +160,213 @@ const CustomerDashboard = () => {
         <div className="bg-white rounded-xl p-4 border border-gray-100">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-orange-100 rounded-lg">
-              <Gift size={20} className="text-orange-600" />
+              <ShoppingBag size={20} className="text-orange-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">3</p>
-              <p className="text-sm text-gray-600">Bonuslar</p>
+              <p className="text-2xl font-bold text-gray-900">{totalCartItems}</p>
+              <p className="text-sm text-gray-600">Savatda</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Recent Orders */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Oxirgi buyurtmalar</h3>
-        <div className="space-y-4">
-          {recentOrders.map((order) => (
-            <div key={order.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
-              <img 
-                src={order.image}
-                alt={order.name}
-                className="w-16 h-16 rounded-lg object-cover"
-              />
-              <div className="flex-1">
-                <h4 className="font-medium text-gray-900">{order.name}</h4>
-                <p className="text-sm text-gray-600">{order.restaurant}</p>
-                <p className="text-sm text-gray-500">{order.date}</p>
+      {recentOrders.length > 0 && (
+        <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Oxirgi buyurtmalar</h3>
+          <div className="space-y-4">
+            {recentOrders.map((order) => (
+              <div key={order.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
+                <div className="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <ShoppingBag size={24} className="text-orange-600" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium text-gray-900">{order.cakeName}</h4>
+                  <p className="text-sm text-gray-600">Miqdor: {order.quantity}</p>
+                  <p className="text-sm text-gray-500">{order.createdAt.toLocaleDateString('uz-UZ')}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-gray-900">{formatPrice(order.totalPrice)}</p>
+                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                    {getStatusText(order.status)}
+                  </span>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="font-bold text-gray-900">{order.price} so'm</p>
-                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                  order.status === 'delivered' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'
-                }`}>
-                  {order.status === 'delivered' ? 'Yetkazildi' : 'Tayyorlanmoqda'}
-                </span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+      )}
+
+      {/* Available Products */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-100">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Buyurtma uchun mavjud tortlar</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {cakes.map((cake) => {
+            const discountedPrice = cake.discount ? cake.price * (1 - cake.discount / 100) : cake.price;
+            const cartQuantity = cart[cake.id!] || 0;
+            
+            return (
+              <div key={cake.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                <div className="relative mb-3">
+                  <img 
+                    src={cake.image}
+                    alt={cake.name}
+                    className="w-full h-32 rounded-lg object-cover"
+                  />
+                  <button
+                    onClick={() => toggleFavorite(cake.id!)}
+                    className={`absolute top-2 right-2 p-2 rounded-full transition-colors ${
+                      favorites.includes(cake.id!) 
+                        ? 'bg-pink-500 text-white' 
+                        : 'bg-white text-gray-400 hover:text-pink-500'
+                    }`}
+                  >
+                    <Heart size={16} className={favorites.includes(cake.id!) ? 'fill-current' : ''} />
+                  </button>
+                  {cake.discount && cake.discount > 0 && (
+                    <div className="absolute top-2 left-2">
+                      <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                        -{cake.discount}%
+                      </span>
+                    </div>
+                  )}
+                  <div className="absolute bottom-2 left-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      cake.available ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
+                    }`}>
+                      {cake.available ? 'Mavjud' : 'Buyurtma'}
+                    </span>
+                  </div>
+                </div>
+
+                <h4 className="font-medium text-gray-900 mb-1">{cake.name}</h4>
+                <p className="text-sm text-gray-600 mb-2 line-clamp-2">{cake.description}</p>
+                <p className="text-xs text-gray-500 mb-2">
+                  {cake.productType === 'baked' ? `Baker: ${cake.bakerName}` : `Shop: ${cake.shopName || 'Mahalliy do\'kon'}`}
+                </p>
+
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex flex-col">
+                    {cake.discount && cake.discount > 0 ? (
+                      <>
+                        <span className="font-bold text-gray-900">{formatPrice(discountedPrice)}</span>
+                        <span className="text-sm text-gray-500 line-through">{formatPrice(cake.price)}</span>
+                      </>
+                    ) : (
+                      <span className="font-bold text-gray-900">{formatPrice(cake.price)}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Star size={14} className="text-yellow-400 fill-current" />
+                    <span className="text-sm text-gray-600">{cake.rating}</span>
+                    <span className="text-sm text-gray-500">({cake.reviewCount})</span>
+                  </div>
+                </div>
+
+                {cake.available && cake.quantity !== undefined && cake.quantity <= 5 && cake.quantity > 0 && (
+                  <p className="text-xs text-orange-600 mb-2">
+                    Faqat {cake.quantity} ta qoldi!
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between">
+                  {cartQuantity > 0 ? (
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => removeFromCart(cake.id!)}
+                        className="w-8 h-8 bg-gray-200 text-gray-700 rounded-lg flex items-center justify-center hover:bg-gray-300 transition-colors"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="font-medium text-gray-900 min-w-[20px] text-center">
+                        {cartQuantity}
+                      </span>
+                      <button
+                        onClick={() => addToCart(cake.id!)}
+                        disabled={cake.available && cake.quantity !== undefined && cartQuantity >= cake.quantity}
+                        className="w-8 h-8 bg-orange-500 text-white rounded-lg flex items-center justify-center hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => addToCart(cake.id!)}
+                      disabled={cake.available && cake.quantity !== undefined && cake.quantity === 0}
+                      className="flex-1 bg-orange-500 text-white py-2 rounded-lg text-sm hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {cake.available && cake.quantity !== undefined && cake.quantity === 0 ? 'Tugadi' : 'Savatga'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {cakes.length === 0 && (
+          <div className="text-center py-8">
+            <ShoppingBag size={48} className="text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">Hozircha tortlar mavjud emas</p>
+          </div>
+        )}
       </div>
 
       {/* Favorites */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Sevimli tortlar</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {favorites.map((cake) => (
-            <div key={cake.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
-              <img 
-                src={cake.image}
-                alt={cake.name}
-                className="w-full h-32 rounded-lg object-cover mb-3"
-              />
-              <h4 className="font-medium text-gray-900 mb-1">{cake.name}</h4>
-              <p className="text-sm text-gray-600 mb-2">{cake.restaurant}</p>
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-gray-900">{cake.price} so'm</span>
-                <button className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-600 transition-colors">
-                  Buyurtma
-                </button>
-              </div>
-            </div>
-          ))}
+      {favoriteCakes.length > 0 && (
+        <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Sevimli tortlar</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {favoriteCakes.map((cake) => {
+              const discountedPrice = cake.discount ? cake.price * (1 - cake.discount / 100) : cake.price;
+              
+              return (
+                <div key={cake.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                  <img 
+                    src={cake.image}
+                    alt={cake.name}
+                    className="w-full h-32 rounded-lg object-cover mb-3"
+                  />
+                  <h4 className="font-medium text-gray-900 mb-1">{cake.name}</h4>
+                  <p className="text-sm text-gray-600 mb-2">
+                    {cake.productType === 'baked' ? `Baker: ${cake.bakerName}` : `Shop: ${cake.shopName || 'Mahalliy do\'kon'}`}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-gray-900">{formatPrice(discountedPrice)}</span>
+                    <button
+                      onClick={() => addToCart(cake.id!)}
+                      className="bg-orange-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-orange-600 transition-colors"
+                    >
+                      Savatga
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Cart Summary */}
+      {totalCartItems > 0 && (
+        <div className="fixed bottom-4 right-4 bg-orange-500 text-white p-4 rounded-2xl shadow-lg">
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              <ShoppingBag size={20} />
+              <span className="font-medium">{totalCartItems} ta mahsulot</span>
+            </div>
+            <button
+              onClick={() => {
+                // Checkout sahifasiga o'tish logikasi
+                console.log('Checkout:', cart);
+              }}
+              className="bg-white text-orange-500 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+            >
+              Ko'rish
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
