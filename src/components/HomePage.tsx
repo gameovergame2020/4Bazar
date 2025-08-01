@@ -102,6 +102,19 @@ const HomePage = () => {
     setShowCheckout(false);
   };
 
+  // Handle remove from cart event
+  useEffect(() => {
+    const handleRemoveFromCart = (event: any) => {
+      const { cakeId } = event.detail;
+      const newCart = { ...cart };
+      delete newCart[cakeId];
+      setCart(newCart);
+    };
+
+    window.addEventListener('removeFromCart', handleRemoveFromCart);
+    return () => window.removeEventListener('removeFromCart', handleRemoveFromCart);
+  }, [cart]);
+
   const formatPrice = (price: number, discount?: number) => {
     const discountedPrice = discount ? price * (1 - discount / 100) : price;
     return new Intl.NumberFormat('uz-UZ').format(discountedPrice) + ' so\'m';
@@ -139,19 +152,6 @@ const HomePage = () => {
       </div>
     );
   }
-
-  // Handle remove from cart event
-  useEffect(() => {
-    const handleRemoveFromCart = (event: any) => {
-      const { cakeId } = event.detail;
-      const newCart = { ...cart };
-      delete newCart[cakeId];
-      setCart(newCart);
-    };
-
-    window.addEventListener('removeFromCart', handleRemoveFromCart);
-    return () => window.removeEventListener('removeFromCart', handleRemoveFromCart);
-  }, [cart]);
 
   if (showCheckout) {
     return (
