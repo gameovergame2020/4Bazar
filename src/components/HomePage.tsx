@@ -98,15 +98,58 @@ const HomePage = () => {
   useEffect(() => {
     loadCakes();
 
-    // Real-time tortlar holatini kuzatish
-    const unsubscribe = dataService.subscribeToRealtimeCakes((updatedCakes) => {
-      setCakes(updatedCakes);
-      setFilteredCakes(updatedCakes);
+    // Real-time tortlar va buyurtmalar holatini kuzatish
+    const unsubscribeCakes = dataService.subscribeToRealtimeCakes(async (updatedCakes) => {
+      // Buyurtmalarni ham real-time yangilash
+      const allOrders = await dataService.getOrders();
+      
+      const processedCakes = updatedCakes.filter(cake => {
+        // Baker mahsulotlari - barcha holatda ko'rsatiladi
+        const isBakerProduct = cake.productType === 'baked' || (cake.bakerId && !cake.shopId);
+        // Shop mahsulotlari - faqat available: true bo'lganda
+        const isShopProduct = cake.productType === 'ready' || (cake.shopId && !cake.bakerId);
+
+        if (isBakerProduct) {
+          return true;
+        }
+        if (isShopProduct) {
+          return cake.available === true;
+        }
+        return cake.available === true;
+      }).map(cake => {
+        // Baker mahsulotlari uchun buyurtma qilingan miqdorni hisoblash
+        if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
+          const orderedQuantity = allOrders
+            .filter(order => 
+              order.cakeId === cake.id && 
+              !['cancelled', 'ready', 'delivering', 'delivered'].includes(order.status)
+            )
+            .reduce((total, order) => total + order.quantity, 0);
+
+          return {
+            ...cake,
+            quantity: orderedQuantity
+          };
+        }
+        return cake;
+      });
+
+      setCakes(processedCakes);
+      setFilteredCakes(processedCakes);
+    });
+
+    // Buyurtmalar holatini ham kuzatish
+    const unsubscribeOrders = dataService.subscribeToOrders(async () => {
+      // Buyurtmalar o'zgarganda tortlarni qayta yuklash
+      loadCakes();
     });
 
     return () => {
-      if (typeof unsubscribe === 'function') {
-        unsubscribe();
+      if (typeof unsubscribeCakes === 'function') {
+        unsubscribeCakes();
+      }
+      if (typeof unsubscribeOrders === 'function') {
+        unsubscribeOrders();
       }
     };
   }, []);
