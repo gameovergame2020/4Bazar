@@ -90,15 +90,23 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
             notes: formData.notes
           });
 
-          // Mahsulot quantity'sini kamaytirish (faqat available mahsulotlar uchun)
-          if (item.cake.available && item.cake.quantity !== undefined && item.cake.quantity > 0) {
+          // Mahsulot quantity'sini kamaytirish
+          if (item.cake.quantity !== undefined && item.cake.quantity > 0) {
             const newQuantity = Math.max(0, item.cake.quantity - item.quantity);
-            const available = newQuantity > 0;
             
-            await dataService.updateCake(item.cake.id!, {
-              quantity: newQuantity,
-              available: available
-            });
+            // Shop mahsulotlari uchun available false qilish agar quantity 0 bo'lsa
+            if (item.cake.productType === 'ready') {
+              await dataService.updateCake(item.cake.id!, {
+                quantity: newQuantity,
+                available: newQuantity > 0
+              });
+            } 
+            // Baker mahsulotlari uchun faqat quantity yangilash
+            else if (item.cake.productType === 'baked') {
+              await dataService.updateCake(item.cake.id!, {
+                quantity: newQuantity
+              });
+            }
           }
         }
       }
