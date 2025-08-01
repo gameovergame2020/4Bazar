@@ -32,8 +32,8 @@ const HomePage = () => {
       setError(null);
 
       const filters: any = { 
-        available: true
         // Bosh sahifada barcha mahsulotlar ko'rsatiladi (baker va shop)
+        // Baker mahsulotlari available: false bo'lsa ham ko'rsatiladi
       };
       if (selectedCategory !== 'Hammasi') {
         const category = categories.find(cat => cat.name === selectedCategory);
