@@ -20,7 +20,8 @@ import {
   Trash2,
   Plus,
   Eye,
-  Download
+  Download,
+  ShoppingBag
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { dataService, Order, Cake } from '../../services/dataService';
@@ -274,7 +275,7 @@ const AdminDashboard = () => {
                   <DollarSign size={20} className="text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-gray-900">{Math.round(metrics.totalRevenue / 1000000)}M</p>
+                  <p className="text-lg font-bold text-gray-900">{Math.round((metrics.totalRevenue || 0) / 1000000)}M</p>
                   <p className="text-sm text-gray-600">Daromad</p>
                 </div>
               </div>
@@ -549,19 +550,19 @@ const AdminDashboard = () => {
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{statistics.available.totalAvailable}</div>
+                    <div className="text-2xl font-bold text-green-600">{statistics.available.totalAvailable || 0}</div>
                     <div className="text-sm text-gray-600">Jami mavjud</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{statistics.available.totalQuantity}</div>
+                    <div className="text-2xl font-bold text-blue-600">{statistics.available.totalQuantity || 0}</div>
                     <div className="text-sm text-gray-600">Umumiy miqdor</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">{statistics.available.lowStock}</div>
+                    <div className="text-2xl font-bold text-orange-600">{statistics.available.lowStock || 0}</div>
                     <div className="text-sm text-gray-600">Kam qolgan (≤5)</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-red-600">{statistics.available.outOfStock}</div>
+                    <div className="text-2xl font-bold text-red-600">{statistics.available.outOfStock || 0}</div>
                     <div className="text-sm text-gray-600">Tugagan</div>
                   </div>
                 </div>
@@ -590,23 +591,23 @@ const AdminDashboard = () => {
 
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{statistics.orderBased.totalOrderBased}</div>
+                    <div className="text-2xl font-bold text-blue-600">{statistics.orderBased.totalOrderBased || 0}</div>
                     <div className="text-sm text-gray-600">Jami mahsulot</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">{statistics.orderBased.totalOrdered}</div>
+                    <div className="text-2xl font-bold text-purple-600">{statistics.orderBased.totalOrdered || 0}</div>
                     <div className="text-sm text-gray-600">Jami buyurtma</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">{statistics.orderBased.activeOrders}</div>
+                    <div className="text-2xl font-bold text-orange-600">{statistics.orderBased.activeOrders || 0}</div>
                     <div className="text-sm text-gray-600">Faol buyurtmalar</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{statistics.orderBased.completedOrders}</div>
+                    <div className="text-2xl font-bold text-green-600">{statistics.orderBased.completedOrders || 0}</div>
                     <div className="text-sm text-gray-600">Tugallangan</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-red-600">{statistics.orderBased.cancelledOrders}</div>
+                    <div className="text-2xl font-bold text-red-600">{statistics.orderBased.cancelledOrders || 0}</div>
                     <div className="text-sm text-gray-600">Bekor qilingan</div>
                   </div>
                 </div>
@@ -647,17 +648,17 @@ const AdminDashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div className="text-center p-4 bg-green-50 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">
-                      {statistics.business.totalRevenue.toLocaleString('uz-UZ')} so'm
+                      {(statistics.business.totalRevenue || 0).toLocaleString('uz-UZ')} so'm
                     </div>
                     <div className="text-sm text-gray-600">Jami daromad</div>
                   </div>
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{statistics.business.totalOrders}</div>
+                    <div className="text-2xl font-bold text-blue-600">{statistics.business.totalOrders || 0}</div>
                     <div className="text-sm text-gray-600">Jami buyurtmalar</div>
                   </div>
                   <div className="text-center p-4 bg-purple-50 rounded-lg">
                     <div className="text-2xl font-bold text-purple-600">
-                      {Math.round(statistics.business.averageOrderValue).toLocaleString('uz-UZ')} so'm
+                      {Math.round(statistics.business.averageOrderValue || 0).toLocaleString('uz-UZ')} so'm
                     </div>
                     <div className="text-sm text-gray-600">O'rtacha buyurtma</div>
                   </div>
