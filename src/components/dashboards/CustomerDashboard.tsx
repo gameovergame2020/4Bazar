@@ -28,29 +28,21 @@ const CustomerDashboard = () => {
 
       // Baker va Shop tortlarini filtrlash
       const filteredCakes = allCakes.filter(cake => {
-        console.log('Filtering cake:', cake.name, 'productType:', cake.productType, 'available:', cake.available);
+        // Baker mahsulotlari - barcha holatda ko'rsatiladi (available: false ham)
+        const isBakerProduct = cake.productType === 'baked' || (cake.bakerId && !cake.shopId);
         
-        // Baker mahsulotlari: available holatidan qat'iy nazar barcha ko'rsatiladi
-        if (cake.productType === 'baked') {
-          console.log('Baker mahsuloti:', cake.name, '- ko\'rsatiladi');
+        // Shop mahsulotlari - faqat available: true bo'lganda
+        const isShopProduct = cake.productType === 'ready' || (cake.shopId && !cake.bakerId);
+        
+        if (isBakerProduct) {
           return true; // Baker mahsulotlari doimo ko'rsatiladi
         }
         
-        // Shop mahsulotlari: faqat available: true bo'lganlar ko'rsatiladi
-        if (cake.productType === 'ready') {
-          const shouldShow = cake.available === true;
-          console.log('Shop mahsuloti:', cake.name, '- available:', cake.available, '- ko\'rsatiladimi:', shouldShow);
-          return shouldShow;
+        if (isShopProduct) {
+          return cake.available === true; // Shop mahsulotlari faqat available bo'lganda
         }
         
-        // Eski mantiq uchun fallback
-        if (cake.bakerId && !cake.shopId) {
-          return true; // Baker mahsulotlari
-        }
-        if (cake.shopId && !cake.bakerId) {
-          return cake.available === true; // Shop mahsulotlari
-        }
-        
+        // Default: available bo'lganlarni ko'rsatish
         return cake.available === true;
       });
 
