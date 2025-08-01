@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Heart, Clock, Star, Gift, Truck, Plus, Minus } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -20,7 +19,7 @@ const CustomerDashboard = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       // Barcha mavjud tortlarni yuklash (baker va shop tortlari)
       const allCakes = await dataService.getCakes({ available: true });
       console.log('Yuklangan tortlar:', allCakes);
@@ -209,7 +208,7 @@ const CustomerDashboard = () => {
       <div className="bg-white rounded-2xl p-6 border border-gray-100">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 sm:mb-0">Buyurtma uchun mavjud tortlar</h3>
-          
+
           {/* Filter Tabs */}
           <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
             <button
@@ -249,7 +248,7 @@ const CustomerDashboard = () => {
           {filteredCakes.map((cake) => {
             const discountedPrice = cake.discount ? cake.price * (1 - cake.discount / 100) : cake.price;
             const cartQuantity = cart[cake.id!] || 0;
-            
+
             return (
               <div key={cake.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
                 <div className="relative mb-3">
@@ -340,6 +339,7 @@ const CustomerDashboard = () => {
                       disabled={cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity === 0}
                       className="flex-1 bg-orange-500 text-white py-2 rounded-lg text-sm hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
+                      {/* Faqat shop tortlari uchun 'Tugadi' ko'rsatish */}
                       {cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity === 0 
                         ? 'Tugadi' 
                         : cake.productType === 'ready' 
@@ -376,7 +376,7 @@ const CustomerDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {favoriteCakes.map((cake) => {
               const discountedPrice = cake.discount ? cake.price * (1 - cake.discount / 100) : cake.price;
-              
+
               return (
                 <div key={cake.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
                   <img 
