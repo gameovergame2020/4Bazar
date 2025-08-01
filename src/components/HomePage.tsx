@@ -417,7 +417,7 @@ const HomePage = () => {
       {Object.keys(cart).length > 0 && (
         <button 
           onClick={handleCheckout}
-          className="fixed bottom-20 right-4 z-[9999] bg-orange-500 text-white rounded-full p-3 shadow-lg hover:bg-orange-600 transition-colors"
+          className="fixed bottom-20 right-4 z-[9999] bg-orange-500 text-white rounded-full p-3 shadow-lg hover:bg-orange-600 transition-colors focus:outline-none"
         >
           <div className="relative">
             <ShoppingCart size={24} />
