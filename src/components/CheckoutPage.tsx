@@ -9,9 +9,10 @@ interface CheckoutPageProps {
   cakes: any[];
   onBack: () => void;
   onOrderComplete: () => void;
+  removeFromCart: (cakeId: string) => void;
 }
 
-const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrderComplete }) => {
+const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrderComplete, removeFromCart }) => {
   const { userData } = useAuth();
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -257,16 +258,25 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
             
             <div className="space-y-3 mb-4">
               {cartItems.map((item) => item && (
-                <div key={item.cake.id} className="flex justify-between items-start">
+                <div key={item.cake.id} className="flex justify-between items-start group">
                   <div className="flex-1">
                     <h4 className="text-sm font-medium text-gray-900">{item.cake.name}</h4>
                     <p className="text-xs text-gray-500">
                       {item.quantity} x {item.price.toLocaleString('uz-UZ')} so'm
                     </p>
                   </div>
-                  <span className="text-sm font-medium text-gray-900">
-                    {item.total.toLocaleString('uz-UZ')} so'm
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium text-gray-900">
+                      {item.total.toLocaleString('uz-UZ')} so'm
+                    </span>
+                    <button
+                      onClick={() => removeFromCart(item.cake.id!)}
+                      className="w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                      title="Mahsulotni olib tashlash"
+                    >
+                      <span className="text-xs">×</span>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

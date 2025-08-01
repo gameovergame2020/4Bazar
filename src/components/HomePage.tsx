@@ -140,13 +140,34 @@ const HomePage = () => {
     );
   }
 
+  // Handle remove from cart event
+  useEffect(() => {
+    const handleRemoveFromCart = (event: any) => {
+      const { cakeId } = event.detail;
+      const newCart = { ...cart };
+      delete newCart[cakeId];
+      setCart(newCart);
+    };
+
+    window.addEventListener('removeFromCart', handleRemoveFromCart);
+    return () => window.removeEventListener('removeFromCart', handleRemoveFromCart);
+  }, [cart]);
+
   if (showCheckout) {
     return (
       <CheckoutPage
         cart={cart}
         cakes={cakes}
-        onBack={handleBackFromCheckout}
-        onOrderComplete={handleOrderComplete}
+        onBack={() => setShowCheckout(false)}
+        onOrderComplete={() => {
+          setCart({});
+          setShowCheckout(false);
+        }}
+        removeFromCart={(cakeId: string) => {
+          const newCart = { ...cart };
+          delete newCart[cakeId];
+          setCart(newCart);
+        }}
       />
     );
   }
