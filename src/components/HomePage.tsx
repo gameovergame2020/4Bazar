@@ -301,7 +301,12 @@ const HomePage = () => {
                         <span className="font-medium text-gray-900">{getCartQuantity(cake.id!)}</span>
                         <button
                           onClick={() => addToCart(cake.id!)}
-                          className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center hover:bg-orange-600 transition-colors"
+                          disabled={cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                            cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-orange-500 text-white hover:bg-orange-600'
+                          }`}
                         >
                           <Plus size={14} />
                         </button>
@@ -309,14 +314,22 @@ const HomePage = () => {
                     ) : (
                       <button
                         onClick={() => addToCart(cake.id!)}
+                        disabled={cake.available && cake.quantity !== undefined && cake.quantity <= 0}
                         className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors text-sm flex items-center space-x-1 ${
-                          cake.available 
-                            ? 'bg-orange-500 text-white hover:bg-orange-600' 
-                            : 'bg-blue-500 text-white hover:bg-blue-600'
+                          cake.available && cake.quantity !== undefined && cake.quantity <= 0
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : cake.available 
+                              ? 'bg-orange-500 text-white hover:bg-orange-600' 
+                              : 'bg-blue-500 text-white hover:bg-blue-600'
                         }`}
                       >
                         <ShoppingBasket size={14} />
-                        <span>{cake.available ? 'Qo\'shish' : 'Buyurtma'}</span>
+                        <span>
+                          {cake.available ? 
+                            (cake.quantity !== undefined && cake.quantity <= 0 ? 'Tugagan' : 'Savatchaga qo\'shish') 
+                            : 'Buyurtma berish'
+                          }
+                        </span>
                       </button>
                     )}
                   </div>
@@ -398,7 +411,12 @@ const HomePage = () => {
                         </span>
                         <button
                           onClick={() => addToCart(cake.id!)}
-                          className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center hover:bg-orange-600 transition-colors"
+                          disabled={cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity}
+                          className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
+                            cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-orange-500 text-white hover:bg-orange-600'
+                          }`}
                         >
                           <Plus size={12} />
                         </button>
@@ -406,14 +424,22 @@ const HomePage = () => {
                     ) : (
                       <button
                         onClick={() => addToCart(cake.id!)}
+                        disabled={cake.available && cake.quantity !== undefined && cake.quantity <= 0}
                         className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors text-sm flex items-center space-x-1 ${
-                          cake.available 
-                            ? 'bg-orange-500 text-white hover:bg-orange-600' 
-                            : 'bg-blue-500 text-white hover:bg-blue-600'
+                          cake.available && cake.quantity !== undefined && cake.quantity <= 0
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : cake.available 
+                              ? 'bg-orange-500 text-white hover:bg-orange-600' 
+                              : 'bg-blue-500 text-white hover:bg-blue-600'
                         }`}
                       >
-                        <ShoppingBasket size={12} />
-                        <span>{cake.available ? 'Qo\'shish' : 'Buyurtma'}</span>
+                        <ShoppingBasket size={14} />
+                        <span className="hidden sm:inline">
+                          {cake.available ? 
+                            (cake.quantity !== undefined && cake.quantity <= 0 ? 'Tugagan' : 'Savatchaga') 
+                            : 'Buyurtma'
+                          }
+                        </span>
                       </button>
                     )}
                   </div>
