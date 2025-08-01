@@ -47,8 +47,51 @@ const BakerDashboard = () => {
   useEffect(() => {
     if (userData?.id) {
       loadData();
+      
+      // Real-time tortlar holatini kuzatish
+      const unsubscribe = dataService.subscribeToRealtimeCakes((updatedCakes) => {
+        const bakerCakes = updatedCakes.filter(cake => cake.bakerId === userData.id);
+        setMyCakes(bakerCakes);
+        
+        // Quantity 0 bo'lgan tortlarni avtomatik "Buyurtma uchun" rejimiga o'tkazish
+        bakerCakes.forEach(cake => {
+          if (cake.available && cake.quantity !== undefined && cake.quantity <= 0) {
+            // Avtomatik ravishda available = false qilish
+            dataService.updateCake(cake.id!, {
+              available: false,
+              quantity: 0
+            }).catch(error => {
+              console.error('Tort holatini yangilashda xatolik:', error);
+            });
+          }
+        });
+
+        // Statistikani yangilash
+        const pendingOrders = orders.filter(order => 
+          ['pending', 'accepted', 'preparing'].includes(order.status) &&
+          bakerCakes.some(cake => cake.id === order.cakeId)
+        ).length;
+
+        const totalProducts = bakerCakes.length;
+        const averageRating = bakerCakes.length > 0 
+          ? bakerCakes.reduce((sum, cake) => sum + cake.rating, 0) / bakerCakes.length 
+          : 0;
+
+        setStats(prev => ({
+          ...prev,
+          pendingOrders: pendingOrders,
+          totalProducts: totalProducts,
+          averageRating: Math.round(averageRating * 10) / 10
+        }));
+      }, { bakerId: userData.id });
+
+      return () => {
+        if (typeof unsubscribe === 'function') {
+          unsubscribe();
+        }
+      };
     }
-  }, [userData]);
+  }, [userData, orders]);
 
   const loadData = async () => {
     if (!userData?.id) return;
@@ -134,6 +177,8 @@ const BakerDashboard = () => {
         imageUrl = await dataService.uploadImage(cakeForm.image, imagePath);
       }
 
+      const quantity = cakeForm.available ? parseInt(cakeForm.quantity) || 0 : 0;
+
       const newCake: Omit<Cake, 'id' | 'createdAt' | 'updatedAt'> = {
         name: cakeForm.name,
         description: cakeForm.description,
@@ -145,11 +190,16 @@ const BakerDashboard = () => {
         productType: 'baked' as const,
         rating: 0,
         reviewCount: 0,
-        available: cakeForm.available, // Checkboxdan olingan qiymat
+        available: quantity > 0 ? cakeForm.available : false, // Quantity 0 bo'lsa available = false  
         ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
-        quantity: cakeForm.available ? parseInt(cakeForm.quantity) || 0 : 0,
+        quantity: quantity,
         discount: parseFloat(cakeForm.discount) || 0
       };
+
+      // Agar quantity 0 bo'lsa, ogohlantirishni ko'rsatish
+      if (cakeForm.available && quantity <= 0) {
+        alert('Diqqat: Mahsulot soni 0 yoki kamroq bo\'lgani uchun avtomatik "Buyurtma uchun" rejimiga o\'tkazildi.');
+      }
 
       await dataService.addCake(newCake);
 
@@ -200,17 +250,24 @@ const BakerDashboard = () => {
         imageUrl = await dataService.uploadImage(cakeForm.image, imagePath);
       }
 
+      const quantity = cakeForm.available ? parseInt(cakeForm.quantity) || 0 : 0;
+      
       const updates: Partial<Cake> = {
         name: cakeForm.name,
         description: cakeForm.description,
         price: parseFloat(cakeForm.price),
         image: imageUrl,
         category: cakeForm.category,
-        available: cakeForm.available,
+        available: quantity > 0 ? cakeForm.available : false, // Quantity 0 bo'lsa available = false
         ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
-        quantity: cakeForm.available ? parseInt(cakeForm.quantity) || 0 : 0,
+        quantity: quantity,
         discount: parseFloat(cakeForm.discount) || 0
       };
+
+      // Agar quantity 0 bo'lsa, ogohlantirishni ko'rsatish
+      if (cakeForm.available && quantity <= 0) {
+        alert('Diqqat: Mahsulot soni 0 yoki kamroq bo\'lgani uchun avtomatik "Buyurtma uchun" rejimiga o\'tkazildi.');
+      }
 
       await dataService.updateCake(editingCake.id!, updates);
 
@@ -567,25 +624,56 @@ const BakerDashboard = () => {
                   alt={cake.name}
                   className="w-full h-32 rounded-lg object-cover"
                 />
-                <div className="absolute top-2 right-2">
+                <div className="absolute top-2 right-2 flex flex-col items-end space-y-1">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     cake.available ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
                   }`}>
                     {cake.available ? 'Mavjud' : 'Buyurtma'}
                   </span>
+                  {cake.available && cake.quantity !== undefined && cake.quantity <= 0 && (
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-600">
+                      Tugagan
+                    </span>
+                  )}
                 </div>
               </div>
 
               <h4 className="font-medium text-gray-900 mb-1">{cake.name}</h4>
               <p className="text-sm text-gray-600 mb-2 line-clamp-2">{cake.description}</p>
 
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-2">
                 <span className="font-bold text-gray-900">{formatPrice(cake.price)}</span>
                 <div className="flex items-center space-x-1">
                   <Star size={14} className="text-yellow-400 fill-current" />
                   <span className="text-sm text-gray-600">{cake.rating}</span>
                   <span className="text-sm text-gray-500">({cake.reviewCount})</span>
                 </div>
+              </div>
+
+              <div className="mb-3">
+                {cake.available ? (
+                  <div className="text-sm">
+                    <span className="text-gray-600">Mavjud: </span>
+                    <span className={`font-medium ${
+                      cake.quantity !== undefined && cake.quantity <= 0 
+                        ? 'text-red-600' 
+                        : cake.quantity !== undefined && cake.quantity <= 5 
+                          ? 'text-orange-600' 
+                          : 'text-green-600'
+                    }`}>
+                      {cake.quantity !== undefined ? `${cake.quantity} ta` : 'Cheksiz'}
+                    </span>
+                    {cake.quantity !== undefined && cake.quantity <= 0 && (
+                      <span className="block text-xs text-red-600 mt-1">
+                        Avtomatik "Buyurtma uchun" ga o'tkazildi
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-sm">
+                    <span className="text-blue-600 font-medium">Buyurtma uchun mavjud</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex space-x-2">
