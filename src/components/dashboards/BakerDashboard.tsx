@@ -138,7 +138,7 @@ const BakerDashboard = () => {
         productType: 'baked',
         rating: 0,
         reviewCount: 0,
-        available: cakeForm.available,
+        available: true, // Baker mahsulotlari buyurtma uchun mavjud
         ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
         quantity: cakeForm.available ? parseInt(cakeForm.quantity) || 0 : 0,
         discount: parseFloat(cakeForm.discount) || 0
