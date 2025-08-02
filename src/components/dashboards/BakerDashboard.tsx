@@ -372,13 +372,11 @@ const BakerDashboard = () => {
             const newAmount = Math.max(0, (cake.amount || 0) - order.quantity);
             updateData.amount = newAmount;
             
-            // Agar amount 0 ga teng bo'lsa, mahsulot "Buyurtma uchun" holatida qoladi
-            if (newAmount === 0) {
-              updateData.available = false;
-            }
-            // Agar quantity mavjud bo'lsa va 0 dan katta, available = true
-            else if (cake.quantity !== undefined && cake.quantity > 0) {
-              updateData.available = true;
+            // Baker mahsulotlari uchun available holati quantity ga bog'liq
+            if (cake.quantity !== undefined && cake.quantity > 0) {
+              updateData.available = true; // Quantity mavjud bo'lsa "Hozir mavjud"
+            } else {
+              updateData.available = false; // Quantity yo'q bo'lsa "Buyurtma uchun"
             }
           } else {
             // Shop mahsulotlari uchun quantity qaytarish
