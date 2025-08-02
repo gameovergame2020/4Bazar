@@ -1311,41 +1311,63 @@ class DataService {
     orderBased: any;
     business: any;
   }) => void) {
-    // Tortlar va buyurtmalar o'zgarganda statistikani yangilash
-    const unsubscribeCakes = this.subscribeToRealtimeCakes(async () => {
-      try {
-        const [available, orderBased, business] = await Promise.all([
-          this.getAvailableProductsStats(),
-          this.getOrderBasedProductsStats(),
-          this.getBusinessStats()
-        ]);
+    let isActive = true;
+    let unsubscribeCakes: (() => void) | null = null;
+    let unsubscribeOrders: (() => void) | null = null;
 
-        callback({ available, orderBased, business });
-      } catch (error) {
-        console.error('Statistikani yangilashda xatolik:', error);
-      }
-    });
+    try {
+      // Tortlar va buyurtmalar o'zgarganda statistikani yangilash
+      unsubscribeCakes = this.subscribeToRealtimeCakes(async () => {
+        if (!isActive) return;
+        
+        try {
+          const [available, orderBased, business] = await Promise.all([
+            this.getAvailableProductsStats(),
+            this.getOrderBasedProductsStats(),
+            this.getBusinessStats()
+          ]);
 
-    const unsubscribeOrders = this.subscribeToOrders(async () => {
-      try {
-        const [available, orderBased, business] = await Promise.all([
-          this.getAvailableProductsStats(),
-          this.getOrderBasedProductsStats(),
-          this.getBusinessStats()
-        ]);
+          if (isActive) {
+            callback({ available, orderBased, business });
+          }
+        } catch (error) {
+          console.error('Statistikani yangilashda xatolik:', error);
+        }
+      });
 
-        callback({ available, orderBased, business });
-      } catch (error) {
-        console.error('Statistikani yangilashda xatolik:', error);
-      }
-    });
+      unsubscribeOrders = this.subscribeToOrders(async () => {
+        if (!isActive) return;
+        
+        try {
+          const [available, orderBased, business] = await Promise.all([
+            this.getAvailableProductsStats(),
+            this.getOrderBasedProductsStats(),
+            this.getBusinessStats()
+          ]);
+
+          if (isActive) {
+            callback({ available, orderBased, business });
+          }
+        } catch (error) {
+          console.error('Statistikani yangilashda xatolik:', error);
+        }
+      });
+
+    } catch (error) {
+      console.error('Subscription yaratishda xatolik:', error);
+    }
 
     return () => {
-      if (typeof unsubscribeCakes === 'function') {
-        unsubscribeCakes();
-      }
-      if (typeof unsubscribeOrders === 'function') {
-        unsubscribeOrders();
+      isActive = false;
+      try {
+        if (typeof unsubscribeCakes === 'function') {
+          unsubscribeCakes();
+        }
+        if (typeof unsubscribeOrders === 'function') {
+          unsubscribeOrders();  
+        }
+      } catch (error) {
+        console.warn('Subscription o\'chirishda xatolik:', error);
       }
     };
   }
@@ -1360,122 +1382,235 @@ class DataService {
     available?: boolean;
     productType?: 'baked' | 'ready';
   }) {
-    let q = query(collection(db, 'cakes'), orderBy('createdAt', 'desc'));
+    let isActive = true;
+    let retryCount = 0;
+    const maxRetries = 3;
 
-    if (filters?.category) {
-      q = query(q, where('category', '==', filters.category));
-    }
-    if (filters?.bakerId) {
-      q = query(q, where('bakerId', '==', filters.bakerId));
-    }
-    if (filters?.shopId) {
-      q = query(q, where('shopId', '==', filters.shopId));
-    }
-    if (filters?.productType) {
-      q = query(q, where('productType', '==', filters.productType));
-    }
-    if (filters?.available !== undefined) {
-      q = query(q, where('available', '==', filters.available));
-    }
+    const createSubscription = () => {
+      if (!isActive) return null;
 
-    return onSnapshot(q, (querySnapshot) => {
-      const cakes = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt.toDate(),
-        updatedAt: doc.data().updatedAt.toDate()
-      } as Cake));
+      try {
+        let q = query(
+          collection(db, 'cakes'), 
+          orderBy('createdAt', 'desc'),
+          limit(100) // Limit qo'shish BloomFilter xatosini kamaytirish uchun
+        );
 
-      callback(cakes);
-    });
+        if (filters?.category) {
+          q = query(q, where('category', '==', filters.category));
+        }
+        if (filters?.bakerId) {
+          q = query(q, where('bakerId', '==', filters.bakerId));
+        }
+        if (filters?.shopId) {
+          q = query(q, where('shopId', '==', filters.shopId));
+        }
+        if (filters?.productType) {
+          q = query(q, where('productType', '==', filters.productType));
+        }
+        if (filters?.available !== undefined) {
+          q = query(q, where('available', '==', filters.available));
+        }
+
+        return onSnapshot(q, 
+          (querySnapshot) => {
+            if (!isActive) return;
+
+            try {
+              const cakes = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                createdAt: doc.data().createdAt.toDate(),
+                updatedAt: doc.data().updatedAt.toDate()
+              } as Cake));
+
+              retryCount = 0; // Reset retry count on success
+              callback(cakes);
+            } catch (error) {
+              console.error('❌ Cakes callback xatosi:', error);
+              if (isActive) {
+                callback([]);
+              }
+            }
+          },
+          (error) => {
+            if (!isActive) return;
+
+            console.error('❌ Cakes subscription xatosi:', error);
+            retryCount++;
+
+            if (retryCount <= maxRetries) {
+              const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000);
+              console.log(`🔄 Cakes subscription qayta urinish... (${retryCount}/${maxRetries})`);
+              
+              setTimeout(() => {
+                if (isActive) {
+                  createSubscription();
+                }
+              }, retryDelay);
+            } else {
+              console.error('❌ Cakes subscription maksimal retry tugadi');
+              if (isActive) {
+                callback([]);
+              }
+            }
+          }
+        );
+      } catch (error) {
+        console.error('❌ Cakes subscription yaratishda xatolik:', error);
+        return null;
+      }
+    };
+
+    const unsubscribe = createSubscription();
+
+    return () => {
+      isActive = false;
+      try {
+        if (unsubscribe && typeof unsubscribe === 'function') {
+          unsubscribe();
+        }
+      } catch (error) {
+        console.warn('⚠️ Cakes subscription o\'chirishda xato:', error);
+      }
+    };
   }
 
   // Buyurtmalar holatini real-time kuzatish (User ID bo'yicha optimized)
   subscribeToOrders(callback: (orders: Order[]) => void, filters?: { customerId?: string }) {
-    let q;
+    let isSubscriptionActive = true;
+    let retryCount = 0;
+    const maxRetries = 3;
     
-    if (filters?.customerId) {
-      console.log('🔄 Real-time subscription: Customer ID bo\'yicha', filters.customerId);
-      // Faqat specific customer uchun
-      q = query(
-        collection(db, 'orders'), 
-        where('customerId', '==', filters.customerId),
-        orderBy('createdAt', 'desc'),
-        limit(500) // Customer uchun barcha buyurtmalar
-      );
-    } else {
-      console.log('🔄 Real-time subscription: Umumiy buyurtmalar');
-      // Umumiy buyurtmalar uchun
-      q = query(
-        collection(db, 'orders'), 
-        orderBy('createdAt', 'desc'), 
-        limit(200) // Umumiy uchun limit
-      );
-    }
-
-    return onSnapshot(q, (querySnapshot) => {
+    const createSubscription = () => {
+      if (!isSubscriptionActive) return null;
+      
+      let q;
+      
       try {
-        const filterText = filters?.customerId ? `Customer ID (${filters.customerId})` : 'Umumiy';
-        console.log(`📥 Real-time (${filterText}): ${querySnapshot.docs.length} ta hujjat keldi`);
-        
-        const orders: Order[] = [];
-
-        querySnapshot.docs.forEach((doc) => {
-          try {
-            const data = doc.data();
-            
-            // Customer filter bo'lsa, yana bir marta tekshirish
-            if (filters?.customerId && data.customerId !== filters.customerId) {
-              return; // Skip this order
-            }
-            
-            const order: Order = {
-              id: doc.id,
-              orderUniqueId: data.orderUniqueId,
-              customerId: data.customerId || '',
-              customerName: data.customerName || 'Noma\'lum',
-              customerPhone: data.customerPhone || '',
-              cakeId: data.cakeId || '',
-              cakeName: data.cakeName || '',
-              quantity: data.quantity || 1,
-              amount: data.amount,
-              totalPrice: data.totalPrice || 0,
-              status: data.status || 'pending',
-              deliveryAddress: data.deliveryAddress || '',
-              coordinates: data.coordinates,
-              paymentMethod: data.paymentMethod,
-              paymentType: data.paymentType,
-              notes: data.notes,
-              createdAt: data.createdAt?.toDate() || new Date(),
-              updatedAt: data.updatedAt?.toDate() || new Date(),
-              deliveryTime: data.deliveryTime?.toDate()
-            };
-
-            orders.push(order);
-          } catch (parseError) {
-            console.warn('⚠️ Hujjat parse qilishda xato:', doc.id, parseError);
-          }
-        });
-
-        console.log(`✅ Real-time (${filterText}): ${orders.length} ta buyurtma qayta ishlandi`);
-        callback(orders);
-
-      } catch (error) {
-        console.error('❌ Real-time callback xatosi:', error);
-        callback([]);
-      }
-    }, (error) => {
-      console.error('❌ Real-time subscription xatosi:', error);
-      // Retry logic
-      setTimeout(() => {
-        console.log('🔄 Real-time subscription qayta urinish...');
-        try {
-          callback([]); // Bo'sh array qaytarish
-        } catch (retryError) {
-          console.error('❌ Retry callback xatosi:', retryError);
+        if (filters?.customerId) {
+          console.log('🔄 Real-time subscription: Customer ID bo\'yicha', filters.customerId);
+          // Faqat specific customer uchun
+          q = query(
+            collection(db, 'orders'), 
+            where('customerId', '==', filters.customerId),
+            orderBy('createdAt', 'desc'),
+            limit(100) // Kamroq limit
+          );
+        } else {
+          console.log('🔄 Real-time subscription: Umumiy buyurtmalar');
+          // Umumiy buyurtmalar uchun
+          q = query(
+            collection(db, 'orders'), 
+            orderBy('createdAt', 'desc'), 
+            limit(50) // Kamroq limit BloomFilter xatosini kamaytirish uchun
+          );
         }
-      }, 5000);
-    });
+
+        return onSnapshot(q, 
+          (querySnapshot) => {
+            if (!isSubscriptionActive) return;
+            
+            try {
+              const filterText = filters?.customerId ? `Customer ID (${filters.customerId})` : 'Umumiy';
+              console.log(`📥 Real-time (${filterText}): ${querySnapshot.docs.length} ta hujjat keldi`);
+              
+              const orders: Order[] = [];
+
+              querySnapshot.docs.forEach((doc) => {
+                try {
+                  const data = doc.data();
+                  
+                  // Customer filter bo'lsa, yana bir marta tekshirish
+                  if (filters?.customerId && data.customerId !== filters.customerId) {
+                    return; // Skip this order
+                  }
+                  
+                  const order: Order = {
+                    id: doc.id,
+                    orderUniqueId: data.orderUniqueId,
+                    customerId: data.customerId || '',
+                    customerName: data.customerName || 'Noma\'lum',
+                    customerPhone: data.customerPhone || '',
+                    cakeId: data.cakeId || '',
+                    cakeName: data.cakeName || '',
+                    quantity: data.quantity || 1,
+                    amount: data.amount,
+                    totalPrice: data.totalPrice || 0,
+                    status: data.status || 'pending',
+                    deliveryAddress: data.deliveryAddress || '',
+                    coordinates: data.coordinates,
+                    paymentMethod: data.paymentMethod,
+                    paymentType: data.paymentType,
+                    notes: data.notes,
+                    createdAt: data.createdAt?.toDate() || new Date(),
+                    updatedAt: data.updatedAt?.toDate() || new Date(),
+                    deliveryTime: data.deliveryTime?.toDate()
+                  };
+
+                  orders.push(order);
+                } catch (parseError) {
+                  console.warn('⚠️ Hujjat parse qilishda xato:', doc.id, parseError);
+                }
+              });
+
+              console.log(`✅ Real-time (${filterText}): ${orders.length} ta buyurtma qayta ishlandi`);
+              retryCount = 0; // Reset retry count on success
+              callback(orders);
+
+            } catch (error) {
+              console.error('❌ Real-time callback xatosi:', error);
+              if (isSubscriptionActive) {
+                callback([]);
+              }
+            }
+          }, 
+          (error) => {
+            if (!isSubscriptionActive) return;
+            
+            console.error('❌ Real-time subscription xatosi:', error);
+            retryCount++;
+            
+            if (retryCount <= maxRetries) {
+              // Retry with exponential backoff
+              const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000);
+              console.log(`🔄 Real-time subscription qayta urinish... (${retryCount}/${maxRetries}) - ${retryDelay}ms kutish`);
+              
+              setTimeout(() => {
+                if (isSubscriptionActive) {
+                  try {
+                    createSubscription();
+                  } catch (retryError) {
+                    console.error('❌ Retry subscription xatosi:', retryError);
+                  }
+                }
+              }, retryDelay);
+            } else {
+              console.error('❌ Maksimal retry soni tugadi, subscription to\'xtatildi');
+              if (isSubscriptionActive) {
+                callback([]);
+              }
+            }
+          }
+        );
+      } catch (error) {
+        console.error('❌ Subscription yaratishda xatolik:', error);
+        return null;
+      }
+    };
+
+    const unsubscribe = createSubscription();
+
+    return () => {
+      isSubscriptionActive = false;
+      try {
+        if (unsubscribe && typeof unsubscribe === 'function') {
+          unsubscribe();
+        }
+      } catch (error) {
+        console.warn('⚠️ Subscription o\'chirishda xato:', error);
+      }
+    };
   }
 }
 
