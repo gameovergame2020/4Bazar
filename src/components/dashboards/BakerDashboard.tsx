@@ -64,7 +64,7 @@ const BakerDashboard = () => {
 
             // Statistikani yangilash
             const pendingOrders = bakerOrders.filter(order => 
-              ['pending', 'accepted', 'preparing'].includes(order.status)
+              ['accepted', 'preparing'].includes(order.status)
             ).length;
 
             const uniqueCustomers = new Set(bakerOrders.map(order => order.customerId)).size;
@@ -137,7 +137,7 @@ const BakerDashboard = () => {
 
       // Statistikani hisoblash
       const pendingOrders = bakerOrders.filter(order => 
-        ['pending', 'accepted', 'preparing'].includes(order.status)
+        ['accepted', 'preparing'].includes(order.status)
       ).length;
 
       const totalProducts = cakes.length;
@@ -636,7 +636,7 @@ const BakerDashboard = () => {
 
         <div className="space-y-4">
           {orders
-            .filter(order => ['pending', 'accepted', 'preparing'].includes(order.status))
+            .filter(order => ['accepted', 'preparing'].includes(order.status))
             .slice(0, 5)
             .map((order) => (
             <div key={order.id} className="border border-gray-200 rounded-xl p-4">
@@ -667,22 +667,7 @@ const BakerDashboard = () => {
                   Batafsil
                 </button>
                 <div className="flex space-x-2">
-                  {order.status === 'pending' && (
-                    <>
-                      <button
-                        onClick={() => handleOrderStatusUpdate(order.id!, 'accepted')}
-                        className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-600 transition-colors"
-                      >
-                        Qabul qilish
-                      </button>
-                      <button
-                        onClick={() => handleOrderStatusUpdate(order.id!, 'cancelled')}
-                        className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition-colors"
-                      >
-                        Rad etish
-                      </button>
-                    </>
-                  )}
+                  
                   {order.status === 'accepted' && (
                     <button
                       onClick={() => handleOrderStatusUpdate(order.id!, 'preparing')}
@@ -704,10 +689,11 @@ const BakerDashboard = () => {
             </div>
           ))}
 
-          {orders.filter(o => ['pending', 'accepted', 'preparing'].includes(o.status)).length === 0 && (
+          {orders.filter(o => ['accepted', 'preparing'].includes(o.status)).length === 0 && (
             <div className="text-center py-8">
               <Clock size={48} className="text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">Kutilayotgan buyurtmalar yo'q</p>
+              <p className="text-sm text-gray-400 mt-2">Operator tasdiqlagan buyurtmalar bu yerda ko'rsatiladi</p>
             </div>
           )}
         </div>
