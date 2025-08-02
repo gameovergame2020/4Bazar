@@ -102,6 +102,53 @@ export interface SupportResponse {
   authorType: 'customer' | 'operator' | 'admin';
   message: string;
   createdAt: Date;
+
+
+  // 8 xonali noyob buyurtma ID yaratish
+  private async generateUniqueOrderId(): Promise<string> {
+    let isUnique = false;
+    let uniqueId = '';
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    while (!isUnique && attempts < maxAttempts) {
+      // 8 xonali random raqam yaratish (10000000 - 99999999)
+      const randomId = Math.floor(Math.random() * 90000000) + 10000000;
+      uniqueId = randomId.toString();
+
+      try {
+        // Firebase'da bunday ID mavjudligini tekshirish
+        const existingOrderQuery = query(
+          collection(db, 'orders'),
+          where('orderUniqueId', '==', uniqueId),
+          limit(1)
+        );
+        
+        const querySnapshot = await getDocs(existingOrderQuery);
+        
+        if (querySnapshot.empty) {
+          isUnique = true;
+          console.log(`✅ 8 xonali noyob ID topildi: ${uniqueId}`);
+        } else {
+          console.log(`⚠️ ID ${uniqueId} allaqachon mavjud, qayta urinish...`);
+          attempts++;
+        }
+      } catch (error) {
+        console.error('❌ ID tekshirishda xato:', error);
+        attempts++;
+      }
+    }
+
+    if (!isUnique) {
+      // Fallback: timestamp asosidagi ID
+      const timestamp = Date.now().toString();
+      uniqueId = timestamp.slice(-8);
+      console.log(`⚠️ Fallback ID ishlatildi: ${uniqueId}`);
+    }
+
+    return uniqueId;
+  }
+
 }
 
 class DataService {
@@ -217,18 +264,16 @@ class DataService {
   // Yangi buyurtma yaratish
   async createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     try {
-      // Noyob buyurtma ID yaratish - bir martalik va takrorlanmas
-      const timestamp = Date.now();
-      const randomSuffix = Math.random().toString(36).substr(2, 9); // 9 ta random belgi
-      const uniqueOrderId = `ORD_${timestamp}_${randomSuffix}`;
+      // 8 xonali noyob buyurtma ID yaratish
+      const uniqueOrderId = await this.generateUniqueOrderId();
       
-      console.log('🆔 Noyob buyurtma ID yaratildi:', uniqueOrderId);
+      console.log('🆔 8 xonali noyob buyurtma ID yaratildi:', uniqueOrderId);
       console.log('🍰 Mahsulot ID:', order.cakeId);
       console.log('👤 Customer ID (User ID):', order.customerId);
       
       const orderData = {
         ...order,
-        orderUniqueId: uniqueOrderId, // Bir martalik noyob ID
+        orderUniqueId: uniqueOrderId, // 8 xonali noyob ID
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       };
