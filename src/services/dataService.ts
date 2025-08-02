@@ -236,7 +236,6 @@ class DataService {
       
       console.log('✅ Firebase hujjat ID:', docRef.id);
       console.log('🆔 Noyob buyurtma ID:', uniqueOrderId);
-      console.log('👤 Foydalanuvchi ID bilan bog\'langan:', cleanUserId);
       
       return docRef.id;
     } catch (error) {
