@@ -30,12 +30,28 @@ if (missingKeys.length > 0) {
 }
 
 // Firebase ilovasini ishga tushirish
-const app = initializeApp(firebaseConfig);
+let app: any = null;
+let auth: any = null;
+let db: any = null;
+let storage: any = null;
+let analytics: any = null;
+
+try {
+  // Agar Firebase konfiguratsiyasi to'liq bo'lsa
+  if (missingKeys.length === 0) {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    storage = getStorage(app);
+    analytics = getAnalytics(app);
+    console.log('✅ Firebase muvaffaqiyatli ishga tushirildi');
+  } else {
+    console.warn('⚠️ Firebase konfiguratsiyasi to\'liq emas, Firebase xizmatlar o\'chirilgan');
+  }
+} catch (error) {
+  console.error('❌ Firebase ishga tushirishda xato:', error);
+}
 
 // Firebase xizmatlarini eksport qilish
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
-export const analytics = getAnalytics(app);
-
+export { auth, db, storage, analytics };
 export default app;
