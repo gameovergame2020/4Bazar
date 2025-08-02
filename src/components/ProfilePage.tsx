@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
@@ -144,7 +143,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
     const loadOrders = async () => {
       try {
         setLoading(true);
-        
+
         loadingTimeout = setTimeout(() => {
           if (isActive) {
             setLoading(false);
@@ -152,7 +151,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
         }, 2000);
 
         const userOrders = await getUserOrders(user.id.toString());
-        
+
         if (isActive) {
           clearTimeout(loadingTimeout);
           setOrders(userOrders);
@@ -230,13 +229,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
     try {
       setCancellingOrderId(orderToCancel.id);
       await cancelOrder(orderToCancel.id);
-      
+
       setOrders(prev => prev.map(order => 
         order.id === orderToCancel.id 
           ? { ...order, status: 'cancelled' as const }
           : order
       ));
-      
+
       setShowCancelModal(false);
       setOrderToCancel(null);
     } catch (error) {
@@ -273,7 +272,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
               <p className="text-gray-400 text-xs sm:text-sm">{user.phone}</p>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-6">
             <div className="text-center p-2 sm:p-3 rounded-lg bg-gray-700/50">
               <div className="text-lg sm:text-xl font-bold text-orange-400">{user.totalOrders}</div>
@@ -289,7 +288,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
         {/* Recent Orders */}
         <div className="backdrop-blur-sm rounded-xl sm:rounded-2xl lg:rounded-3xl p-3 sm:p-4 lg:p-6 shadow-sm border transition-colors duration-300 bg-gray-800/90 border-gray-700">
           <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">So'nggi buyurtmalar</h2>
-          
+
           {loading ? (
             <div className="flex flex-col items-center justify-center py-8">
               <div className="animate-spin h-8 w-8 border-4 border-orange-500 border-t-transparent rounded-full mb-4"></div>
@@ -314,7 +313,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                       <span>{getStatusText(order.status)}</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between text-xs sm:text-sm">
                     <span className="text-orange-400 font-medium">{order.totalPrice.toLocaleString()} so'm</span>
                     <span className="text-gray-400">{new Date(order.orderDate).toLocaleDateString('uz-UZ')}</span>
@@ -350,22 +349,22 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                       />
                     </div>
                     <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-white text-xs sm:text-sm truncate">{cake.name}</h4>
-                        <p className="text-gray-400 text-xs">{cake.restaurant}</p>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-orange-400 text-xs sm:text-sm font-medium">{cake.price} so'm</span>
-                          <div className="flex items-center space-x-1">
-                            <Star size={10} className="text-yellow-400 fill-current" />
-                            <span className="text-gray-300 text-xs">{cake.rating}</span>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-white text-xs sm:text-sm truncate">{cake.name}</h4>
+                          <p className="text-gray-400 text-xs">{cake.restaurant}</p>
+                          <div className="flex items-center justify-between mt-1">
+                            <span className="text-orange-400 text-xs sm:text-sm font-medium">{cake.price} so'm</span>
+                            <div className="flex items-center space-x-1">
+                              <Star size={10} className="text-yellow-400 fill-current" />
+                              <span className="text-gray-300 text-xs">{cake.rating}</span>
+                            </div>
                           </div>
                         </div>
+                        <button className="p-0.5 sm:p-1 text-pink-400 hover:text-pink-300 transition-colors">
+                          <Heart size={12} className="fill-current" />
+                        </button>
                       </div>
-                      <button className="p-0.5 sm:p-1 text-pink-400 hover:text-pink-300 transition-colors">
-                        <Heart size={12} className="fill-current" />
-                      </button>
                     </div>
-                  </div>
                 </div>
               ))}
             </div>

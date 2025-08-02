@@ -489,6 +489,16 @@ class DataService {
     }
   }
 
+  // Buyurtmani bekor qilish
+  async cancelOrder(orderId: string): Promise<void> {
+    try {
+      await this.updateOrderStatus(orderId, 'cancelled');
+    } catch (error) {
+      console.error('Buyurtmani bekor qilishda xatolik:', error);
+      throw error;
+    }
+  }
+
   // Buyurtma holatini yangilash
   async updateOrderStatus(orderId: string, status: Order['status']): Promise<void> {
     try {
@@ -1412,3 +1422,9 @@ class DataService {
 }
 
 export const dataService = new DataService();
+
+// Buyurtmani bekor qilish uchun alohida export
+export const cancelOrder = (orderId: string) => dataService.cancelOrder(orderId);
+
+// Foydalanuvchi buyurtmalarini olish uchun alohida export
+export const getUserOrders = (userId: string) => dataService.getOrdersByCustomerId(userId);
