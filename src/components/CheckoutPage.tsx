@@ -565,8 +565,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 Yetkazib berish muddati
               </h3>
 
-              <div className="space-y-3">
-                <label className="flex items-center gap-3 cursor-pointer">
+              <div className="space-y-2">
+                <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                  userInfo.deliveryTime === 'asap' 
+                    ? 'bg-orange-50 border-orange-300 text-orange-900' 
+                    : 'bg-white border-gray-200 hover:bg-gray-50'
+                }`}>
                   <input
                     type="radio"
                     name="deliveryTime"
@@ -575,10 +579,14 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                     onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
                     className="text-orange-500"
                   />
-                  <span className="text-base">⚡ Tez (2-3 soat)</span>
+                  <span className="font-medium">⚡ Tez (2-3 soat)</span>
                 </label>
 
-                <label className="flex items-center gap-3 cursor-pointer">
+                <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                  userInfo.deliveryTime === 'today' 
+                    ? 'bg-orange-50 border-orange-300 text-orange-900' 
+                    : 'bg-white border-gray-200 hover:bg-gray-50'
+                }`}>
                   <input
                     type="radio"
                     name="deliveryTime"
@@ -587,10 +595,14 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                     onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
                     className="text-orange-500"
                   />
-                  <span className="text-base">🌅 Bugun (18:00-22:00)</span>
+                  <span className="font-medium">🌅 Bugun (18:00-22:00)</span>
                 </label>
 
-                <label className="flex items-center gap-3 cursor-pointer">
+                <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                  userInfo.deliveryTime === 'tomorrow' 
+                    ? 'bg-orange-50 border-orange-300 text-orange-900' 
+                    : 'bg-white border-gray-200 hover:bg-gray-50'
+                }`}>
                   <input
                     type="radio"
                     name="deliveryTime"
@@ -599,7 +611,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                     onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
                     className="text-orange-500"
                   />
-                  <span className="text-base">📅 Ertaga (09:00-21:00)</span>
+                  <span className="font-medium">📅 Ertaga (09:00-21:00)</span>
                 </label>
               </div>
             </div>
