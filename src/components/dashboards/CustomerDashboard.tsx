@@ -467,8 +467,8 @@ const CustomerDashboard = () => {
                       ? cake.quantity !== undefined 
                         ? `Qoldi: ${cake.quantity} ta`
                         : 'Miqdor: cheklanmagan'
-                      : cake.amount !== undefined 
-                        ? `Buyurtma qilingan: ${cake.amount} ta`
+                      : cake.quantity !== undefined 
+                        ? `Buyurtma qilingan: ${cake.quantity} ta`
                         : 'Buyurtma yo\'q'
                     : cake.quantity !== undefined 
                       ? `Qoldi: ${cake.quantity} ta`
