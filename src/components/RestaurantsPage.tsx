@@ -243,7 +243,7 @@ const RestaurantsPage: React.FC = () => {
         yandexMap.destroy();
       }
     };
-  }, [yandexMap]);exMap]);
+  }, [yandexMap]);
 
   return (
     <div className="min-h-screen bg-gray-50">
