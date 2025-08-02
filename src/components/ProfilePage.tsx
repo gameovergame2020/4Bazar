@@ -1,17 +1,19 @@
-<div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-white text-xs sm:text-sm truncate">{cake.name}</h4>
-                        <p className="text-gray-400 text-xs">{cake.restaurant}</p>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-orange-400 text-xs sm:text-sm font-medium">{cake.price} so'm</span>
-                          <div className="flex items-center space-x-1">
-                            <Star size={10} className="text-yellow-400 fill-current" />
-                            <span className="text-gray-300 text-xs">{cake.rating}</span>
+<>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-white text-xs sm:text-sm truncate">{cake.name}</h4>
+                          <p className="text-gray-400 text-xs">{cake.restaurant}</p>
+                          <div className="flex items-center justify-between mt-1">
+                            <span className="text-orange-400 text-xs sm:text-sm font-medium">{cake.price} so'm</span>
+                            <div className="flex items-center space-x-1">
+                              <Star size={10} className="text-yellow-400 fill-current" />
+                              <span className="text-gray-300 text-xs">{cake.rating}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <button className="p-0.5 sm:p-1 text-pink-400 hover:text-pink-300 transition-colors">
-                        <Heart size={12} className="fill-current" />
-                      </button>
+                        <button className="p-0.5 sm:p-1 text-pink-400 hover:text-pink-300 transition-colors">
+                          <Heart size={12} className="fill-current" />
+                        </button>
+                      </>
                     </div>
                   </div>
                 ))}
