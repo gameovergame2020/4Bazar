@@ -37,18 +37,24 @@ const CustomerDashboard = () => {
         }).map(cake => {
           // Baker mahsulotlari uchun buyurtma qilingan miqdorni hisoblash
           if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
-            const orderedQuantity = allOrders
-              .filter(order => 
-                order.cakeId === cake.id && 
-                !['cancelled', 'ready', 'delivering', 'delivered'].includes(order.status)
-              )
-              .reduce((total, order) => total + order.quantity, 0);
+            // Faqat available: false (buyurtma uchun) holatidagi mahsulotlar uchun buyurtma miqdorini ko'rsatish
+            if (!cake.available) {
+              const orderedQuantity = allOrders
+                .filter(order => 
+                  order.cakeId === cake.id && 
+                  !['cancelled', 'ready', 'delivering', 'delivered'].includes(order.status)
+                )
+                .reduce((total, order) => total + order.quantity, 0);
 
-            return {
-              ...cake,
-              quantity: orderedQuantity
-            };
+              return {
+                ...cake,
+                quantity: orderedQuantity
+              };
+            }
+            // Available: true (hozir mavjud) holatidagi mahsulotlar uchun real quantity ni saqlab qolish
+            return cake;
           }
+
           return cake;
         });
 
@@ -108,23 +114,28 @@ const CustomerDashboard = () => {
         // Default: available bo'lganlarni ko'rsatish
         return cake.available === true;
       }).map(cake => {
-        // Baker mahsulotlari uchun buyurtma qilingan miqdorni hisoblash
-        if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
-          const orderedQuantity = allOrders
-            .filter(order => 
-              order.cakeId === cake.id && 
-              !['cancelled', 'ready', 'delivering', 'delivered'].includes(order.status)
-            )
-            .reduce((total, order) => total + order.quantity, 0);
+          // Baker mahsulotlari uchun buyurtma qilingan miqdorni hisoblash
+          if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
+            // Faqat available: false (buyurtma uchun) holatidagi mahsulotlar uchun buyurtma miqdorini ko'rsatish
+            if (!cake.available) {
+              const orderedQuantity = allOrders
+                .filter(order => 
+                  order.cakeId === cake.id && 
+                  !['cancelled', 'ready', 'delivering', 'delivered'].includes(order.status)
+                )
+                .reduce((total, order) => total + order.quantity, 0);
 
-          return {
-            ...cake,
-            quantity: orderedQuantity
-          };
-        }
+              return {
+                ...cake,
+                quantity: orderedQuantity
+              };
+            }
+            // Available: true (hozir mavjud) holatidagi mahsulotlar uchun real quantity ni saqlab qolish
+            return cake;
+          }
 
-        return cake;
-      });
+          return cake;
+        });
 
       // Statistika uchun ajratish
       const bakerCakes = filteredCakes.filter(cake => 
