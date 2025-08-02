@@ -215,7 +215,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       // Yandex Maps API scriptini yuklash
       if (!window.ymaps) {
         const script = document.createElement('script');
-        script.src = 'https://api-maps.yandex.ru/2.1/?apikey=YOUR_API_KEY&lang=uz_UZ';
+        script.src = 'https://api-maps.yandex.ru/2.1/?lang=uz_UZ';
         script.type = 'text/javascript';
         script.async = true;
         script.onload = initializeYandexMap;
