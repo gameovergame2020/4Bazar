@@ -102,8 +102,9 @@ export interface SupportResponse {
   authorType: 'customer' | 'operator' | 'admin';
   message: string;
   createdAt: Date;
+}
 
-
+class DataService {
   // 8 xonali noyob buyurtma ID yaratish
   private async generateUniqueOrderId(): Promise<string> {
     let isUnique = false;
@@ -148,10 +149,6 @@ export interface SupportResponse {
 
     return uniqueId;
   }
-
-}
-
-class DataService {
   // TORTLAR BILAN ISHLASH
 
   // Yangi tort qo'shish
