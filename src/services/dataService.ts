@@ -233,8 +233,8 @@ class DataService {
       const orderData = {
         ...order,
         orderUniqueId: uniqueOrderId, // Bir martalik noyob ID
-        customerId: cleanUserId, // Foydalanuvchi ID ni saqlash
-        userId: cleanUserId, // Qo'shimcha user reference uchun
+        customerId: cleanUserId, // Mijoz ID sifatida
+        userId: cleanUserId, // Faqat foydalanuvchi ID bilan bir xil
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       };
@@ -306,7 +306,7 @@ class DataService {
             id: doc.id,
             orderUniqueId: data.orderUniqueId || doc.id,
             customerId: data.customerId,
-            userId: data.userId || data.customerId, // userId maydonini qo'shish
+            userId: data.customerId, // userId faqat customerId bilan bir xil
             customerName: data.customerName || 'Noma\'lum mijoz',
             customerPhone: data.customerPhone || '',
             cakeId: data.cakeId,
@@ -376,7 +376,7 @@ class DataService {
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         orderUniqueId: doc.data().orderUniqueId,
-        userId: doc.data().userId || doc.data().customerId,
+        userId: doc.data().customerId, // userId faqat customerId bilan bir xil
         ...doc.data(),
         createdAt: doc.data().createdAt.toDate(),
         updatedAt: doc.data().updatedAt.toDate(),
@@ -1300,7 +1300,7 @@ class DataService {
               id: doc.id,
               orderUniqueId: data.orderUniqueId,
               customerId: data.customerId || 'unknown',
-              userId: data.userId || data.customerId || 'unknown', // userId maydonini qo'shish
+              userId: data.customerId || 'unknown', // userId faqat customerId bilan bir xil
               customerName: data.customerName || 'Noma\'lum',
               customerPhone: data.customerPhone || '',
               cakeId: data.cakeId || '',
