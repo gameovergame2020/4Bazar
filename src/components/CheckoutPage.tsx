@@ -27,13 +27,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     coordinates: null,
   });
 
-  // Force re-render when deliveryAddress changes from map
-  const [addressKey, setAddressKey] = useState(0);
-  
-  useEffect(() => {
-    setAddressKey(prev => prev + 1);
-  }, [formData.deliveryAddress]);
-
   const mapRef = useRef<HTMLDivElement>(null);
 
   // Savat bo'sh bo'lganda asosiy sahifaga qaytish
@@ -169,16 +162,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
               const firstGeoObject = result.geoObjects.get(0);
               if (firstGeoObject) {
                 const address = firstGeoObject.getAddressLine();
-                console.log('Drag tugallandi, manzil:', address);
-                setFormData(prev => {
-                  const newData = {
-                    ...prev,
-                    deliveryAddress: address,
-                    coordinates: { lat: coords[0], lng: coords[1] }
-                  };
-                  console.log('FormData yangilandi:', newData);
-                  return newData;
-                });
+                setFormData(prev => ({
+                  ...prev,
+                  deliveryAddress: address,
+                  coordinates: { lat: coords[0], lng: coords[1] }
+                }));
               }
             });
           });
@@ -192,16 +180,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
               const firstGeoObject = result.geoObjects.get(0);
               if (firstGeoObject) {
                 const address = firstGeoObject.getAddressLine();
-                console.log('Xarita bosildi, manzil:', address);
-                setFormData(prev => {
-                  const newData = {
-                    ...prev,
-                    deliveryAddress: address,
-                    coordinates: { lat: coords[0], lng: coords[1] }
-                  };
-                  console.log('FormData yangilandi:', newData);
-                  return newData;
-                });
+                setFormData(prev => ({
+                  ...prev,
+                  deliveryAddress: address,
+                  coordinates: { lat: coords[0], lng: coords[1] }
+                }));
               }
             });
           });
@@ -217,16 +200,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 const firstGeoObject = result.geoObjects.get(0);
                 if (firstGeoObject) {
                   const address = firstGeoObject.getAddressLine();
-                  console.log('Geolocation topildi, manzil:', address);
-                  setFormData(prev => {
-                    const newData = {
-                      ...prev,
-                      deliveryAddress: address,
-                      coordinates: { lat: coords[0], lng: coords[1] }
-                    };
-                    console.log('FormData yangilandi:', newData);
-                    return newData;
-                  });
+                  setFormData(prev => ({
+                    ...prev,
+                    deliveryAddress: address,
+                    coordinates: { lat: coords[0], lng: coords[1] }
+                  }));
                 }
               });
             }
@@ -316,7 +294,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Order Form */}
         <div className="lg:col-span-2">
-          <form onSubmit={handleSubmit} className="space-y-6" id="checkout-form" key={formData.deliveryAddress}>
+          <form onSubmit={handleSubmit} className="space-y-6" id="checkout-form">
             {/* Contact Information */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -368,9 +346,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   </label>
                   <div className="relative">
                     <textarea
-                      key={addressKey}
                       name="deliveryAddress"
-                      value={formData.deliveryAddress || ''}
+                      value={formData.deliveryAddress}
                       onChange={handleInputChange}
                       required
                       rows={3}
@@ -603,12 +580,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 </button>
                 <button
                   onClick={() => {
-                    console.log('Tanlash tugmasi bosildi, manzil:', formData.deliveryAddress);
                     if (formData.deliveryAddress && formData.deliveryAddress.trim()) {
-                      console.log('Manzil mavjud, modal yopilmoqda');
                       setShowLocationPicker(false);
                     } else {
-                      console.log('Manzil mavjud emas');
                       alert('Iltimos, xaritadan manzilni tanlang');
                     }
                   }}
