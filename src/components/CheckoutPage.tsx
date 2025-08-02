@@ -139,7 +139,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
         // ymaps ob'ekti to'liq yuklanganini tekshirish
         if (typeof window.ymaps.Map !== 'function' || typeof window.ymaps.Placemark !== 'function') {
-          console.error('ymaps ob'ektlari to'liq yuklanmagan');
+          console.error('ymaps ob\'ektlari to\'liq yuklanmagan');
           setTimeout(() => initializeYandexMap(), 500);
           return;
         }
