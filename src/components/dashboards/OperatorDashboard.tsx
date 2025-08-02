@@ -64,7 +64,7 @@ const OperatorDashboard = () => {
     customerPhone: '',
     deliveryAddress: ''
   });
-  const [searchPhone, setSearchPhone] = useState('');
+  const [searchOrderId, setSearchOrderId] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
@@ -492,25 +492,30 @@ const OperatorDashboard = () => {
     }
   };
 
-  // Customer phone bo'yicha buyurtmalarni qidirish
-  const handleSearchByPhone = async () => {
-    if (!searchPhone.trim()) {
-      alert('Telefon raqamni kiriting');
+  // orderUniqueId bo'yicha buyurtmalarni qidirish
+  const handleSearchByOrderId = async () => {
+    if (!searchOrderId.trim()) {
+      alert('Buyurtma ID sini kiriting');
       return;
     }
 
     try {
       setIsSearching(true);
-      console.log('🔍 Telefon raqam bo\'yicha qidiruv:', searchPhone);
+      console.log('🔍 Order ID bo\'yicha qidiruv:', searchOrderId);
 
-      const foundOrders = await dataService.getOrdersByUserId(searchPhone.trim());
+      // Barcha buyurtmalarni olish va orderUniqueId bo'yicha filtrlash
+      const allOrders = await dataService.getOrders();
+      const foundOrders = allOrders.filter(order => 
+        order.orderUniqueId?.toLowerCase().includes(searchOrderId.trim().toLowerCase()) ||
+        order.id?.toLowerCase().includes(searchOrderId.trim().toLowerCase())
+      );
 
       if (foundOrders.length > 0) {
         console.log(`✅ ${foundOrders.length} ta buyurtma topildi`);
         // Update the main orders list with found orders
         setOrders(foundOrders);
       } else {
-        alert('Bu telefon raqam bo\'yicha buyurtma topilmadi');
+        alert('Bu ID bo\'yicha buyurtma topilmadi');
       }
     } catch (error) {
       console.error('❌ Qidirishda xato:', error);
@@ -956,14 +961,14 @@ const OperatorDashboard = () => {
         <div className="mb-4 flex items-center space-x-2">
           <input
                 type="text"
-                value={searchPhone}
-                onChange={(e) => setSearchPhone(e.target.value)}
-                placeholder="Telefon raqamni kiriting..."
+                value={searchOrderId}
+                onChange={(e) => setSearchOrderId(e.target.value)}
+                placeholder="Buyurtma ID sini kiriting (masalan: D9OAHZ7Z)..."
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyPress={(e) => e.key === 'Enter' && handleSearchByPhone()}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearchByOrderId()}
               />
               <button
-                onClick={handleSearchByPhone}
+                onClick={handleSearchByOrderId}
                 disabled={isSearching}
                 className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center space-x-2"
               >
@@ -975,9 +980,17 @@ const OperatorDashboard = () => {
                 ) : (
                   <>
                     <Search size={16} />
-                    <span>Telefon bo'yicha qidirish</span>
+                    <span>ID bo'yicha qidirish</span>
                   </>
                 )}
+              </button>
+              <button
+                onClick={loadData}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center space-x-2"
+                title="Barcha buyurtmalarni ko'rsatish"
+              >
+                <RefreshCw size={16} />
+                <span>Barchasi</span>
               </button>
         </div>
 
