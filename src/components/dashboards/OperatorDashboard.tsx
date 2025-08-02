@@ -59,6 +59,7 @@ const OperatorDashboard = () => {
   const [availableCakes, setAvailableCakes] = useState<any[]>([]);
   const [newProductSearchQuery, setNewProductSearchQuery] = useState('');
   const [editingCustomerInfo, setEditingCustomerInfo] = useState({
+    customerId: '',
     customerName: '',
     customerPhone: '',
     deliveryAddress: ''
@@ -74,16 +75,16 @@ const OperatorDashboard = () => {
   const handleOrderStatusChange = async (orderId: string, newStatus: string) => {
     try {
       await dataService.updateOrderStatus(orderId, newStatus as any);
-      
+
       // Ma'lumotlarni qayta yuklash
       await loadData();
-      
+
       // Modalini yopish
       setSelectedOrderForDetails(null);
-      
+
       // Muvaffaqiyat xabari
       alert(`Buyurtma holati "${getOrderStatusText(newStatus)}" ga o'zgartirildi`);
-      
+
       // Mijozga bildirishnoma yuborish
       try {
         const order = orders.find(o => o.id === orderId);
@@ -99,7 +100,7 @@ const OperatorDashboard = () => {
       } catch (notifError) {
         console.warn('Mijoz bildirishnomasi yuborishda xato:', notifError);
       }
-      
+
     } catch (error) {
       console.error('Buyurtma holatini o\'zgartirishda xato:', error);
       alert('Xato yuz berdi. Qaytadan urinib ko\'ring.');
@@ -315,6 +316,7 @@ const OperatorDashboard = () => {
     setOrderItems({ [order.cakeId]: order.quantity });
     // Mijoz ma'lumotlarini tahrirlash uchun tayyorlash
     setEditingCustomerInfo({
+      customerId: order.customerId || '',
       customerName: order.customerName || '',
       customerPhone: order.customerPhone || '',
       deliveryAddress: order.deliveryAddress || ''
@@ -329,7 +331,7 @@ const OperatorDashboard = () => {
 
     setOrderItems(prev => {
       const currentQuantity = prev[cakeId] || 0;
-      
+
       // Mahsulot miqdori cheklovini tekshirish
       if (cake.quantity !== undefined && currentQuantity >= cake.quantity) {
         alert(`Bu mahsulotdan faqat ${cake.quantity} ta mavjud`);
@@ -400,7 +402,7 @@ const OperatorDashboard = () => {
       // Agar bitta mahsulot bo'lsa, faqat cakeId va cakeName ni yangilash
       const isSimpleOrder = Object.keys(orderItems).length === 1;
       const firstCakeId = Object.keys(orderItems)[0];
-      
+
       const updates: any = {
         quantity: totalQuantity,
         totalPrice: totalPrice,
@@ -433,6 +435,7 @@ const OperatorDashboard = () => {
       setOrderItems({});
       setNewProductSearchQuery('');
       setEditingCustomerInfo({
+        customerId: '',
         customerName: '',
         customerPhone: '',
         deliveryAddress: ''
@@ -846,8 +849,7 @@ const OperatorDashboard = () => {
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Tort</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Summa</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Holat</th>
-                <th className="text-left py-3 px-4 font-medium text```python
--gray-900">Sana</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Sana</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Manzil</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Amallar</th>
               </tr>
@@ -1121,7 +1123,7 @@ const OperatorDashboard = () => {
               {selectedOrderForDetails.status === 'pending' && (
                 <div className="space-y-2 pt-2">
                   <button
-                    onClick={() => {
+                    onClick={()={() => {
                       handleEditOrder(selectedOrderForDetails);
                       setSelectedOrderForDetails(null);
                     }}
@@ -1178,6 +1180,7 @@ const OperatorDashboard = () => {
                   setOrderItems({});
                   setNewProductSearchQuery('');
                   setEditingCustomerInfo({
+                    customerId: '',
                     customerName: '',
                     customerPhone: '',
                     deliveryAddress: ''
@@ -1201,36 +1204,54 @@ const OperatorDashboard = () => {
 
                   {/* Mijoz ma'lumotlarini tahrirlash */}
                   <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Mijoz ismi
-                      </label>
-                      <input
-                        type="text"
-                        value={editingCustomerInfo.customerName}
-                        onChange={(e) => setEditingCustomerInfo(prev => ({
-                          ...prev,
-                          customerName: e.target.value
-                        }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                        placeholder="Mijoz ismini kiriting"
-                      />
-                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Foydalanuvchi ID <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={editingCustomerInfo.customerId || ''}
+                          onChange={(e) => setEditingCustomerInfo(prev => ({
+                            ...prev,
+                            customerId: e.target.value
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          placeholder="customer-12345"
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Telefon raqami
-                      </label>
-                      <input
-                        type="tel"
-                        value={editingCustomerInfo.customerPhone}
-                        onChange={(e) => setEditingCustomerInfo(prev => ({
-                          ...prev,
-                          customerPhone: e.target.value
-                        }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                        placeholder="+998 XX XXX XX XX"
-                      />
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Mijoz ismi
+                        </label>
+                        <input
+                          type="text"
+                          value={editingCustomerInfo.customerName}
+                          onChange={(e) => setEditingCustomerInfo(prev => ({
+                            ...prev,
+                            customerName: e.target.value
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          placeholder="Mijoz ismini kiriting"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Telefon raqam
+                        </label>
+                        <input
+                          type="tel"
+                          value={editingCustomerInfo.customerPhone}
+                          onChange={(e) => setEditingCustomerInfo(prev => ({
+                            ...prev,
+                            customerPhone: e.target.value
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          placeholder="+998 90 123 45 67"
+                        />
+                      </div>
                     </div>
 
                     <div>
@@ -1410,6 +1431,7 @@ const OperatorDashboard = () => {
                     setOrderItems({});
                     setNewProductSearchQuery('');
                     setEditingCustomerInfo({
+                      customerId: '',
                       customerName: '',
                       customerPhone: '',
                       deliveryAddress: ''

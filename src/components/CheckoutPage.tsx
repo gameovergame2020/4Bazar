@@ -483,9 +483,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     }
 
     try {
-      // Buyurtma ma'lumotlarini tayyorlash
+      // Buyurtma ma'lumotlarini tayyorlash - haqiqiy foydalanuvchi ID sini olish
+      const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId') || `customer-${Date.now()}`;
+      
       const orderData = {
-        customerId: 'customer-' + Date.now(), // Real holatda foydalanuvchi ID si
+        customerId: userId, // Haqiqiy foydalanuvchi ID si
         customerName: userInfo.name,
         customerPhone: userInfo.phone,
         cakeId: cartProducts[0]?.id || '', // Birinchi mahsulot ID si
@@ -576,9 +578,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     const finalPaymentType = paymentType || userInfo.paymentType;
     
     try {
-      // Buyurtma ma'lumotlarini tayyorlash
+      // Buyurtma ma'lumotlarini tayyorlash - haqiqiy foydalanuvchi ID sini olish
+      const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId') || `customer-${Date.now()}`;
+      
       const orderData = {
-        customerId: 'customer-' + Date.now(),
+        customerId: userId, // Haqiqiy foydalanuvchi ID si
         customerName: userInfo.name,
         customerPhone: userInfo.phone,
         cakeId: cartProducts[0]?.id || '',
