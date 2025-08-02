@@ -366,19 +366,19 @@ const BakerDashboard = () => {
         if (cake) {
           // Baker mahsulotlari uchun amount va quantity ni to'g'ri boshqarish
           const updateData: any = {};
-          
+
+          // Baker mahsulotlari uchun amount kamaytirib va quantity qaytarib, available holatini tekshirish
           if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
-            // Baker mahsulotlari uchun amount kamayishi va quantity qaytarish
             const newAmount = Math.max(0, (cake.amount || 0) - order.quantity);
             updateData.amount = newAmount;
-            
-            // Agar mahsulot "Hozir mavjud" holatida bo'lsa, quantity ni qaytarish
+
+            // Agar mahsulot "hozir mavjud" holatida bo'lsa, quantity ni qaytarish
             if (cake.available && cake.quantity !== undefined) {
               const newQuantity = cake.quantity + order.quantity;
               updateData.quantity = newQuantity;
-              updateData.available = newQuantity > 0;
+              updateData.available = true; // Quantity mavjud bo'lganligi uchun "Hozir mavjud"
             } else {
-              // "Buyurtma uchun" holatida quantity yo'q, faqat available holatini tekshirish
+              // Buyurtma uchun mahsulotlar uchun quantity yo'q, available false
               updateData.available = false;
             }
           } else {
@@ -387,7 +387,7 @@ const BakerDashboard = () => {
             updateData.quantity = newQuantity;
             updateData.available = newQuantity > 0;
           }
-          
+
           await dataService.updateCake(order.cakeId, updateData);
 
           // Local state'dagi tort ma'lumotlarini yangilash
