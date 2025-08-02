@@ -363,16 +363,22 @@ const BakerDashboard = () => {
       // Agar buyurtma rad etilsa va mahsulot mavjud bo'lsa, sonini qaytarish
       if (status === 'cancelled' && order) {
         const cake = myCakes.find(c => c.id === order.cakeId);
-        if (cake && cake.available && cake.quantity !== undefined) {
+        if (cake && cake.quantity !== undefined) {
+          const newQuantity = cake.quantity + order.quantity;
           await dataService.updateCake(order.cakeId, {
-            quantity: cake.quantity + order.quantity
+            quantity: newQuantity,
+            available: newQuantity > 0  // Miqdor 0 dan katta bo'lsa available = true
           });
 
           // Local state'dagi tort ma'lumotlarini yangilash
           setMyCakes(prev => 
             prev.map(c => 
               c.id === order.cakeId 
-                ? { ...c, quantity: (c.quantity || 0) + order.quantity }
+                ? { 
+                    ...c, 
+                    quantity: newQuantity,
+                    available: newQuantity > 0 
+                  }
                 : c
             )
           );
