@@ -372,14 +372,18 @@ const BakerDashboard = () => {
             const newAmount = Math.max(0, (cake.amount || 0) - order.quantity);
             updateData.amount = newAmount;
 
-            // Agar mahsulot "hozir mavjud" holatida bo'lsa, quantity ni qaytarish
+            // Agar mahsulot "Hozir mavjud" holatida bo'lsa, quantity ni qaytarish
             if (cake.available && cake.quantity !== undefined) {
               const newQuantity = cake.quantity + order.quantity;
               updateData.quantity = newQuantity;
-              updateData.available = true; // Quantity mavjud bo'lganligi uchun "Hozir mavjud"
+              updateData.available = newQuantity > 0;
             } else {
-              // Buyurtma uchun mahsulotlar uchun quantity yo'q, available false
+              // "Buyurtma uchun" holatida quantity yo'q, faqat available holatini tekshirish
               updateData.available = false;
+              // Agar dastlab "Hozir mavjud" bo'lgan mahsulot to'liq sotilgan bo'lsa, quantity ni undefined qilish
+              if (cake.quantity !== undefined) {
+                updateData.quantity = undefined;
+              }
             }
           } else {
             // Shop mahsulotlari uchun quantity qaytarish
