@@ -510,7 +510,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       console.log('📱 Customer telefon:', userInfo.phone);
 
       const orderData = {
-        customerId: userId.toString(), // String formatida saqlash
+        userId: userId.toString(), // Faqat userId ishlatiladi
         customerName: userInfo.name.trim(),
         customerPhone: userInfo.phone.trim(),
         cakeId: cartProducts[0]?.id || '', // Birinchi mahsulot ID si
