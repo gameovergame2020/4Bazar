@@ -264,56 +264,81 @@ class DataService {
         return [];
       }
 
+      // Step 1: Barcha buyurtmalarni olish (eng samarali yondashuv)
+      console.log('📊 Barcha buyurtmalar yuklanmoqda...');
+      const allOrdersQuery = query(
+        collection(db, 'orders'), 
+        orderBy('createdAt', 'desc')
+      );
+      const allOrdersSnapshot = await getDocs(allOrdersQuery);
+      console.log('📋 Jami buyurtmalar:', allOrdersSnapshot.size, 'ta');
+
+      if (allOrdersSnapshot.empty) {
+        console.log('📭 Bazada buyurtma yo\'q');
+        return [];
+      }
+
+      // Step 2: Telefon raqamini normalize qilish
       const cleanPhone = customerPhone.replace(/\D/g, '');
-      console.log('🔍 Tozalangan telefon raqami:', cleanPhone);
+      console.log('🔍 Tozalangan telefon:', cleanPhone);
 
       if (cleanPhone.length < 7) {
         console.log('⚠️ Telefon raqami juda qisqa:', cleanPhone.length, 'belgi');
         return [];
       }
 
-      // Direct Firebase query - ancha tezroq
-      try {
-        // To'liq telefon raqami bo'yicha
-        let phoneQuery = query(
-          collection(db, 'orders'),
-          where('customerPhone', '==', customerPhone),
-          orderBy('createdAt', 'desc')
-        );
+      // Step 3: Telefon variantlarini yaratish
+      const phoneVariants = new Set([
+        cleanPhone,
+        `+998${cleanPhone.length === 9 ? cleanPhone : cleanPhone.slice(-9)}`,
+        `998${cleanPhone.length === 9 ? cleanPhone : cleanPhone.slice(-9)}`,
+        cleanPhone.startsWith('998') ? cleanPhone.substring(3) : cleanPhone,
+        customerPhone.trim()
+      ]);
+
+      console.log('📱 Qidirilayotgan variantlar:', Array.from(phoneVariants));
+
+      // Step 4: Buyurtmalarni filtrlash
+      const matchedOrders: Order[] = [];
+
+      allOrdersSnapshot.forEach((doc) => {
+        const data = doc.data();
         
-        let querySnapshot = await getDocs(phoneQuery);
-        console.log('📞 To\'liq telefon bo\'yicha:', querySnapshot.size, 'ta');
+        if (!data.customerPhone) return;
         
-        // Agar topilmasa, boshqa formatda ham qidirish
-        if (querySnapshot.empty) {
-          const phoneVariants = [
-            `+998${cleanPhone}`,
-            `+998 ${cleanPhone}`,
-            `998${cleanPhone}`,
-            cleanPhone,
-            cleanPhone.replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4'),
-            cleanPhone.replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, '$1-$2-$3-$4')
-          ];
-          
-          for (const variant of phoneVariants) {
-            phoneQuery = query(
-              collection(db, 'orders'),
-              where('customerPhone', '==', variant),
-              orderBy('createdAt', 'desc')
-            );
-            
-            querySnapshot = await getDocs(phoneQuery);
-            if (!querySnapshot.empty) {
-              console.log('📱 Variant bilan topildi:', variant, '-', querySnapshot.size, 'ta');
-              break;
-            }
+        const orderPhoneClean = data.customerPhone.replace(/\D/g, '');
+        const orderPhoneOriginal = data.customerPhone.trim();
+        
+        // Turli xil formatlarni tekshirish
+        let isMatch = false;
+        
+        // 1. To'liq mos kelish
+        if (phoneVariants.has(orderPhoneClean) || phoneVariants.has(orderPhoneOriginal)) {
+          isMatch = true;
+        }
+        
+        // 2. Oxirgi 9 raqamni solishtirish (O'zbekiston uchun)
+        if (!isMatch && orderPhoneClean.length >= 9 && cleanPhone.length >= 9) {
+          const orderLast9 = orderPhoneClean.slice(-9);
+          const userLast9 = cleanPhone.slice(-9);
+          if (orderLast9 === userLast9) {
+            isMatch = true;
           }
         }
         
-        if (!querySnapshot.empty) {
-          const orders = querySnapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
+        // 3. 998 prefiksi bilan/siz
+        if (!isMatch) {
+          if (cleanPhone.startsWith('998') && orderPhoneClean === cleanPhone.substring(3)) {
+            isMatch = true;
+          }
+          if (orderPhoneClean.startsWith('998') && cleanPhone === orderPhoneClean.substring(3)) {
+            isMatch = true;
+          }
+        }
+
+        if (isMatch) {
+          try {
+            const order: Order = {
               id: doc.id,
               customerId: data.customerId || 'unknown',
               customerName: data.customerName || 'Noma\'lum',
@@ -332,86 +357,40 @@ class DataService {
               createdAt: data.createdAt?.toDate() || new Date(),
               updatedAt: data.updatedAt?.toDate() || new Date(),
               deliveryTime: data.deliveryTime?.toDate()
-            } as Order;
-          });
-          
-          console.log('✅ Direct query bilan topildi:', orders.length, 'ta buyurtma');
-          return orders;
-        }
-      } catch (directQueryError) {
-        console.log('⚠️ Direct query ishlamadi, keng qidirish boshlanyapti...');
-      }
+            };
 
-      // Agar direct query ishlamasa, barcha buyurtmalarni olish va filtrlash
-      const allOrdersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-      const allOrdersSnapshot = await getDocs(allOrdersQuery);
-      console.log('📊 Jami buyurtmalar bazada:', allOrdersSnapshot.size, 'ta');
-
-      const orders: Order[] = [];
-      const phoneVariants = this.generatePhoneVariants(cleanPhone);
-      console.log('📱 Telefon variantlari:', phoneVariants);
-
-      allOrdersSnapshot.forEach((doc) => {
-        const data = doc.data();
-        
-        if (!data.customerPhone) return;
-        
-        const orderPhoneClean = data.customerPhone.replace(/\D/g, '');
-        
-        // Telefon raqamlarini solishtirish
-        const isPhoneMatch = this.comparePhoneNumbers(orderPhoneClean, cleanPhone, phoneVariants);
-
-        if (isPhoneMatch) {
-          const order: Order = {
-            id: doc.id,
-            customerId: data.customerId || 'unknown',
-            customerName: data.customerName || 'Noma\'lum',
-            customerPhone: data.customerPhone || '',
-            cakeId: data.cakeId || '',
-            cakeName: data.cakeName || '',
-            quantity: data.quantity || 1,
-            amount: data.amount,
-            totalPrice: data.totalPrice || 0,
-            status: data.status || 'pending',
-            deliveryAddress: data.deliveryAddress || '',
-            coordinates: data.coordinates,
-            paymentMethod: data.paymentMethod,
-            paymentType: data.paymentType,
-            notes: data.notes,
-            createdAt: data.createdAt?.toDate() || new Date(),
-            updatedAt: data.updatedAt?.toDate() || new Date()
-          };
-
-          // Yetkazib berish vaqti
-          if (data.deliveryTime) {
-            order.deliveryTime = data.deliveryTime.toDate();
+            matchedOrders.push(order);
+          } catch (parseError) {
+            console.warn('⚠️ Buyurtma parse qilishda xato:', doc.id, parseError);
           }
-
-          orders.push(order);
         }
       });
 
-      // Duplikatlarni olib tashlash
-      const uniqueOrders = orders.filter((order, index, self) => 
+      // Step 5: Duplikatlarni olib tashlash va saralash
+      const uniqueOrders = matchedOrders.filter((order, index, self) => 
         index === self.findIndex(o => o.id === order.id)
       );
 
-      // Sana bo'yicha saralash (eng yangi birinchi)
       const sortedOrders = uniqueOrders.sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
-      console.log('✅ Keng qidirish bilan topildi:', sortedOrders.length, 'ta buyurtma');
+      console.log('✅ Telefon bo\'yicha topildi:', sortedOrders.length, 'ta buyurtma');
       
       if (sortedOrders.length > 0) {
-        const firstThree = sortedOrders.slice(0, 3).map(order => ({
+        console.log('📋 Topilgan buyurtmalar:', sortedOrders.slice(0, 5).map(order => ({
           id: order.id?.slice(-8),
           cake: order.cakeName,
           status: order.status,
-          price: order.totalPrice,
-          date: order.createdAt.toISOString().split('T')[0]
-        }));
-        console.log('🎯 Birinchi 3 buyurtma:', firstThree);
+          phone: order.customerPhone,
+          date: order.createdAt.toDateString()
+        })));
+      } else {
+        console.log('🔍 Telefon bo\'yicha buyurtma topilmadi. Bazadagi birinchi 3 ta buyurtma:');
+        allOrdersSnapshot.docs.slice(0, 3).forEach(doc => {
+          const data = doc.data();
+          console.log(`  - ${doc.id.slice(-8)}: ${data.customerPhone} (${data.customerName})`);
+        });
       }
       
       return sortedOrders;
