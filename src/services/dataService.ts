@@ -1573,7 +1573,7 @@ class DataService {
           q = query(
             collection(db, 'orders'), 
             orderBy('createdAt', 'desc'), 
-            limit(50) // Kamroq limit BloomFilter xatosini kamaytirish uchun
+            limit(100) // Limit oshirildi
           );
         }
 
@@ -1583,9 +1583,18 @@ class DataService {
             
             try {
               const filterText = filters?.customerId ? `Customer ID (${filters.customerId})` : 'Umumiy';
-              console.log(`📥 Real-time (${filterText}): ${querySnapshot.docs.length} ta hujjat keldi`);
+              console.log(`📥 Real-time Orders (${filterText}): ${querySnapshot.docs.length} ta hujjat keldi`);
               
               const orders: Order[] = [];
+              const changedDocs = querySnapshot.docChanges();
+              
+              // Change log
+              changedDocs.forEach((change) => {
+                if (change.type === 'modified') {
+                  const data = change.doc.data();
+                  console.log(`🔄 Order status changed: ${change.doc.id} -> ${data.status}`);
+                }
+              });
 
               querySnapshot.docs.forEach((doc) => {
                 try {
@@ -1604,9 +1613,9 @@ class DataService {
                     customerPhone: data.customerPhone || '',
                     cakeId: data.cakeId || '',
                     cakeName: data.cakeName || '',
-                    quantity: data.quantity || 1,
+                    quantity: Math.max(1, data.quantity || 1),
                     amount: data.amount,
-                    totalPrice: data.totalPrice || 0,
+                    totalPrice: Math.max(0, data.totalPrice || 0),
                     status: data.status || 'pending',
                     deliveryAddress: data.deliveryAddress || '',
                     coordinates: data.coordinates,
@@ -1624,12 +1633,12 @@ class DataService {
                 }
               });
 
-              console.log(`✅ Real-time (${filterText}): ${orders.length} ta buyurtma qayta ishlandi`);
+              console.log(`✅ Real-time Orders (${filterText}): ${orders.length} ta buyurtma qayta ishlandi`);
               retryCount = 0; // Reset retry count on success
               callback(orders);
 
             } catch (error) {
-              console.error('❌ Real-time callback xatosi:', error);
+              console.error('❌ Real-time orders callback xatosi:', error);
               if (isSubscriptionActive) {
                 callback([]);
               }
@@ -1638,25 +1647,25 @@ class DataService {
           (error) => {
             if (!isSubscriptionActive) return;
             
-            console.error('❌ Real-time subscription xatosi:', error);
+            console.error('❌ Real-time orders subscription xatosi:', error);
             retryCount++;
             
             if (retryCount <= maxRetries) {
               // Retry with exponential backoff
               const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000);
-              console.log(`🔄 Real-time subscription qayta urinish... (${retryCount}/${maxRetries}) - ${retryDelay}ms kutish`);
+              console.log(`🔄 Orders subscription qayta urinish... (${retryCount}/${maxRetries}) - ${retryDelay}ms kutish`);
               
               setTimeout(() => {
                 if (isSubscriptionActive) {
                   try {
                     createSubscription();
                   } catch (retryError) {
-                    console.error('❌ Retry subscription xatosi:', retryError);
+                    console.error('❌ Retry orders subscription xatosi:', retryError);
                   }
                 }
               }, retryDelay);
             } else {
-              console.error('❌ Maksimal retry soni tugadi, subscription to\'xtatildi');
+              console.error('❌ Orders subscription maksimal retry tugadi');
               if (isSubscriptionActive) {
                 callback([]);
               }
@@ -1664,7 +1673,7 @@ class DataService {
           }
         );
       } catch (error) {
-        console.error('❌ Subscription yaratishda xatolik:', error);
+        console.error('❌ Orders subscription yaratishda xatolik:', error);
         return null;
       }
     };
@@ -1678,7 +1687,7 @@ class DataService {
           unsubscribe();
         }
       } catch (error) {
-        console.warn('⚠️ Subscription o\'chirishda xato:', error);
+        console.warn('⚠️ Orders subscription o\'chirishda xato:', error);
       }
     };
   }

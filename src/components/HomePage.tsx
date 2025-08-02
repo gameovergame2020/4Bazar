@@ -107,8 +107,11 @@ const HomePage = () => {
 
     // Real-time tortlar va buyurtmalar holatini kuzatish
     const unsubscribeCakes = dataService.subscribeToRealtimeCakes(async (updatedCakes) => {
-      // Buyurtmalarni ham real-time yangilash
+      console.log('🔄 Real-time cakes yangilandi:', updatedCakes.length, 'ta mahsulot');
+      
+      // Fresh buyurtmalarni olish
       const allOrders = await dataService.getOrders();
+      console.log('📋 Fresh orders:', allOrders.length, 'ta buyurtma');
 
       const processedCakes = updatedCakes.filter(cake => {
         // Baker mahsulotlari - barcha holatda ko'rsatiladi
@@ -133,6 +136,8 @@ const HomePage = () => {
             )
             .reduce((total, order) => total + order.quantity, 0);
 
+          console.log(`📦 ${cake.name}: available=${cake.available}, quantity=${cake.quantity}, orderedQuantity=${orderedQuantity}`);
+
           return {
             ...cake,
             orderedQuantity: orderedQuantity
@@ -141,17 +146,26 @@ const HomePage = () => {
         return cake;
       });
 
+      console.log('✅ Processed cakes:', processedCakes.length, 'ta mahsulot');
       setCakes(processedCakes);
-      setFilteredCakes(processedCakes);
+      if (!searchQuery) {
+        setFilteredCakes(processedCakes);
+      }
     });
 
-    // Buyurtmalar holatini ham kuzatish
-    const unsubscribeOrders = dataService.subscribeToOrders(async () => {
+    // Buyurtmalar holatini ham kuzatish - yangilanishlar
+    const unsubscribeOrders = dataService.subscribeToOrders(async (updatedOrders) => {
+      console.log('🔄 Real-time orders yangilandi:', updatedOrders.length, 'ta buyurtma');
+      
       // Buyurtmalar o'zgarganda tortlarni qayta yuklash
-      loadCakes();
+      setTimeout(() => {
+        console.log('🔄 Orders o\'zgargani uchun tortlarni qayta yuklash...');
+        loadCakes();
+      }, 500); // 500ms kechikish bilan tortlarni qayta yuklash
     });
 
     return () => {
+      console.log('🔚 HomePage subscriptions yopilmoqda...');
       if (typeof unsubscribeCakes === 'function') {
         unsubscribeCakes();
       }
@@ -478,16 +492,16 @@ const addToCart = (cakeId: string) => {
                     </div>
                     <span className="text-xs text-gray-500">
                       {cake.productType === 'baked' 
-                        ? cake.available
-                          ? cake.quantity !== undefined 
-                            ? `Qoldi: ${cake.quantity} ta`
-                            : 'Miqdor: cheklanmagan'
-                          : (cake as any).orderedQuantity !== undefined 
-                            ? `Buyurtma qilingan: ${(cake as any).orderedQuantity} ta`
-                            : 'Buyurtma yo\'q'
+                        ? cake.available && cake.quantity !== undefined && cake.quantity > 0
+                          ? `Hozir mavjud: ${cake.quantity} ta`
+                          : cake.available && (cake.quantity === undefined || cake.quantity === 0)
+                            ? 'Buyurtma uchun (miqdor cheklanmagan)'
+                            : !cake.available && (cake as any).orderedQuantity !== undefined && (cake as any).orderedQuantity > 0
+                              ? `Buyurtmada: ${(cake as any).orderedQuantity} ta`
+                              : 'Buyurtma uchun'
                         : cake.quantity !== undefined 
                           ? `Qoldi: ${cake.quantity} ta`
-                          : 'Miqdor: cheklanmagan'
+                          : 'Mavjud'
                       }
                     </span>
                   </div>
@@ -607,16 +621,16 @@ const addToCart = (cakeId: string) => {
                       </div>
                       <span className="text-xs text-gray-500">
                         {cake.productType === 'baked' 
-                          ? cake.available
-                            ? cake.quantity !== undefined 
-                              ? `Qoldi: ${cake.quantity} ta`
-                              : 'Miqdor: cheklanmagan'
-                            : (cake as any).orderedQuantity !== undefined 
-                              ? `Buyurtma qilingan: ${(cake as any).orderedQuantity} ta`
-                              : 'Buyurtma yo\'q'
+                          ? cake.available && cake.quantity !== undefined && cake.quantity > 0
+                            ? `Hozir mavjud: ${cake.quantity} ta`
+                            : cake.available && (cake.quantity === undefined || cake.quantity === 0)
+                              ? 'Buyurtma uchun (miqdor cheklanmagan)'
+                              : !cake.available && (cake as any).orderedQuantity !== undefined && (cake as any).orderedQuantity > 0
+                                ? `Buyurtmada: ${(cake as any).orderedQuantity} ta`
+                                : 'Buyurtma uchun'
                           : cake.quantity !== undefined 
                             ? `Qoldi: ${cake.quantity} ta`
-                            : 'Miqdor: cheklanmagan'
+                            : 'Mavjud'
                         }
                       </span>
                     </div>
