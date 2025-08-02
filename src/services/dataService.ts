@@ -1061,36 +1061,32 @@ class DataService {
 
       // Baker mahsulotlari uchun
       if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
-        // Amount ni kamaytirish (operator rad etganda buyurtma qilingan miqdor kamayadi)
+        // Amount ni kamaytirish (buyurtma rad etilganda amount kamayadi)
         const newAmount = Math.max(0, (cake.amount || 0) - orderQuantity);
         updateData.amount = newAmount;
         
-        // Quantity ni qaytarish
-        const newQuantity = (cake.quantity || 0) + orderQuantity;
-        updateData.quantity = newQuantity;
-        
-        // MUHIM: Baker mahsulotlari uchun available holatini quantity asosida belgilash
-        // Quantity > 0 bo'lsa "Hozir mavjud", aks holda "Buyurtma uchun"
-        updateData.available = newQuantity > 0;
-        
-        console.log('🔄 Baker mahsulot yangilanmoqda:', {
-          oldAmount: cake.amount || 0,
-          newAmount,
-          oldQuantity: cake.quantity || 0,
-          newQuantity,
-          oldAvailable: cake.available,
-          newAvailable: updateData.available,
-          statusText: updateData.available ? 'Hozir mavjud' : 'Buyurtma uchun'
-        });
-        
-        if (updateData.available && !cake.available) {
-          console.log('🟢 Baker mahsuloti "Buyurtma uchun"dan "Hozir mavjud"ga o\'tkazildi');
-        } else if (!updateData.available && cake.available) {
-          console.log('🔵 Baker mahsuloti "Hozir mavjud"dan "Buyurtma uchun"ga o\'tkazildi');
-        } else if (updateData.available) {
-          console.log('🟢 Baker mahsuloti "Hozir mavjud" holatida qolmoqda');
+        // MUHIM: Buyurtma uchun mahsulotlar rad etilganda quantity va available holatini o'zgartirmaslik
+        // Faqat "Hozir mavjud" bo'lgan mahsulotlar quantity qaytariladi
+        if (cake.available && cake.quantity !== undefined) {
+          // "Hozir mavjud" mahsulotlar uchun quantity qaytarish
+          const newQuantity = (cake.quantity || 0) + orderQuantity;
+          updateData.quantity = newQuantity;
+          updateData.available = newQuantity > 0;
+          
+          console.log('🔄 Baker "Hozir mavjud" mahsulot yangilanmoqda:', {
+            oldAmount: cake.amount || 0,
+            newAmount,
+            oldQuantity: cake.quantity || 0,
+            newQuantity,
+            statusText: 'Hozir mavjud holatida qoladi'
+          });
         } else {
-          console.log('🔵 Baker mahsuloti "Buyurtma uchun" holatida qolmoqda');
+          // "Buyurtma uchun" mahsulotlar uchun faqat amount kamaytirish
+          console.log('🔄 Baker "Buyurtma uchun" mahsulot yangilanmoqda:', {
+            oldAmount: cake.amount || 0,
+            newAmount,
+            statusText: 'Buyurtma uchun holatida qoladi (quantity o\'zgartirilmaydi)'
+          });
         }
         
       } else if (cake.productType === 'ready') {
@@ -1107,7 +1103,7 @@ class DataService {
         });
       }
 
-      // Ma'lumotlarni yangilash va yangilanishni kuchaytirilgan tarzda amalga oshirish
+      // Ma'lumotlarni yangilash
       if (Object.keys(updateData).length > 0) {
         // updatedAt ni qo'shish real-time subscription'ni trigger qilish uchun
         updateData.updatedAt = new Date();
@@ -1116,28 +1112,28 @@ class DataService {
         console.log('✅ Mahsulot soni muvaffaqiyatli qaytarildi:', updateData);
         
         // Verification log
-        if (updateData.available === true) {
-          console.log('🟢 Mahsulot "Hozir mavjud" holatiga o\'tkazildi/qoldi');
+        if (cake.productType === 'baked' && !cake.available) {
+          console.log('🔵 "Buyurtma uchun" mahsuloti holatida qoldi (quantity o\'zgartirilmadi)');
+        } else if (updateData.available === true) {
+          console.log('🟢 Mahsulot "Hozir mavjud" holatida qoldi');
         } else {
-          console.log('🟡 Mahsulot "Buyurtma uchun" holatida qoldi');
+          console.log('🟡 Mahsulot holatida o\'zgarish');
         }
 
-        // Firebase real-time yangilanishini kuchaytirilgan trigger qilish
+        // Firebase real-time yangilanishini trigger qilish
         try {
-          // Force update with multiple timestamps to ensure real-time subscription triggers
           const forceUpdateData = {
             ...updateData,
             lastModified: new Date().getTime(),
             forceUpdate: new Date().toISOString(),
             revertedAt: Timestamp.now(),
-            // Explicit trigger yangilanish uchun
             reverted: true
           };
           
           await this.updateCake(cakeId, forceUpdateData);
           console.log('🔄 Force update muvaffaqiyatli amalga oshirildi');
           
-          // Trigger flag ni tozalash uchun ikkinchi yangilanish
+          // Trigger flag ni tozalash
           setTimeout(async () => {
             try {
               await this.updateCake(cakeId, { reverted: false });
