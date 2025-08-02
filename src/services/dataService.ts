@@ -106,15 +106,30 @@ class DataService {
   // Yangi tort qo'shish
   async addCake(cake: Omit<Cake, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     try {
-      const cakeData = {
+      const cakeData: any = {
         ...cake,
-        // Baker mahsulotlari uchun amount = 0 bilan boshlash
-        amount: cake.productType === 'baked' ? (cake.amount || 0) : undefined,
-        // Shop mahsulotlari uchun quantity mavjud bo'lishi kerak
-        quantity: cake.productType === 'ready' ? (cake.quantity || 0) : (cake.quantity || undefined),
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       };
+      
+      // Baker mahsulotlari uchun amount = 0 bilan boshlash
+      if (cake.productType === 'baked') {
+        cakeData.amount = cake.amount || 0;
+      }
+      
+      // Quantity maydonini faqat qiymat mavjud bo'lsa qo'shish
+      if (cake.quantity !== undefined && cake.quantity !== null) {
+        cakeData.quantity = cake.quantity;
+      } else if (cake.productType === 'ready') {
+        cakeData.quantity = 0; // Shop mahsulotlari uchun default 0
+      }
+      
+      // undefined qiymatlarni olib tashlash
+      Object.keys(cakeData).forEach(key => {
+        if (cakeData[key] === undefined) {
+          delete cakeData[key];
+        }
+      });
       
       const docRef = await addDoc(collection(db, 'cakes'), cakeData);
       return docRef.id;

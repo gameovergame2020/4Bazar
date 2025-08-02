@@ -211,7 +211,7 @@ const BakerDashboard = () => {
         imageUrl = await dataService.uploadImage(cakeForm.image, imagePath);
       }
 
-      const quantity = cakeForm.available ? parseInt(cakeForm.quantity) || 0 : 0;
+      const quantity = cakeForm.available ? parseInt(cakeForm.quantity) || 0 : undefined;
 
       const newCake: Omit<Cake, 'id' | 'createdAt' | 'updatedAt'> = {
         name: cakeForm.name,
@@ -224,12 +224,16 @@ const BakerDashboard = () => {
         productType: 'baked' as const,
         rating: 0,
         reviewCount: 0,
-        available: quantity > 0 ? cakeForm.available : false, // Quantity 0 bo'lsa available = false  
+        available: cakeForm.available && quantity !== undefined && quantity > 0,
         ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
-        quantity: quantity,
         discount: parseFloat(cakeForm.discount) || 0,
         amount: 0
       };
+
+      // Quantity maydonini faqat mavjud bo'lsa qo'shish
+      if (quantity !== undefined) {
+        newCake.quantity = quantity;
+      }
 
       // Agar quantity 0 bo'lsa, ogohlantirishni ko'rsatish
       if (cakeForm.available && quantity <= 0) {
@@ -285,7 +289,7 @@ const BakerDashboard = () => {
         imageUrl = await dataService.uploadImage(cakeForm.image, imagePath);
       }
 
-      const quantity = cakeForm.available ? parseInt(cakeForm.quantity) || 0 : 0;
+      const quantity = cakeForm.available ? parseInt(cakeForm.quantity) || 0 : undefined;
 
       const updates: Partial<Cake> = {
         name: cakeForm.name,
@@ -293,11 +297,15 @@ const BakerDashboard = () => {
         price: parseFloat(cakeForm.price),
         image: imageUrl,
         category: cakeForm.category,
-        available: quantity > 0 ? cakeForm.available : false, // Quantity 0 bo'lsa available = false
+        available: cakeForm.available && quantity !== undefined && quantity > 0,
         ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
-        quantity: quantity,
         discount: parseFloat(cakeForm.discount) || 0
       };
+
+      // Quantity maydonini faqat mavjud bo'lsa qo'shish
+      if (quantity !== undefined) {
+        updates.quantity = quantity;
+      }
 
       // Agar quantity 0 bo'lsa, ogohlantirishni ko'rsatish
       if (cakeForm.available && quantity <= 0) {
