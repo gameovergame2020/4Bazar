@@ -15,7 +15,9 @@ import {
   Star,
   Clock,
   Package,
-  Truck
+  Truck,
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import { UserData } from '../services/authService';
 import SettingsPage from './SettingsPage';
@@ -32,221 +34,110 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
   const [isOrdersExpanded, setIsOrdersExpanded] = useState(false);
   const [isFavoritesExpanded, setIsFavoritesExpanded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [showOrdersStats, setShowOrdersStats] = useState(false);
-  const [showFavoritesStats, setShowFavoritesStats] = useState(false);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
   const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const recentOrders = [
-    {
-      id: 1,
-      name: 'Shokoladli Torta',
-      restaurant: 'Sweet Dreams',
-      date: '2024-01-20',
-      price: '250,000',
-      status: 'delivered',
-      paymentMethod: 'card',
-      paymentType: 'click',
-      image: 'https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg?auto=compress&cs=tinysrgb&w=150',
-      rating: 5,
-    },
-    {
-      id: 2,
-      name: 'Red Velvet Torta',
-      restaurant: 'Royal Cakes',
-      date: '2024-01-18',
-      price: '320,000',
-      status: 'delivered',
-      paymentMethod: 'card',
-      paymentType: 'payme',
-      image: 'https://images.pexels.com/photos/1721932/pexels-photo-1721932.jpeg?auto=compress&cs=tinysrgb&w=150',
-      rating: 4,
-    },
-    {
-      id: 3,
-      name: 'Tiramisu',
-      restaurant: 'Italian Dreams',
-      date: '2024-01-15',
-      price: '280,000',
-      status: 'cancelled',
-      paymentMethod: 'cash',
-      paymentType: '',
-      image: 'https://images.pexels.com/photos/6880219/pexels-photo-6880219.jpeg?auto=compress&cs=tinysrgb&w=150',
-      rating: null,
-    },
-  ];
-
-  // Foydalanuvchi buyurtmalarini yuklash
-  const loadUserOrders = useCallback(async () => {
+  // Buyurtmalarni yuklash funksiyasi
+  const loadUserOrders = useCallback(async (showLoading = true) => {
     if (!user?.id) {
-      console.log('⚠️ User ID mavjud emas, buyurtmalar yuklanmaydi');
+      console.log('⚠️ User ID mavjud emas');
       setUserOrders([]);
-      setIsLoadingOrders(false);
+      setOrdersError('Foydalanuvchi ma\'lumotlari mavjud emas');
       return;
     }
 
     try {
-      setIsLoadingOrders(true);
-      console.log('📦 Foydalanuvchi buyurtmalari yuklanmoqda...');
-      console.log('User ID:', user?.id);
+      if (showLoading) {
+        setIsLoadingOrders(true);
+      }
+      setOrdersError(null);
 
-      // Faqat Customer ID bo'yicha qidirish
-      console.log('🔍 Customer ID bo\'yicha qidirilmoqda:', user.id);
-      const ordersByCustomerId = await dataService.getOrdersByCustomerId(user.id);
-      console.log('📥 Customer ID bo\'yicha topildi:', ordersByCustomerId.length, 'ta');
+      console.log('📦 Buyurtmalar yuklanmoqda... Customer ID:', user.id);
 
-      // Sanaga qarab saralash
-      const sortedOrders = ordersByCustomerId.sort((a, b) => 
+      // Customer ID bo'yicha buyurtmalarni olish
+      const orders = await dataService.getOrdersByCustomerId(user.id);
+
+      // Sanaga qarab saralash (eng yangi birinchi)
+      const sortedOrders = orders.sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
-      console.log('✅ Jami topilgan buyurtmalar:', sortedOrders.length, 'ta');
       setUserOrders(sortedOrders);
+      setLastUpdated(new Date());
+      
+      console.log('✅ Buyurtmalar yuklandi:', sortedOrders.length, 'ta');
 
-      // Real-time yangilanish uchun subscription o'rnatish
-      if (user?.id) {
-        console.log('🔄 Real-time subscription o\'rnatilmoqda...');
-        const unsubscribe = dataService.subscribeToOrders(
-          (realtimeOrders) => {
-            console.log('📡 Real-time yangilanish:', realtimeOrders.length, 'ta buyurtma');
-            setUserOrders(realtimeOrders);
-          },
-          { customerId: user.id }
-        );
-
-        // Cleanup function qaytarish
-        return unsubscribe;
+      // Agar buyurtmalar bo'sh bo'lsa, qo'shimcha tekshirish
+      if (sortedOrders.length === 0) {
+        console.log('📋 Hech qanday buyurtma topilmadi');
+        setOrdersError(null); // Error emas, faqat bo'sh natija
       }
 
     } catch (error) {
-      console.error('❌ Buyurtmalarni yuklashda umumiy xato:', error);
+      console.error('❌ Buyurtmalarni yuklashda xato:', error);
+      setOrdersError('Buyurtmalarni yuklashda xatolik yuz berdi');
       setUserOrders([]);
     } finally {
-      setIsLoadingOrders(false);
+      if (showLoading) {
+        setIsLoadingOrders(false);
+      }
     }
   }, [user?.id]);
 
-  // Firebase dan foydalanuvchi buyurtmalarini yuklash (faqat Customer ID bo'yicha)
+  // Real-time subscription
   useEffect(() => {
-    let unsubscribe: (() => void) | null = null;
-    let isActive = true;
-    let loadingTimeout: NodeJS.Timeout | null = null;
+    if (!user?.id) return;
 
-    const loadOrdersOptimized = async () => {
-      // User ID ni tekshirish va localStorage dan olish
-      let customerId = user.id || localStorage.getItem('userId') || sessionStorage.getItem('userId');
+    console.log('🔄 Real-time subscription boshlanmoqda...');
+    
+    // Dastlab ma'lumotlarni yuklash
+    loadUserOrders(true);
 
-      if (!customerId) {
-        console.log('⚠️ Foydalanuvchi ID mavjud emas, localStorage va sessionStorage ham bo\'sh');
-        setUserOrders([]);
-        setIsLoadingOrders(false);
-        return;
-      }
+    // Real-time subscription o'rnatish
+    const unsubscribe = dataService.subscribeToOrders(
+      (realtimeOrders) => {
+        try {
+          console.log('📡 Real-time yangilanish:', realtimeOrders.length, 'ta umumiy buyurtma');
 
-      console.log('🔍 Buyurtmalar qidirilmoqda, Customer ID:', customerId);
-      console.log('📱 User phone:', user.phone);
+          // Faqat joriy foydalanuvchi buyurtmalarini filtirlash
+          const userSpecificOrders = realtimeOrders.filter(order => 
+            order.customerId === user.id
+          );
 
-      try {
-        setIsLoadingOrders(true);
-        console.log('🔄 Buyurtmalar yuklanmoqda... Customer ID:', user.id);
-
-        // 10 soniya timeout
-        loadingTimeout = setTimeout(() => {
-          if (isActive) {
-            console.warn('⚠️ Buyurtmalar yuklash 10 soniyadan oshdi');
-            setIsLoadingOrders(false);
-          }
-        }, 10000);
-
-        // Customer ID bo'yicha qidirish
-        const userOrders = await dataService.getOrdersByCustomerId(customerId.toString());
-
-        if (isActive) {
-          const sortedOrders = userOrders.sort((a, b) => 
+          // Sanaga qarab saralash
+          const sortedOrders = userSpecificOrders.sort((a, b) => 
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
 
+          console.log('🔄 Foydalanuvchi buyurtmalari yangilandi:', sortedOrders.length, 'ta');
+          
           setUserOrders(sortedOrders);
-          console.log('✅ Customer ID bo\'yicha yuklandi:', sortedOrders.length, 'ta buyurtma');
+          setLastUpdated(new Date());
+          setOrdersError(null);
+
+        } catch (error) {
+          console.error('❌ Real-time ma\'lumotlarni qayta ishlashda xato:', error);
         }
-
-      } catch (error) {
-        console.error('❌ Buyurtmalarni yuklashda xato:', error);
-        if (isActive) {
-          setUserOrders([]);
-        }
-      } finally {
-        if (isActive) {
-          setIsLoadingOrders(false);
-          if (loadingTimeout) clearTimeout(loadingTimeout);
-        }
-      }
-    };
-
-    // Real-time subscription (faqat Customer ID bo'yicha)
-    const setupRealTimeSubscription = () => {
-      try {
-        console.log('🔄 Real-time subscription boshlanmoqda... Customer ID:', user.id);
-
-        let customerId = user.id || localStorage.getItem('userId') || sessionStorage.getItem('userId');
-        if (!customerId) {
-          console.log('⚠️ Customer ID yo\'q, real-time subscription o\'rnatilmadi');
-          return;
-        }
-
-        // Customer ID bo'yicha subscription
-        unsubscribe = dataService.subscribeToOrders((allOrders) => {
-          if (!isActive) return;
-
-          try {
-            // Faqat Customer ID bo'yicha filtirlash
-            const userOrders = allOrders.filter(order => 
-              order.customerId === customerId.toString()
-            );
-
-            const sortedOrders = userOrders.sort((a, b) => 
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-            );
-
-            setUserOrders(sortedOrders);
-            console.log('🔄 Real-time yangilandi:', sortedOrders.length, 'ta buyurtma');
-
-          } catch (error) {
-            console.error('❌ Real-time filtirlashda xato:', error);
-          }
-        }, { customerId: customerId.toString() }); // Customer ID filter qo'shish
-
-      } catch (error) {
-        console.error('❌ Real-time subscription xatosi:', error);
-      }
-    };
-
-    // Ma'lumot yuklash va real-time boshlash
-    loadOrdersOptimized().then(() => {
-      if (isActive) {
-        // Real-time ni 3 soniya kechiktirib boshlash
-        setTimeout(() => {
-          if (isActive) {
-            setupRealTimeSubscription();
-          }
-        }, 3000);
-      }
-    });
+      },
+      { customerId: user.id } // Filter by customer ID
+    );
 
     // Cleanup function
     return () => {
-      isActive = false;
-      if (loadingTimeout) clearTimeout(loadingTimeout);
-      if (unsubscribe) {
-        try {
-          unsubscribe();
-        } catch (error) {
-          console.warn('⚠️ Subscription cleanup xatosi:', error);
-        }
+      if (unsubscribe && typeof unsubscribe === 'function') {
+        unsubscribe();
       }
     };
-  }, [user.id]); // faqat user.id dependency
+  }, [user.id, loadUserOrders]);
+
+  // Manual refresh funksiyasi
+  const handleRefreshOrders = () => {
+    console.log('🔄 Manual refresh...');
+    loadUserOrders(true);
+  };
 
   // Buyurtmani bekor qilish uchun modal holatini boshqarish
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -284,6 +175,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
     } catch (error) {
       console.error('❌ Buyurtmani bekor qilishda xato:', error);
+      setOrdersError('Buyurtmani bekor qilishda xatolik yuz berdi');
     } finally {
       setCancellingOrderId(null);
     }
@@ -330,6 +222,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     switch (status) {
       case 'pending':
         return 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/20';
+      case 'accepted':
       case 'confirmed':
         return 'text-indigo-600 bg-indigo-50 dark:text-indigo-400 dark:bg-indigo-900/20';
       case 'preparing':
@@ -351,6 +244,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     switch (status) {
       case 'pending':
         return 'Kutilmoqda';
+      case 'accepted':
       case 'confirmed':
         return 'Tasdiqlandi';
       case 'preparing':
@@ -372,6 +266,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     switch (status) {
       case 'pending':
         return Clock;
+      case 'accepted':
       case 'confirmed':
         return Package;
       case 'preparing':
@@ -383,7 +278,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
       case 'delivered':
         return Package;
       case 'cancelled':
-        return Package;
+        return AlertCircle;
       default:
         return Package;
     }
@@ -462,25 +357,56 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
           {/* Expanded Orders Content */}
           <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
-            isOrdersExpanded ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'
+            isOrdersExpanded ? 'max-h-[600px] opacity-100 mt-4' : 'max-h-0 opacity-0'
           }`}>
             <div className="bg-gray-700/30 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-600/30">
-              <h4 className="text-base sm:text-lg font-semibold text-white mb-2 sm:mb-3 flex items-center space-x-2">
-                <ShoppingBag size={16} className="text-orange-400" />
-                <span>Oxirgi buyurtmalar</span>
-              </h4>
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <h4 className="text-base sm:text-lg font-semibold text-white flex items-center space-x-2">
+                  <ShoppingBag size={16} className="text-orange-400" />
+                  <span>Buyurtmalarim</span>
+                </h4>
+                <div className="flex items-center space-x-2">
+                  {lastUpdated && (
+                    <span className="text-xs text-gray-400">
+                      {lastUpdated.toLocaleTimeString('uz-UZ', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </span>
+                  )}
+                  <button
+                    onClick={handleRefreshOrders}
+                    disabled={isLoadingOrders}
+                    className="p-1.5 text-gray-400 hover:text-orange-400 transition-colors disabled:opacity-50"
+                    title="Yangilash"
+                  >
+                    <RefreshCw 
+                      size={14} 
+                      className={isLoadingOrders ? 'animate-spin' : ''} 
+                    />
+                  </button>
+                </div>
+              </div>
+
               <div className="space-y-2 sm:space-y-3 max-h-96 sm:max-h-[32rem] overflow-y-auto">
                 {isLoadingOrders ? (
                   <div className="flex flex-col items-center justify-center py-8">
                     <div className="animate-spin h-8 w-8 border-2 border-orange-500 border-t-transparent rounded-full mb-3"></div>
                     <span className="text-gray-300 text-sm mb-2">Buyurtmalar yuklanmoqda...</span>
-                    <span className="text-gray-500 text-xs">Real-time yangilanish</span>
-                    {user?.id && (
-                      <span className="text-gray-600 text-xs mt-1">ID: {user.id.slice(-8)}</span>
-                    )}
-                    {user?.phone && (
-                      <span className="text-gray-600 text-xs">Tel: {user.phone}</span>
-                    )}
+                    <span className="text-gray-500 text-xs">ID: {user.id.slice(-8)}</span>
+                  </div>
+                ) : ordersError ? (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
+                      <AlertCircle className="w-8 h-8 text-red-400" />
+                    </div>
+                    <p className="text-red-400 text-sm mb-2">{ordersError}</p>
+                    <button
+                      onClick={handleRefreshOrders}
+                      className="text-orange-400 hover:text-orange-300 text-xs underline"
+                    >
+                      Qayta urinib ko'ring
+                    </button>
                   </div>
                 ) : userOrders.length === 0 ? (
                   <div className="text-center py-8">
@@ -489,17 +415,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                     </div>
                     <p className="text-gray-400 text-sm">Hozircha buyurtmalar yo'q</p>
                     <p className="text-gray-500 text-xs mt-1">Birinchi buyurtmangizni bering!</p>
-                    {user?.id && (
-                      <p className="text-gray-600 text-xs mt-2">ID: {user.id.slice(-8)}</p>
-                    )}
-                    {user?.phone && (
-                      <p className="text-gray-600 text-xs">Tel: {user.phone}</p>
-                    )}
                   </div>
                 ) : (
                   <>
                     <div className="mb-3 text-xs text-gray-400 text-center">
-                      Jami {userOrders.length} ta buyurtma (so'nggi 5 tasi ko'rsatilgan)
+                      Jami {userOrders.length} ta buyurtma
+                      {userOrders.length > 5 && ' (so\'nggi 5 tasi ko\'rsatilgan)'}
                     </div>
                     {userOrders.slice(0, 5).map((order) => {
                       const StatusIcon = getStatusIcon(order.status);
@@ -541,7 +462,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                                 })}
                               </div>
 
-                              {/* To'lov turi ko'rsatish */}
+                              {/* To'lov turi */}
                               <div className="mt-2 flex items-center space-x-1">
                                 <span className="text-xs text-gray-400">To'lov:</span>
                                 {order.paymentMethod === 'card' && order.paymentType ? (
