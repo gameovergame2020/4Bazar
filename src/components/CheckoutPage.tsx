@@ -606,6 +606,43 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   <span>🟢 Payme</span>
                 </label>
               </div>
+
+              {/* Bank kartasi uchun Click va Payme tanlovi */}
+              {userInfo.paymentMethod === 'card' && (
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="text-sm font-medium text-blue-800 mb-3">💳 Bank kartasi turi:</h4>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="cardType"
+                        value="visa"
+                        defaultChecked
+                        className="text-blue-500"
+                      />
+                      <span>💳 Visa/Mastercard</span>
+                    </label>
+                    <label className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="cardType"
+                        value="click"
+                        className="text-blue-500"
+                      />
+                      <span>🔵 Click</span>
+                    </label>
+                    <label className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="cardType"
+                        value="payme"
+                        className="text-blue-500"
+                      />
+                      <span>🟢 Payme</span>
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Yetkazib berish muddati */}
