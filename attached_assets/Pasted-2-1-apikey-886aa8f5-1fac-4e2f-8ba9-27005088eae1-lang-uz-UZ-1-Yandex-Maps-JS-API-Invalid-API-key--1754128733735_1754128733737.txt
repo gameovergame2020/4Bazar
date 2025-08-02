@@ -1,0 +1,153 @@
+2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1 (Yandex Maps JS API): Invalid API key
+ymapsInit @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+react-dom_client.js?v=c8e5f475:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+firebase.ts:21 ⚠️ Firebase konfiguratsiyasi to'liq emas. .env faylini to'ldiring!
+(anonymous) @ firebase.ts:21
+HomePage.tsx:344 Render: currentView = home cart keys: 0
+HomePage.tsx:344 Render: currentView = home cart keys: 0
+HomePage.tsx:344 Render: currentView = home cart keys: 0
+HomePage.tsx:344 Render: currentView = home cart keys: 0
+HomePage.tsx:344 Render: currentView = home cart keys: 0
+HomePage.tsx:344 Render: currentView = home cart keys: 0
+HomePage.tsx:344 Render: currentView = home cart keys: 0
+HomePage.tsx:344 Render: currentView = home cart keys: 0
+HomePage.tsx:183 Adding to cart: eJG85Hs1j2ys6KTTnf3j
+HomePage.tsx:199 New cart state: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = home cart keys: 1
+HomePage.tsx:344 Render: currentView = home cart keys: 1
+HomePage.tsx:261 Checkout clicked, cart: {eJG85Hs1j2ys6KTTnf3j: 1} keys length: 1
+HomePage.tsx:271 Switching to checkout view
+HomePage.tsx:344 Render: currentView = home cart keys: 1
+HomePage.tsx:344 Render: currentView = home cart keys: 1
+HomePage.tsx:276 View switched to checkout
+HomePage.tsx:344 Render: currentView = checkout cart keys: 1
+HomePage.tsx:348 Rendering CheckoutPage with cart: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = checkout cart keys: 1
+HomePage.tsx:348 Rendering CheckoutPage with cart: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = home cart keys: 1
+HomePage.tsx:344 Render: currentView = home cart keys: 1
+HomePage.tsx:261 Checkout clicked, cart: {eJG85Hs1j2ys6KTTnf3j: 1} keys length: 1
+HomePage.tsx:271 Switching to checkout view
+HomePage.tsx:344 Render: currentView = home cart keys: 1
+HomePage.tsx:344 Render: currentView = home cart keys: 1
+HomePage.tsx:276 View switched to checkout
+HomePage.tsx:344 Render: currentView = checkout cart keys: 1
+HomePage.tsx:348 Rendering CheckoutPage with cart: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = checkout cart keys: 1
+HomePage.tsx:348 Rendering CheckoutPage with cart: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = checkout cart keys: 1
+HomePage.tsx:348 Rendering CheckoutPage with cart: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = checkout cart keys: 1
+HomePage.tsx:348 Rendering CheckoutPage with cart: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = checkout cart keys: 1
+HomePage.tsx:348 Rendering CheckoutPage with cart: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = checkout cart keys: 1
+HomePage.tsx:348 Rendering CheckoutPage with cart: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = checkout cart keys: 1
+HomePage.tsx:348 Rendering CheckoutPage with cart: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = checkout cart keys: 1
+HomePage.tsx:348 Rendering CheckoutPage with cart: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = checkout cart keys: 1
+HomePage.tsx:348 Rendering CheckoutPage with cart: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = checkout cart keys: 1
+HomePage.tsx:348 Rendering CheckoutPage with cart: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = checkout cart keys: 1
+HomePage.tsx:348 Rendering CheckoutPage with cart: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = checkout cart keys: 1
+HomePage.tsx:348 Rendering CheckoutPage with cart: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = home cart keys: 0
+HomePage.tsx:344 Render: currentView = home cart keys: 0
+HomePage.tsx:344 Render: currentView = home cart keys: 0
+HomePage.tsx:344 Render: currentView = home cart keys: 0
+HomePage.tsx:344 Render: currentView = home cart keys: 0
+HomePage.tsx:344 Render: currentView = home cart keys: 0
+HomePage.tsx:183 Adding to cart: eJG85Hs1j2ys6KTTnf3j
+HomePage.tsx:199 New cart state: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = home cart keys: 1
+HomePage.tsx:344 Render: currentView = home cart keys: 1
+HomePage.tsx:261 Checkout clicked, cart: {eJG85Hs1j2ys6KTTnf3j: 1} keys length: 1
+HomePage.tsx:271 Switching to checkout view
+HomePage.tsx:344 Render: currentView = home cart keys: 1
+HomePage.tsx:344 Render: currentView = home cart keys: 1
+HomePage.tsx:276 View switched to checkout
+HomePage.tsx:344 Render: currentView = checkout cart keys: 1
+HomePage.tsx:348 Rendering CheckoutPage with cart: {eJG85Hs1j2ys6KTTnf3j: 1}
+HomePage.tsx:344 Render: currentView = checkout cart keys: 1
+HomePage.tsx:348 Rendering CheckoutPage with cart: {eJG85Hs1j2ys6KTTnf3j: 1}
+CheckoutPage.tsx:180 Geocoding xatosi: {message: 'scriptError'}
+(anonymous) @ CheckoutPage.tsx:180
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+r @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+CheckoutPage.tsx:180 Geocoding xatosi: {message: 'scriptError'}
+(anonymous) @ CheckoutPage.tsx:180
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+r @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+CheckoutPage.tsx:180 Geocoding xatosi: {message: 'scriptError'}
+(anonymous) @ CheckoutPage.tsx:180
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+r @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1 Uncaught FeatureRemovedError: Suggest is not available. See https://yandex.com/dev/jsapi-v2-1/doc/en/v2-1/ref/reference/suggest
+create @ full.js:146
+suggest @ full.js:1521
+(anonymous) @ full.js:1060
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+r @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1 Uncaught FeatureRemovedError: Suggest is not available. See https://yandex.com/dev/jsapi-v2-1/doc/en/v2-1/ref/reference/suggest
+create @ full.js:146
+suggest @ full.js:1521
+(anonymous) @ full.js:1060
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+r @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1 Uncaught FeatureRemovedError: Suggest is not available. See https://yandex.com/dev/jsapi-v2-1/doc/en/v2-1/ref/reference/suggest
+create @ full.js:146
+suggest @ full.js:1521
+(anonymous) @ full.js:1060
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+r @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1 Uncaught FeatureRemovedError: Suggest is not available. See https://yandex.com/dev/jsapi-v2-1/doc/en/v2-1/ref/reference/suggest
+create @ full.js:146
+suggest @ full.js:1521
+(anonymous) @ full.js:1060
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+r @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1 Uncaught FeatureRemovedError: Suggest is not available. See https://yandex.com/dev/jsapi-v2-1/doc/en/v2-1/ref/reference/suggest
+create @ full.js:146
+suggest @ full.js:1521
+(anonymous) @ full.js:1060
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+r @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1 Uncaught FeatureRemovedError: Suggest is not available. See https://yandex.com/dev/jsapi-v2-1/doc/en/v2-1/ref/reference/suggest
+create @ full.js:146
+suggest @ full.js:1521
+(anonymous) @ full.js:1060
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+r @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1 Uncaught FeatureRemovedError: Suggest is not available. See https://yandex.com/dev/jsapi-v2-1/doc/en/v2-1/ref/reference/suggest
+create @ full.js:146
+suggest @ full.js:1521
+(anonymous) @ full.js:1060
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+r @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1 Uncaught FeatureRemovedError: Suggest is not available. See https://yandex.com/dev/jsapi-v2-1/doc/en/v2-1/ref/reference/suggest
+create @ full.js:146
+suggest @ full.js:1521
+(anonymous) @ full.js:1060
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+r @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1 Uncaught FeatureRemovedError: Suggest is not available. See https://yandex.com/dev/jsapi-v2-1/doc/en/v2-1/ref/reference/suggest
+create @ full.js:146
+suggest @ full.js:1521
+(anonymous) @ full.js:1060
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+r @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1 Uncaught FeatureRemovedError: Suggest is not available. See https://yandex.com/dev/jsapi-v2-1/doc/en/v2-1/ref/reference/suggest
+create @ full.js:146
+suggest @ full.js:1521
+(anonymous) @ full.js:1060
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+r @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+CheckoutPage.tsx:180 Geocoding xatosi: {message: 'scriptError'}
+(anonymous) @ CheckoutPage.tsx:180
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+r @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
