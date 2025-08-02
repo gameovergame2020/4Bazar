@@ -1,4 +1,4 @@
-typescript
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   User, 
@@ -189,6 +189,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
       try {
         console.log('🔄 Real-time subscription boshlanmoqda... Customer ID:', user.id);
 
+        let customerId = user.id || localStorage.getItem('userId') || sessionStorage.getItem('userId');
         if (!customerId) {
           console.log('⚠️ Customer ID yo\'q, real-time subscription o\'rnatilmadi');
           return;
@@ -617,7 +618,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                                     )}
                                   </button>
                                 </div>
-                              </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -681,8 +682,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
             </div>
           </div>
         </div>
-
-
 
         {/* Menu Items */}
         <div className="backdrop-blur-sm rounded-xl sm:rounded-2xl lg:rounded-3xl p-3 sm:p-4 lg:p-6 shadow-sm border transition-colors duration-300 bg-gray-800/90 border-gray-700 mb-20">
