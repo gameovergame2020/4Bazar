@@ -491,11 +491,19 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         const normalizedPhone = userInfo.phone.replace(/\D/g, ''); // Faqat raqamlar
         userId = `customer_${normalizedPhone}_${Date.now()}`;
         
-        // ID ni saqlash
+        // ID ni saqlash (ikkala joyga ham)
         localStorage.setItem('userId', userId);
         sessionStorage.setItem('userId', userId);
         
         console.log('🆔 Yangi customer ID yaratildi:', userId);
+      } else {
+        console.log('🆔 Mavjud customer ID dan foydalanilmoqda:', userId);
+      }
+      
+      // Customer ID ni phone bilan ham bog'lash
+      if (userInfo.phone) {
+        const phoneKey = `phone_${userInfo.phone.replace(/\D/g, '')}`;
+        localStorage.setItem(phoneKey, userId);
       }
 
       console.log('🛒 Customer ID dan foydalanilmoqda:', userId);

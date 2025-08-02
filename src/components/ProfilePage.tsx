@@ -135,7 +135,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     const loadOrdersOptimized = async () => {
       // User ID ni tekshirish va localStorage dan olish
       let customerId = user.id || localStorage.getItem('userId') || sessionStorage.getItem('userId');
-      
+
       if (!customerId) {
         console.log('⚠️ Foydalanuvchi ID mavjud emas, localStorage va sessionStorage ham bo\'sh');
         setUserOrders([]);
@@ -491,7 +491,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                       <p className="text-gray-600 text-xs mt-2">ID: {user.id.slice(-8)}</p>
                     )}
                     {user?.phone && (
-                      <p className="text-gray-600 text-xs">Tel: {user.phone}</p>
+                      <p className="text-gray-600 text-xs">Tel: {user.phone}</span>
                     )}
                   </div>
                 ) : (
