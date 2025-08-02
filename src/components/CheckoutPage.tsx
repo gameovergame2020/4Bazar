@@ -537,17 +537,22 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 </p>
               </div>
 
-              <div 
-                ref={mapRef}
-                className="w-full h-96 rounded-lg border border-gray-300"
-                style={{ minHeight: '400px' }}
-              >
-                <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <MapPin size={48} className="text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500">Xarita yuklanmoqda...</p>
+              <div className="relative w-full h-96 rounded-lg border border-gray-300">
+                <div 
+                  ref={mapRef}
+                  className="w-full h-full rounded-lg"
+                  style={{ minHeight: '400px' }}
+                />
+                
+                {/* Loading overlay */}
+                {(!window.ymaps || !formData.coordinates) && (
+                  <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center z-10">
+                    <div className="text-center">
+                      <MapPin size={48} className="text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500">Xarita yuklanmoqda...</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {formData.deliveryAddress && (
