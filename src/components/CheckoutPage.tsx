@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, MapPin, Phone, User, CreditCard, Truck, Clock, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { dataService } from '../services/dataService';
@@ -16,14 +16,18 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [formData, setFormData] = useState({
     customerName: userData?.name || '',
     customerPhone: userData?.phone || '',
     deliveryAddress: '',
     notes: '',
     paymentMethod: 'cash',
-    deliveryTime: 'asap'
+    deliveryTime: 'asap',
+    coordinates: null,
   });
+
+  const mapRef = useRef<HTMLDivElement>(null);
 
   // Savat bo'sh bo'lganda asosiy sahifaga qaytish
   React.useEffect(() => {
@@ -119,6 +123,71 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     }
   };
 
+    // Yandex Maps integratsiyasi
+    useEffect(() => {
+      const initializeYandexMap = async () => {
+        if (typeof window === 'undefined' || !mapRef.current) return;
+  
+        const YMaps = await window.ymaps3.ready;
+  
+        const map = new YMaps.Map(mapRef.current, {
+          location: {
+            center: [69.240562, 41.290748], // Toshkent markazi
+            zoom: 12
+          }
+        });
+  
+        // Placemark qo'shish
+        const marker = new YMaps.Placemark({
+          location: { value: [69.240562, 41.290748] },
+        });
+        map.addChild(marker);
+  
+        // Xarita bo'ylab harakatlanishni kuzatish
+        map.on('move', (e) => {
+          const center = map.center;
+          marker.location.setValue(center);
+          setFormData(prev => ({
+            ...prev,
+            coordinates: center,
+          }));
+  
+          // Manzilni aniqlash
+          ymaps3.geocode({
+            plainText: center[0] + ',' + center[1],
+            lang: 'uz_UZ',
+            apikey: 'ваш API key', // API keyni almashtiring
+          }).then(result => {
+            if (result.geoObjects.length > 0) {
+              const address = result.geoObjects[0].properties.get('name') + ', ' + result.geoObjects[0].properties.get('description');
+              setFormData(prev => ({
+                ...prev,
+                deliveryAddress: address,
+              }));
+            } else {
+              setFormData(prev => ({
+                ...prev,
+                deliveryAddress: 'Manzil topilmadi',
+              }));
+            }
+          });
+        });
+      };
+  
+      if (typeof window !== 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://api.maps.yandex.ru/3.0/?apikey=ваш API key&lang=uz_UZ'; // API keyni almashtiring
+        script.type = 'text/javascript';
+        script.async = true;
+        script.onload = initializeYandexMap;
+        document.head.appendChild(script);
+      }
+  
+      return () => {
+        // Tozalash (agar kerak bo'lsa)
+      };
+    }, []);
+
   // Login talab qilish modali
   if (showLoginPrompt) {
     return (
@@ -188,7 +257,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Order Form */}
         <div className="lg:col-span-2">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" id="checkout-form">
             {/* Contact Information */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -246,6 +315,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                     rows={3}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     placeholder="To'liq manzilni kiriting (ko'cha, uy raqami, kvartira)"
+                    onClick={() => setShowLocationPicker(true)}
                   />
                 </div>
                 <div>
@@ -408,6 +478,72 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           </div>
         </div>
       </div>
+
+      {/* Location Picker Modal */}
+      {showLocationPicker && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Yetkazib berish manzilini tanlang</h3>
+              <button
+                onClick={() => setShowLocationPicker(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  📍 Xaritada nuqtani siljiting yoki kerakli joyni bosing. Sizning joriy joylashuvingiz avtomatik aniqlanadi.
+                </p>
+              </div>
+
+              <div 
+                ref={mapRef}
+                className="w-full h-96 rounded-lg border border-gray-300"
+                style={{ minHeight: '400px' }}
+              >
+                <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center">
+                  <div className="text-center">
+                    <MapPin size={48} className="text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500">Xarita yuklanmoqda...</p>
+                  </div>
+                </div>
+              </div>
+
+              {formData.deliveryAddress && (
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-sm font-medium text-gray-700 mb-1">Tanlangan manzil:</p>
+                  <p className="text-sm text-gray-600">{formData.deliveryAddress}</p>
+                </div>
+              )}
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowLocationPicker(false)}
+                  className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Bekor qilish
+                </button>
+                <button
+                  onClick={() => {
+                    if (formData.coordinates && formData.deliveryAddress) {
+                      setShowLocationPicker(false);
+                    } else {
+                      alert('Iltimos, avval manzilni tanlang');
+                    }
+                  }}
+                  className="flex-1 bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
+                >
+                  Tanlash
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

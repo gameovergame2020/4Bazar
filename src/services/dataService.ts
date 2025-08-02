@@ -49,12 +49,13 @@ export interface Order {
   cakeId: string;
   cakeName: string;
   quantity: number;
-  amount?: number; // Buyurtma uchun yangi amount maydoni
+  amount?: number; // Mahsulot amount maydonini tracking qilish uchun
   totalPrice: number;
   status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivering' | 'delivered' | 'cancelled';
   deliveryAddress: string;
-  deliveryTime?: Date;
+  coordinates?: { lat: number; lng: number }; // Joylashuv koordinatalari
   notes?: string;
+  deliveryTime?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -111,7 +112,7 @@ class DataService {
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       };
-      
+
       // Baker mahsulotlari uchun logika
       if (cake.productType === 'baked') {
         if (cake.available) {
@@ -127,14 +128,14 @@ class DataService {
         // Shop mahsulotlari - doim quantity da hisoblansin
         cakeData.quantity = cake.quantity !== undefined ? cake.quantity : 0;
       }
-      
+
       // undefined qiymatlarni olib tashlash
       Object.keys(cakeData).forEach(key => {
         if (cakeData[key] === undefined) {
           delete cakeData[key];
         }
       });
-      
+
       const docRef = await addDoc(collection(db, 'cakes'), cakeData);
       return docRef.id;
     } catch (error) {
@@ -190,7 +191,7 @@ class DataService {
         ...updates,
         updatedAt: Timestamp.now()
       };
-      
+
       await updateDoc(doc(db, 'cakes', cakeId), updateData);
     } catch (error) {
       console.error('Tortni yangilashda xatolik:', error);
@@ -218,7 +219,7 @@ class DataService {
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       };
-      
+
       const docRef = await addDoc(collection(db, 'orders'), orderData);
       return docRef.id;
     } catch (error) {
@@ -273,7 +274,7 @@ class DataService {
         ...updates,
         updatedAt: Timestamp.now()
       };
-      
+
       await updateDoc(doc(db, 'orders', orderId), updateData);
     } catch (error) {
       console.error('Buyurtmani yangilashda xatolik:', error);
@@ -290,12 +291,12 @@ class DataService {
         ...review,
         createdAt: Timestamp.now()
       };
-      
+
       const docRef = await addDoc(collection(db, 'reviews'), reviewData);
-      
+
       // Tortning o'rtacha reytingini yangilash
       await this.updateCakeRating(review.cakeId);
-      
+
       return docRef.id;
     } catch (error) {
       console.error('Sharh qo\'shishda xatolik:', error);
@@ -328,11 +329,11 @@ class DataService {
   private async updateCakeRating(cakeId: string): Promise<void> {
     try {
       const reviews = await this.getReviews(cakeId);
-      
+
       if (reviews.length > 0) {
         const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
         const averageRating = totalRating / reviews.length;
-        
+
         await updateDoc(doc(db, 'cakes', cakeId), {
           rating: Math.round(averageRating * 10) / 10, // 1 xona aniqlik bilan
           reviewCount: reviews.length,
@@ -354,7 +355,7 @@ class DataService {
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       };
-      
+
       const docRef = await addDoc(collection(db, 'supportTickets'), ticketData);
       return docRef.id;
     } catch (error) {
@@ -426,15 +427,15 @@ class DataService {
         ...response,
         createdAt: Timestamp.now()
       };
-      
+
       const docRef = await addDoc(collection(db, 'supportResponses'), responseData);
-      
+
       // Ticket'ning lastReply maydonini yangilash
       await updateDoc(doc(db, 'supportTickets', response.ticketId), {
         lastReply: Timestamp.now(),
         updatedAt: Timestamp.now()
       });
-      
+
       return docRef.id;
     } catch (error) {
       console.error('Support response qo\'shishda xatolik:', error);
@@ -479,7 +480,7 @@ class DataService {
         updatedAt: doc.data().updatedAt.toDate(),
         lastReply: doc.data().lastReply?.toDate()
       } as SupportTicket));
-      
+
       callback(tickets);
     });
   }
@@ -546,7 +547,7 @@ class DataService {
     try {
       const docRef = doc(db, 'cakes', cakeId);
       const docSnap = await getDoc(docRef);
-      
+
       if (docSnap.exists()) {
         return {
           id: docSnap.id,
@@ -613,7 +614,7 @@ class DataService {
         where('type', '==', 'available')
       );
       const querySnapshot = await getDocs(q);
-      
+
       if (!querySnapshot.empty) {
         const doc = querySnapshot.docs[0];
         await updateDoc(doc.ref, {
@@ -638,7 +639,7 @@ class DataService {
         where('status', 'in', ['pending', 'accepted', 'preparing'])
       );
       const querySnapshot = await getDocs(q);
-      
+
       return querySnapshot.docs.reduce((total, doc) => {
         const order = doc.data() as Order;
         return total + order.quantity;
@@ -671,7 +672,7 @@ class DataService {
           where('type', '==', 'available')
         );
         const querySnapshot = await getDocs(q);
-        
+
         if (!querySnapshot.empty) {
           return querySnapshot.docs[0].data().quantity;
         }
@@ -786,7 +787,7 @@ class DataService {
 
       // Eng ko'p sotilgan mahsulotlar
       const productSales: { [cakeId: string]: { name: string; sold: number; revenue: number } } = {};
-      
+
       completedOrders.forEach(order => {
         if (!productSales[order.cakeId]) {
           productSales[order.cakeId] = {
@@ -812,9 +813,9 @@ class DataService {
       // Haftalik buyurtmalar
       const now = new Date();
       const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      
+
       const dailyOrdersThisWeek: Array<{ date: string; orders: number }> = [];
-      
+
       for (let i = 0; i < 7; i++) {
         const date = new Date(oneWeekAgo.getTime() + i * 24 * 60 * 60 * 1000);
         const dateStr = date.toISOString().split('T')[0];
@@ -822,7 +823,7 @@ class DataService {
           const orderDate = order.createdAt.toISOString().split('T')[0];
           return orderDate === dateStr;
         }).length;
-        
+
         dailyOrdersThisWeek.push({
           date: dateStr,
           orders: ordersOnDate
@@ -856,7 +857,7 @@ class DataService {
           this.getOrderBasedProductsStats(),
           this.getBusinessStats()
         ]);
-        
+
         callback({ available, orderBased, business });
       } catch (error) {
         console.error('Statistikani yangilashda xatolik:', error);
@@ -870,7 +871,7 @@ class DataService {
           this.getOrderBasedProductsStats(),
           this.getBusinessStats()
         ]);
-        
+
         callback({ available, orderBased, business });
       } catch (error) {
         console.error('Statistikani yangilashda xatolik:', error);
@@ -922,7 +923,7 @@ class DataService {
         createdAt: doc.data().createdAt.toDate(),
         updatedAt: doc.data().updatedAt.toDate()
       } as Cake));
-      
+
       callback(cakes);
     });
   }
@@ -943,7 +944,7 @@ class DataService {
         updatedAt: doc.data().updatedAt.toDate(),
         deliveryTime: doc.data().deliveryTime?.toDate()
       } as Order));
-      
+
       callback(orders);
     });
   }
