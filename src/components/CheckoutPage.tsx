@@ -85,6 +85,17 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     }
   }, [orderConfirmed, onOrderComplete]);
 
+  // Cart bo'sh bo'lganda avtomatik bosh sahifaga qaytish
+  useEffect(() => {
+    if (cartProducts.length === 0 && !orderConfirmed) {
+      const timer = setTimeout(() => {
+        onBack();
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [cartProducts.length, orderConfirmed, onBack]);
+
   // Agar cart bo'sh yoki mavjud bo'lmasa - shartli return barcha hooks dan keyin
   if (!cart || Object.keys(cart).length === 0) {
     return (
