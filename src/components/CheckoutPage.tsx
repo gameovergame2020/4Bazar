@@ -17,7 +17,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState('');
   const [formData, setFormData] = useState({
     customerName: userData?.name || '',
     customerPhone: userData?.phone || '',
@@ -30,15 +29,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
   const mapRef = useRef<HTMLDivElement>(null);
 
-  // Selected address'ni formData bilan sinxronlashtirish
-  useEffect(() => {
-    if (selectedAddress && selectedAddress !== formData.deliveryAddress) {
-      setFormData(prev => ({
-        ...prev,
-        deliveryAddress: selectedAddress
-      }));
-    }
-  }, [selectedAddress]);
+  
 
   // Savat bo'sh bo'lganda asosiy sahifaga qaytish
   React.useEffect(() => {
@@ -174,7 +165,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
               if (firstGeoObject) {
                 const address = firstGeoObject.getAddressLine();
                 // State'ni yangilash
-                setSelectedAddress(address);
                 setFormData(prev => ({
                   ...prev,
                   deliveryAddress: address,
@@ -195,7 +185,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
               if (firstGeoObject) {
                 const address = firstGeoObject.getAddressLine();
                 // State'ni yangilash
-                setSelectedAddress(address);
                 setFormData(prev => ({
                   ...prev,
                   deliveryAddress: address,
@@ -218,7 +207,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 if (firstGeoObject) {
                   const address = firstGeoObject.getAddressLine();
                   // State'ni yangilash
-                  setSelectedAddress(address);
                   setFormData(prev => ({
                     ...prev,
                     deliveryAddress: address,
@@ -367,11 +355,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   <div className="relative">
                     <textarea
                       name="deliveryAddress"
-                      value={selectedAddress || formData.deliveryAddress}
-                      onChange={(e) => {
-                        setSelectedAddress(e.target.value);
-                        handleInputChange(e);
-                      }}
+                      value={formData.deliveryAddress}
+                      onChange={handleInputChange}
                       required
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
@@ -587,10 +572,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 )}
               </div>
 
-              {(selectedAddress || formData.deliveryAddress) && (
+              {formData.deliveryAddress && (
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <p className="text-sm font-medium text-gray-700 mb-1">Tanlangan manzil:</p>
-                  <p className="text-sm text-gray-600">{selectedAddress || formData.deliveryAddress}</p>
+                  <p className="text-sm text-gray-600">{formData.deliveryAddress}</p>
                 </div>
               )}
 
@@ -603,24 +588,18 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 </button>
                 <button
                   onClick={() => {
-                    const address = selectedAddress || formData.deliveryAddress;
-                    if (address && address.trim()) {
-                      // Final state'ni yangilash
-                      setFormData(prev => ({
-                        ...prev,
-                        deliveryAddress: address
-                      }));
+                    if (formData.deliveryAddress && formData.deliveryAddress.trim()) {
                       setShowLocationPicker(false);
                     } else {
                       alert('Iltimos, xaritadan manzilni tanlang');
                     }
                   }}
                   className={`flex-1 py-2 rounded-lg transition-colors ${
-                    (selectedAddress || formData.deliveryAddress) && (selectedAddress || formData.deliveryAddress).trim() 
+                    formData.deliveryAddress && formData.deliveryAddress.trim() 
                       ? 'bg-orange-500 text-white hover:bg-orange-600' 
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
-                  disabled={!(selectedAddress || formData.deliveryAddress) || !(selectedAddress || formData.deliveryAddress).trim()}
+                  disabled={!formData.deliveryAddress || !formData.deliveryAddress.trim()}
                 >
                   Tanlash
                 </button>
