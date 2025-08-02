@@ -89,18 +89,18 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     };
   }, []);
 
-  // Buyurtma tasdiqlanganda avtomatik qaytish
-  useEffect(() => {
-    if (orderConfirmed) {
-      const timer = setTimeout(() => {
-        setOrderConfirmed(false);
-        setOrderDetails(null);
-        onOrderComplete();
-      }, 3000);
+  // Buyurtma tasdiqlanganda avtomatik qaytish (o'chirib qo'yildi)
+  // useEffect(() => {
+  //   if (orderConfirmed) {
+  //     const timer = setTimeout(() => {
+  //       setOrderConfirmed(false);
+  //       setOrderDetails(null);
+  //       onOrderComplete();
+  //     }, 3000);
 
-      return () => clearTimeout(timer);
-    }
-  }, [orderConfirmed, onOrderComplete]);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [orderConfirmed, onOrderComplete]);
 
   // Cart bo'sh bo'lganda avtomatik bosh sahifaga qaytish
   useEffect(() => {
@@ -1021,7 +1021,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 <p>👥 Operator siz bilan tez orada bog'lanadi va buyurtmani tasdiqlaydi.</p>
                 <p>⏰ Buyurtma holati haqida SMS orqali xabar beramiz.</p>
                 <p>🚚 Yetkazib berish vaqti: 2-3 soat</p>
-                <p className="text-orange-600 font-medium">⏱️ 3 soniyadan keyin avtomatik bosh sahifaga qaytamiz...</p>
               </div>
 
               <div className="space-y-2">
