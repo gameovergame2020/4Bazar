@@ -237,7 +237,7 @@ class DataService {
       const docRef = await addDoc(collection(db, 'orders'), orderData);
       
       console.log('✅ Firebase hujjat ID:', docRef.id);
-      console.log('🆔 Noyob buyurtma ID:', uniqueOrderid);
+      console.log('🆔 Noyob buyurtma ID:', uniqueOrderId);
       console.log('👤 Customer ID bilan bog\'langan:', order.customerId);
       
       return docRef.id;
