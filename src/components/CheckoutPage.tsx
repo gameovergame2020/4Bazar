@@ -581,30 +581,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   />
                   <span>💳 Bank kartasi</span>
                 </label>
-
-                <label className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="click"
-                    checked={userInfo.paymentMethod === 'click'}
-                    onChange={(e) => setUserInfo(prev => ({ ...prev, paymentMethod: e.target.value }))}
-                    className="text-orange-500"
-                  />
-                  <span>🔵 Click</span>
-                </label>
-
-                <label className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="payme"
-                    checked={userInfo.paymentMethod === 'payme'}
-                    onChange={(e) => setUserInfo(prev => ({ ...prev, paymentMethod: e.target.value }))}
-                    className="text-orange-500"
-                  />
-                  <span>🟢 Payme</span>
-                </label>
               </div>
 
               {/* Bank kartasi uchun Click va Payme tanlovi */}
