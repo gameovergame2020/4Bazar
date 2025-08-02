@@ -14,7 +14,9 @@ import {
   Filter,
   Search,
   RefreshCw,
-  MapPin
+  MapPin,
+  Plus,
+  X
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { dataService, Order, SupportTicket } from '../../services/dataService';
@@ -277,17 +279,32 @@ const OperatorDashboard = () => {
     setOrderItems({ [order.cakeId]: order.quantity });
     // Mijoz ma'lumotlarini tahrirlash uchun tayyorlash
     setEditingCustomerInfo({
-      customerName: order.customerName,
-      customerPhone: order.customerPhone,
-      deliveryAddress: order.deliveryAddress
+      customerName: order.customerName || '',
+      customerPhone: order.customerPhone || '',
+      deliveryAddress: order.deliveryAddress || ''
     });
+    // Qidiruv maydonini tozalash
+    setNewProductSearchQuery('');
   };
 
   const handleAddItemToOrder = (cakeId: string) => {
-    setOrderItems(prev => ({
-      ...prev,
-      [cakeId]: (prev[cakeId] || 0) + 1
-    }));
+    const cake = availableCakes.find(c => c.id === cakeId);
+    if (!cake) return;
+
+    setOrderItems(prev => {
+      const currentQuantity = prev[cakeId] || 0;
+      
+      // Mahsulot miqdori cheklovini tekshirish
+      if (cake.quantity !== undefined && currentQuantity >= cake.quantity) {
+        alert(`Bu mahsulotdan faqat ${cake.quantity} ta mavjud`);
+        return prev;
+      }
+
+      return {
+        ...prev,
+        [cakeId]: currentQuantity + 1
+      };
+    });
   };
 
   const handleRemoveItemFromOrder = (cakeId: string) => {
@@ -304,6 +321,27 @@ const OperatorDashboard = () => {
 
   const handleSaveOrderChanges = async () => {
     if (!editingOrder) return;
+
+    // Validatsiya
+    if (Object.keys(orderItems).length === 0) {
+      alert('Buyurtmada kamida bitta mahsulot bo\'lishi kerak');
+      return;
+    }
+
+    if (!editingCustomerInfo.customerName.trim()) {
+      alert('Mijoz ismini kiriting');
+      return;
+    }
+
+    if (!editingCustomerInfo.customerPhone.trim()) {
+      alert('Telefon raqamini kiriting');
+      return;
+    }
+
+    if (!editingCustomerInfo.deliveryAddress.trim()) {
+      alert('Yetkazib berish manzilini kiriting');
+      return;
+    }
 
     try {
       // Yangi jami summa va miqdorni hisoblash
@@ -323,16 +361,25 @@ const OperatorDashboard = () => {
         }
       });
 
-      // Buyurtmani yangilash
-      const updates = {
+      // Agar bitta mahsulot bo'lsa, faqat cakeId va cakeName ni yangilash
+      const isSimpleOrder = Object.keys(orderItems).length === 1;
+      const firstCakeId = Object.keys(orderItems)[0];
+      
+      const updates: any = {
         quantity: totalQuantity,
         totalPrice: totalPrice,
-        cakeName: itemNames.join(', '),
-        customerName: editingCustomerInfo.customerName,
-        customerPhone: editingCustomerInfo.customerPhone,
-        deliveryAddress: editingCustomerInfo.deliveryAddress,
+        customerName: editingCustomerInfo.customerName.trim(),
+        customerPhone: editingCustomerInfo.customerPhone.trim(),
+        deliveryAddress: editingCustomerInfo.deliveryAddress.trim(),
         updatedAt: new Date()
       };
+
+      if (isSimpleOrder) {
+        updates.cakeId = firstCakeId;
+        updates.cakeName = itemNames[0];
+      } else {
+        updates.cakeName = itemNames.join(', ');
+      }
 
       await dataService.updateOrder(editingOrder.id!, updates);
 
@@ -345,8 +392,16 @@ const OperatorDashboard = () => {
         )
       );
 
+      // Modal yopish va state'ni tozalash
       setEditingOrder(null);
       setOrderItems({});
+      setNewProductSearchQuery('');
+      setEditingCustomerInfo({
+        customerName: '',
+        customerPhone: '',
+        deliveryAddress: ''
+      });
+
       alert('Buyurtma muvaffaqiyatli yangilandi');
     } catch (error) {
       console.error('Buyurtmani yangilashda xatolik:', error);
@@ -1014,6 +1069,16 @@ const OperatorDashboard = () => {
               <h3 className="text-lg font-semibold text-gray-900">Buyurtmani tahrirlash</h3>
               <button
                 onClick={() => {
+                  // Modal yopishdan oldin tasdiqlash
+                  const hasChanges = Object.keys(orderItems).length > 0 || 
+                    editingCustomerInfo.customerName !== editingOrder?.customerName ||
+                    editingCustomerInfo.customerPhone !== editingOrder?.customerPhone ||
+                    editingCustomerInfo.deliveryAddress !== editingOrder?.deliveryAddress;
+
+                  if (hasChanges && !confirm('O\'zgarishlar saqlanmaydi. Davom etishni xohlaysizmi?')) {
+                    return;
+                  }
+
                   setEditingOrder(null);
                   setOrderItems({});
                   setNewProductSearchQuery('');
