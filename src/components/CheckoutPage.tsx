@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, MapPin, Phone, User, CreditCard, Truck } from 'lucide-react';
 
@@ -42,7 +43,15 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const placemarkRef = useRef<any>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Component yuklanganida
+  // Mahsulotlar ro'yxatini yaratish (hook emas, oddiy hisoblanish)
+  const cartProducts = cart ? Object.entries(cart).map(([productId, quantity]) => {
+    const product = cakes.find(p => p.id === productId);
+    return product ? { ...product, quantity } : null;
+  }).filter(Boolean) : [];
+
+  const totalPrice = cartProducts.reduce((sum, product) => sum + (product.price * product.quantity), 0);
+
+  // Component yuklanganida - bu hook
   useEffect(() => {
     initializeYandexMap();
 
@@ -63,15 +72,20 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     };
   }, []);
 
-  // Mahsulotlar ro'yxatini yaratish
-  const cartProducts = cart ? Object.entries(cart).map(([productId, quantity]) => {
-    const product = cakes.find(p => p.id === productId);
-    return product ? { ...product, quantity } : null;
-  }).filter(Boolean) : [];
+  // Buyurtma tasdiqlanganda avtomatik qaytish
+  useEffect(() => {
+    if (orderConfirmed) {
+      const timer = setTimeout(() => {
+        setOrderConfirmed(false);
+        setOrderDetails(null);
+        onOrderComplete();
+      }, 3000);
 
-  const totalPrice = cartProducts.reduce((sum, product) => sum + (product.price * product.quantity), 0);
+      return () => clearTimeout(timer);
+    }
+  }, [orderConfirmed, onOrderComplete]);
 
-  // Agar cart bo'sh yoki mavjud bo'lmasa
+  // Agar cart bo'sh yoki mavjud bo'lmasa - shartli return barcha hooks dan keyin
   if (!cart || Object.keys(cart).length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 p-4">
@@ -438,13 +452,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       });
       setOrderConfirmed(true);
 
-      // 5 soniyadan keyin avtomatik bosh sahifaga qaytish
-      setTimeout(() => {
-        setOrderConfirmed(false);
-        setOrderDetails(null);
-        onOrderComplete();
-      }, 5000);
-
       // Operator bildirishnomasi yuborish (optional)
       try {
         const { notificationService } = await import('../services/notificationService');
@@ -716,6 +723,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 <p>👥 Operator siz bilan tez orada bog'lanadi va buyurtmani tasdiqlaydi.</p>
                 <p>⏰ Buyurtma holati haqida SMS orqali xabar beramiz.</p>
                 <p>🚚 Yetkazib berish vaqti: 2-3 soat</p>
+                <p className="text-orange-600 font-medium">⏱️ 3 soniyadan keyin avtomatik bosh sahifaga qaytamiz...</p>
               </div>
 
               <div className="space-y-2">
@@ -723,10 +731,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   onClick={() => {
                     setOrderConfirmed(false);
                     setOrderDetails(null);
-                    // Avtomatik bosh sahifaga qaytish
-                    setTimeout(() => {
-                      onOrderComplete();
-                    }, 500);
+                    onOrderComplete();
                   }}
                   className="w-full bg-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
                 >
