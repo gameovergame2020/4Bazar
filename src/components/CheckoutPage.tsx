@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, MapPin, Phone, User, CreditCard, Truck } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 // CSS animatsiyalari uchun style tag qo'shish
 const animationStyles = `
@@ -67,6 +68,7 @@ declare global {
 }
 
 const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrderComplete, removeFromCart }) => {
+  const { userData } = useAuth();
   const [userInfo, setUserInfo] = useState({
     name: '',
     phone: '',
