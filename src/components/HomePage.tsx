@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, Star, Heart, Clock, ChefHat, Gift, Cake, Cookie, ShoppingCart, Plus, Minus, ShoppingBasket } from 'lucide-react';
 import { dataService, Cake as CakeType } from '../services/dataService';
@@ -697,5 +698,19 @@ const addToCart = (cakeId: string) => {
       {/* Cart Icon */}
       {Object.keys(cart).length > 0 && (
         <button 
-          onClick={(e) => {
-            e.preventDefault();
+          onClick={handleCheckout}
+          className="fixed bottom-6 right-6 bg-orange-500 text-white p-4 rounded-full shadow-lg hover:bg-orange-600 transition-colors z-50"
+        >
+          <div className="relative">
+            <ShoppingCart size={24} />
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
+              {Object.values(cart).reduce((sum, qty) => sum + qty, 0)}
+            </span>
+          </div>
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default HomePage;
