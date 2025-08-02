@@ -438,6 +438,13 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       });
       setOrderConfirmed(true);
 
+      // 5 soniyadan keyin avtomatik bosh sahifaga qaytish
+      setTimeout(() => {
+        setOrderConfirmed(false);
+        setOrderDetails(null);
+        onOrderComplete();
+      }, 5000);
+
       // Operator bildirishnomasi yuborish (optional)
       try {
         const { notificationService } = await import('../services/notificationService');
@@ -716,7 +723,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   onClick={() => {
                     setOrderConfirmed(false);
                     setOrderDetails(null);
-                    onOrderComplete();
+                    // Avtomatik bosh sahifaga qaytish
+                    setTimeout(() => {
+                      onOrderComplete();
+                    }, 500);
                   }}
                   className="w-full bg-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
                 >
