@@ -37,7 +37,7 @@ class AuthService {
     try {
       // Firebase Auth email formatini talab qiladi, shuning uchun telefon raqamni email formatiga o'tkazamiz
       const emailFormat = `${phone.replace(/[^0-9]/g, '')}@tortbazar.local`;
-      
+
       const userCredential = await createUserWithEmailAndPassword(auth, emailFormat, password);
       const user = userCredential.user;
 
@@ -71,13 +71,13 @@ class AuthService {
   async loginWithPhone(phone: string, password: string): Promise<UserData> {
     try {
       const emailFormat = `${phone.replace(/[^0-9]/g, '')}@tortbazar.local`;
-      
+
       const userCredential = await signInWithEmailAndPassword(auth, emailFormat, password);
       const user = userCredential.user;
 
       // Firestore dan foydalanuvchi ma'lumotlarini olish
       const userDoc = await getDoc(doc(db, 'users', user.uid));
-      
+
       if (userDoc.exists()) {
         return userDoc.data() as UserData;
       } else {

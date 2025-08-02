@@ -1483,6 +1483,98 @@ class DataService {
     };
   }
 
+  // FOYDALANUVCHILAR BILAN ISHLASH (ADMIN UCHUN)
+
+  // Barcha foydalanuvchilarni olish
+  async getUsers(filters?: { 
+    role?: string;
+    blocked?: boolean; 
+  }): Promise<UserData[]> {
+    try {
+      let q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+
+      if (filters?.role) {
+        q = query(q, where('role', '==', filters.role));
+      }
+      if (filters?.blocked !== undefined) {
+        q = query(q, where('blocked', '==', filters.blocked));
+      }
+
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        joinDate: doc.data().createdAt?.toDate()?.toISOString() || new Date().toISOString(),
+        createdAt: doc.data().createdAt?.toDate() || new Date(),
+        updatedAt: doc.data().updatedAt?.toDate() || new Date()
+      } as UserData));
+    } catch (error) {
+      console.error('Foydalanuvchilarni olishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Foydalanuvchi holatini yangilash
+  async updateUserStatus(userId: string, updates: { blocked?: boolean; active?: boolean }): Promise<void> {
+    try {
+      const updateData = {
+        ...updates,
+        updatedAt: Timestamp.now()
+      };
+
+      await updateDoc(doc(db, 'users', userId), updateData);
+    } catch (error) {
+      console.error('Foydalanuvchi holatini yangilashda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Foydalanuvchi rolini o'zgartirish
+  async updateUserRole(userId: string, newRole: string): Promise<void> {
+    try {
+      await updateDoc(doc(db, 'users', userId), {
+        role: newRole,
+        updatedAt: Timestamp.now()
+      });
+    } catch (error) {
+      console.error('Foydalanuvchi rolini o\'zgartirishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Foydalanuvchini o'chirish
+  async deleteUser(userId: string): Promise<void> {
+    try {
+      // Foydalanuvchining barcha ma'lumotlarini o'chirish
+      await deleteDoc(doc(db, 'users', userId));
+      
+      // Foydalanuvchining buyurtmalarini ham o'chirish yoki arxivlash mumkin
+      // Bu yerda faqat users collection dan o'chiramiz
+    } catch (error) {
+      console.error('Foydalanuvchini o\'chirishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Yangi foydalanuvchi qo'shish
+  async createUser(userData: Omit<UserData, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    try {
+      const newUserData = {
+        ...userData,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+        blocked: false,
+        active: true
+      };
+
+      const docRef = await addDoc(collection(db, 'users'), newUserData);
+      return docRef.id;
+    } catch (error) {
+      console.error('Foydalanuvchi yaratishda xatolik:', error);
+      throw error;
+    }
+  }
+
   // REAL-TIME YANGILANISHLAR
 
   // Tortlarni real-time kuzatish

@@ -103,40 +103,66 @@ const AdminDashboard = () => {
         .reduce((sum, order) => sum + order.totalPrice, 0);
       const totalProducts = cakesData.length;
 
-      // Simulate user data (in real app, you'd fetch from users collection)
-      const mockUsers: UserData[] = [
-        { id: '1', name: 'Aziza Karimova', email: 'aziza@example.com', phone: '+998901234567', role: 'customer', joinDate: '2024-01-15' },
-        { id: '2', name: 'Bobur Saidov', email: 'bobur@example.com', phone: '+998901234568', role: 'baker', joinDate: '2024-01-10' },
-        { id: '3', name: 'Malika Ahmedova', email: 'malika@example.com', phone: '+998901234569', role: 'courier', joinDate: '2024-01-20' },
-        { id: '4', name: 'Sardor Mirzayev', email: 'sardor@example.com', phone: '+998901234570', role: 'shop', joinDate: '2024-01-05' },
-        { id: '5', name: 'Nigora Tosheva', email: 'nigora@example.com', phone: '+998901234571', role: 'operator', joinDate: '2024-01-12' }
-      ];
-      setUsers(mockUsers);
+      // Firebase dan real foydalanuvchilarni olish
+      try {
+        const realUsers = await dataService.getUsers();
+        setUsers(realUsers);
+      } catch (error) {
+        console.error('Foydalanuvchilarni yuklashda xato:', error);
+        // Xato bo'lsa, bo'sh array
+        setUsers([]);
+      }
 
-      // Calculate user stats
-      const stats = mockUsers.reduce((acc, user) => {
-        if (user.role === 'customer') acc.customers++;
-        else if (user.role === 'baker') acc.bakers++;
-        else if (user.role === 'shop') acc.shops++;
-        else if (user.role === 'courier') acc.couriers++;
-        else if (user.role === 'operator') acc.operators++;
-        return acc;
-      }, {
-        customers: 0,
-        bakers: 0,
-        shops: 0,
-        couriers: 0,
-        operators: 0,
-        admins: 1 // Current admin
-      });
-      setUserStats(stats);
+      // Real foydalanuvchi statistikasini hisoblash
+      try {
+        const realUsers = await dataService.getUsers();
+        const stats = realUsers.reduce((acc, user) => {
+          if (user.role === 'customer') acc.customers++;
+          else if (user.role === 'baker') acc.bakers++;
+          else if (user.role === 'shop') acc.shops++;
+          else if (user.role === 'courier') acc.couriers++;
+          else if (user.role === 'operator') acc.operators++;
+          else if (user.role === 'admin') acc.admins++;
+          return acc;
+        }, {
+          customers: 0,
+          bakers: 0,
+          shops: 0,
+          couriers: 0,
+          operators: 0,
+          admins: 1 // Current admin + other admins
+        });
+        setUserStats(stats);
+      } catch (error) {
+        console.error('Foydalanuvchi statistikasi yuklashda xato:', error);
+        // Default stats
+        setUserStats({
+          customers: 0,
+          bakers: 0,
+          shops: 0,
+          couriers: 0,
+          operators: 0,
+          admins: 1
+        });
+      }
+
+      // Real foydalanuvchilar soni
+      let totalUsers = 1; // Current admin
+      let activeUsers = 1;
+      try {
+        const realUsers = await dataService.getUsers();
+        totalUsers = realUsers.length + 1;
+        activeUsers = Math.floor(realUsers.length * 0.7) + 1;
+      } catch (error) {
+        console.warn('Foydalanuvchilar sonini olishda xato:', error);
+      }
 
       setMetrics({
-        totalUsers: mockUsers.length + 1,
+        totalUsers,
         totalOrders,
         totalRevenue,
         totalProducts,
-        activeUsers: Math.floor(mockUsers.length * 0.7),
+        activeUsers,
         systemUptime: 99.9,
         serverLoad: 45,
         databaseSize: 2.4
@@ -188,6 +214,45 @@ const AdminDashboard = () => {
       case 'operator': return 'Operator';
       case 'admin': return 'Admin';
       default: return role;
+    }
+  };
+
+  // Foydalanuvchini bloklash/blokdan chiqarish
+  const handleBlockUser = async (userId: string, isBlocked: boolean) => {
+    try {
+      await dataService.updateUserStatus(userId, { blocked: !isBlocked });
+      // Ma'lumotlarni qayta yuklash
+      loadData();
+      alert(isBlocked ? 'Foydalanuvchi blokdan chiqarildi' : 'Foydalanuvchi bloklandi');
+    } catch (error) {
+      console.error('Foydalanuvchi holatini o\'zgartirishda xato:', error);
+      alert('Xatolik yuz berdi');
+    }
+  };
+
+  // Foydalanuvchini o'chirish
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (window.confirm(`${userName} ni butunlay o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.`)) {
+      try {
+        await dataService.deleteUser(userId);
+        loadData();
+        alert('Foydalanuvchi o\'chirildi');
+      } catch (error) {
+        console.error('Foydalanuvchini o\'chirishda xato:', error);
+        alert('Xatolik yuz berdi');
+      }
+    }
+  };
+
+  // Foydalanuvchi rolini o'zgartirish
+  const handleChangeUserRole = async (userId: string, newRole: string) => {
+    try {
+      await dataService.updateUserRole(userId, newRole);
+      loadData();
+      alert('Foydalanuvchi roli o\'zgartirildi');
+    } catch (error) {
+      console.error('Foydalanuvchi rolini o\'zgartirishda xato:', error);
+      alert('Xatolik yuz berdi');
     }
   };
 
@@ -463,16 +528,40 @@ const AdminDashboard = () => {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex space-x-2">
-                        <button className="p-1 text-blue-600 hover:text-blue-700">
+                        <button 
+                          className="p-1 text-blue-600 hover:text-blue-700"
+                          title="Ko'rish"
+                          onClick={() => {
+                            // Foydalanuvchi profili modalini ochish
+                            alert(`${user.name} profili ko'rish`);
+                          }}
+                        >
                           <Eye size={16} />
                         </button>
-                        <button className="p-1 text-green-600 hover:text-green-700">
+                        <button 
+                          className="p-1 text-green-600 hover:text-green-700"
+                          title="Rolni o'zgartirish"
+                          onClick={() => {
+                            const newRole = prompt(`${user.name} uchun yangi rol kiriting:`, user.role);
+                            if (newRole && newRole !== user.role) {
+                              handleChangeUserRole(user.id, newRole);
+                            }
+                          }}
+                        >
                           <Edit size={16} />
                         </button>
-                        <button className="p-1 text-yellow-600 hover:text-yellow-700">
+                        <button 
+                          className="p-1 text-yellow-600 hover:text-yellow-700"
+                          title={user.blocked ? "Blokdan chiqarish" : "Bloklash"}
+                          onClick={() => handleBlockUser(user.id, user.blocked || false)}
+                        >
                           <Lock size={16} />
                         </button>
-                        <button className="p-1 text-red-600 hover:text-red-700">
+                        <button 
+                          className="p-1 text-red-600 hover:text-red-700"
+                          title="O'chirish"
+                          onClick={() => handleDeleteUser(user.id, user.name)}
+                        >
                           <Trash2 size={16} />
                         </button>
                       </div>
