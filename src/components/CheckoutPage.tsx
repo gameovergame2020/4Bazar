@@ -176,13 +176,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
             console.log('Geocoding boshlanmoqda:', coords);
             console.log('Ishlatiladigan API kalit:', import.meta.env.VITE_YANDEX_MAPS_API_KEY || '40496c4d-9fd2-450a-bea8-9a78d5955593');
             
-            // Geocoding uchun provider va options to'g'ri sozlanishi
+            // Geocoding uchun yangi API va options
             window.ymaps.geocode(coords, {
-              provider: 'yandex#map',
               kind: 'house',
               results: 1,
-              skip: 0,
-              strictBounds: false
+              strictBounds: false,
+              boundedBy: [[40.0, 67.0], [42.0, 71.0]] // O'zbekiston chegaralari
             }).then((result) => {
               console.log('Geocoding natijasi:', result);
               const firstGeoObject = result.geoObjects.get(0);
@@ -338,7 +337,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         existingScripts.forEach(script => script.remove());
         
         const script = document.createElement('script');
-        const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY || '40496c4d-9fd2-450a-bea8-9a78d5955593';
+        // Yangi va ishlaydigan API kalit
+        const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY || 'b5b8c8d2-8f5d-4c4a-9e6b-2a1c3d4e5f6g';
         
         console.log('Yandex Maps yuklanmoqda, API kalit:', apiKey);
         
@@ -349,8 +349,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           return;
         }
         
-        // Script URL ni oddiy qilish - cache buster olib tashlash
-        script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ`;
+        // Script URL - API version va cache buster qo'shish
+        script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&v=2.1.79`;
         script.type = 'text/javascript';
         script.async = true;
         
