@@ -64,6 +64,8 @@ const OperatorDashboard = () => {
     customerPhone: '',
     deliveryAddress: ''
   });
+  const [searchPhone, setSearchPhone] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     if (userData?.id) {
@@ -471,6 +473,34 @@ const OperatorDashboard = () => {
       case 'delivered': return 'Yetkazildi';
       case 'cancelled': return 'Bekor qilindi';
       default: return status;
+    }
+  };
+
+  // Foydalanuvchi ID bo'yicha buyurtmalarni qidirish
+  const handleSearchByCustomerId = async () => {
+    if (!searchPhone.trim()) {
+      alert('Foydalanuvchi ID ni kiriting');
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      console.log('🔍 Foydalanuvchi ID bo\'yicha qidiruv:', searchPhone);
+
+      const foundOrders = await dataService.getOrdersByCustomerId(searchPhone.trim());
+
+      if (foundOrders.length > 0) {
+        console.log(`✅ ${foundOrders.length} ta buyurtma topildi`);
+        // Update the main orders list with found orders
+        setOrders(foundOrders);
+      } else {
+        alert('Bu foydalanuvchi ID bo\'yicha buyurtma topilmadi');
+      }
+    } catch (error) {
+      console.error('❌ Qidirishda xato:', error);
+      alert('Qidirishda xatolik yuz berdi');
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -1488,38 +1518,6 @@ const OperatorDashboard = () => {
       )}
     </div>
   );
-
-  const [searchPhone, setSearchPhone] = useState('');
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-
-  // Foydalanuvchi ID bo'yicha buyurtmalarni qidirish
-  const handleSearchByCustomerId = async () => {
-    if (!searchPhone.trim()) {
-      alert('Foydalanuvchi ID ni kiriting');
-      return;
-    }
-
-    try {
-      setIsSearching(true);
-      console.log('🔍 Foydalanuvchi ID bo\'yicha qidiruv:', searchPhone);
-
-      const foundOrders = await dataService.getOrdersByCustomerId(searchPhone.trim());
-
-      if (foundOrders.length > 0) {// OperatorDashboard.tsx: Refactor order search to use customer ID instead of phone number.
-        setFilteredOrders(foundOrders);
-        console.log(`✅ ${foundOrders.length} ta buyurtma topildi`);
-      } else {
-        setFilteredOrders([]);
-        alert('Bu foydalanuvchi ID bo\'yicha buyurtma topilmadi');
-      }
-    } catch (error) {
-      console.error('❌ Qidirishda xato:', error);
-      alert('Qidirishda xatolik yuz berdi');
-    } finally {
-      setIsSearching(false);
-    }
-  };
 };
 
 export default OperatorDashboard;
