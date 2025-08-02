@@ -1071,7 +1071,6 @@ class DataService {
         
         // MUHIM: Available holatini quantity asosida belgilash
         // Baker mahsulotlari uchun available holatini to'g'ri belgilash
-        const cake = await this.getCakeById(cakeId);
         const isBakerProduct = cake && (cake.productType === 'baked' || (cake.bakerId && !cake.shopId));
         
         if (isBakerProduct) {
