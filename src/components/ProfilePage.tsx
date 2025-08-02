@@ -35,6 +35,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
   const [showFavoritesStats, setShowFavoritesStats] = useState(false);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
 
   const recentOrders = [
     {
@@ -170,6 +171,39 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     
     return () => clearInterval(interval);
   }, [user.phone, user.name]);
+
+  // Buyurtmani bekor qilish funksiyasi
+  const handleCancelOrder = async (orderId: string) => {
+    if (!window.confirm('Bu buyurtmani bekor qilishni tasdiqlaysizmi?')) {
+      return;
+    }
+
+    try {
+      setCancellingOrderId(orderId);
+      console.log('🚫 Buyurtma bekor qilinmoqda:', orderId);
+      
+      // Buyurtma holatini 'cancelled' qilib o'zgartirish
+      await dataService.updateOrderStatus(orderId, 'cancelled');
+      
+      // Local state'ni yangilash
+      setUserOrders(prev => 
+        prev.map(order => 
+          order.id === orderId 
+            ? { ...order, status: 'cancelled', updatedAt: new Date() }
+            : order
+        )
+      );
+      
+      console.log('✅ Buyurtma muvaffaqiyatli bekor qilindi');
+      alert('Buyurtma muvaffaqiyatli bekor qilindi!');
+      
+    } catch (error) {
+      console.error('❌ Buyurtmani bekor qilishda xato:', error);
+      alert('Buyurtmani bekor qilishda xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.');
+    } finally {
+      setCancellingOrderId(null);
+    }
+  };
 
   const favoriteCakes = [
     {
@@ -432,6 +466,29 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                                 <div className="mt-1 text-xs">
                                   <span className="text-gray-400">📍 Manzil:</span>
                                   <span className="text-gray-300 ml-1">{order.deliveryAddress}</span>
+                                </div>
+                              )}
+
+                              {/* Buyurtmani bekor qilish tugmasi */}
+                              {order.status === 'pending' && (
+                                <div className="mt-3 pt-2 border-t border-gray-600/30">
+                                  <button
+                                    onClick={() => handleCancelOrder(order.id!)}
+                                    disabled={cancellingOrderId === order.id}
+                                    className="w-full bg-red-500/20 text-red-400 py-2 px-3 rounded-lg text-xs font-medium hover:bg-red-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                                  >
+                                    {cancellingOrderId === order.id ? (
+                                      <>
+                                        <div className="animate-spin h-3 w-3 border border-red-400 border-t-transparent rounded-full"></div>
+                                        <span>Bekor qilinmoqda...</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <span>🚫</span>
+                                        <span>Buyurtmani bekor qilish</span>
+                                      </>
+                                    )}
+                                  </button>
                                 </div>
                               )}
                             </div>
