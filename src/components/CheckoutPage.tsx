@@ -440,7 +440,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           lat: selectedCoordinates[0], 
           lng: selectedCoordinates[1] 
         } : undefined,
-        notes: `To'lov usuli: ${userInfo.paymentMethod === 'cash' ? 'Naqd pul' : 'Bank kartasi'}. Yetkazib berish: ${
+        notes: `To'lov usuli: ${
+          userInfo.paymentMethod === 'cash' ? 'Naqd pul' :
+          userInfo.paymentMethod === 'card' ? 'Bank kartasi' :
+          userInfo.paymentMethod === 'click' ? 'Click' :
+          userInfo.paymentMethod === 'payme' ? 'Payme' : userInfo.paymentMethod
+        }. Yetkazib berish: ${
           userInfo.deliveryTime === 'asap' ? 'Tez yetkazish (2-3 soat)' :
           userInfo.deliveryTime === 'today' ? 'Bugun yetkazish (09:00-22:00)' :
           userInfo.deliveryTime === 'tomorrow' ? 'Ertaga yetkazish (09:00-22:00)' :
@@ -562,7 +567,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                     onChange={(e) => setUserInfo(prev => ({ ...prev, paymentMethod: e.target.value }))}
                     className="text-orange-500"
                   />
-                  <span>Naqd pul</span>
+                  <span>💵 Naqd pul</span>
                 </label>
 
                 <label className="flex items-center gap-3">
@@ -574,7 +579,31 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                     onChange={(e) => setUserInfo(prev => ({ ...prev, paymentMethod: e.target.value }))}
                     className="text-orange-500"
                   />
-                  <span>Bank kartasi</span>
+                  <span>💳 Bank kartasi</span>
+                </label>
+
+                <label className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="click"
+                    checked={userInfo.paymentMethod === 'click'}
+                    onChange={(e) => setUserInfo(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                    className="text-orange-500"
+                  />
+                  <span>🔵 Click</span>
+                </label>
+
+                <label className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="payme"
+                    checked={userInfo.paymentMethod === 'payme'}
+                    onChange={(e) => setUserInfo(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                    className="text-orange-500"
+                  />
+                  <span>🟢 Payme</span>
                 </label>
               </div>
             </div>

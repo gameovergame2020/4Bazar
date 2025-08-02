@@ -412,17 +412,23 @@ const PaymentAddressPage: React.FC<PaymentAddressPageProps> = ({ user, onBack })
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Karta turi</label>
                     <div className="grid grid-cols-2 gap-3">
-                      {['Visa', 'Mastercard'].map((type) => (
+                      {[
+                        { name: 'Visa', icon: '💳' },
+                        { name: 'Mastercard', icon: '💳' },
+                        { name: 'Click', icon: '🔵' },
+                        { name: 'Payme', icon: '🟢' }
+                      ].map((type) => (
                         <button
-                          key={type}
-                          onClick={() => setPaymentForm(prev => ({ ...prev, type }))}
+                          key={type.name}
+                          onClick={() => setPaymentForm(prev => ({ ...prev, type: type.name }))}
                           className={`flex items-center justify-center p-3 rounded-lg border transition-colors ${
-                            paymentForm.type === type
+                            paymentForm.type === type.name
                               ? 'border-orange-500 bg-orange-50 text-orange-600'
                               : 'border-gray-300 hover:border-gray-400'
                           }`}
                         >
-                          <span className="font-medium">{type}</span>
+                          <span className="mr-2">{type.icon}</span>
+                          <span className="font-medium">{type.name}</span>
                         </button>
                       ))}
                     </div>
