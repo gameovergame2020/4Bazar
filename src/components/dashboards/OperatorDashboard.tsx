@@ -632,6 +632,42 @@ const OperatorDashboard = () => {
     }
   };
 
+  const handleRejectOrder = async (orderId: string) => {
+    if (!confirm('Buyurtmani rad etishni xohlaysizmi?')) return;
+
+    try {
+      setLoading(true);
+
+      // Buyurtma ma'lumotlarini olish
+      const order = orders.find(o => o.id === orderId);
+      if (!order) {
+        throw new Error('Buyurtma topilmadi');
+      }
+
+      console.log('🔄 Buyurtmani rad etish boshlandi:', {
+        orderId: order.id,
+        cakeId: order.cakeId,
+        cakeName: order.cakeName,
+        quantity: order.quantity
+      });
+
+      // Buyurtma holatini cancelled ga o'zgartirish
+      await dataService.updateOrderStatus(orderId, 'cancelled');
+
+      // Mahsulot quantity'ni qaytarish
+      await dataService.revertOrderQuantity(order.cakeId, order.quantity);
+
+      console.log('✅ Buyurtma rad etildi va mahsulot quantity qaytarildi');
+
+      await loadData();
+    } catch (error) {
+      console.error('❌ Buyurtmani rad etishda xatolik:', error);
+      alert('Buyurtmani rad etishda xatolik yuz berdi');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6 pb-6">
       {/* Welcome Banner */}
