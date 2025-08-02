@@ -1099,8 +1099,11 @@ class DataService {
         });
       }
 
-      // Ma'lumotlarni yangilash
+      // Ma'lumotlarni yangilash va yangilanishni kuchaytirilgan tarzda amalga oshirish
       if (Object.keys(updateData).length > 0) {
+        // updatedAt ni qo'shish real-time subscription'ni trigger qilish uchun
+        updateData.updatedAt = new Date();
+        
         await this.updateCake(cakeId, updateData);
         console.log('✅ Mahsulot soni muvaffaqiyatli qaytarildi:', updateData);
         
@@ -1109,6 +1112,16 @@ class DataService {
           console.log('🟢 Mahsulot "Hozir mavjud" holatiga qaytarildi');
         } else {
           console.log('🟡 Mahsulot "Buyurtma uchun" holatida qoldi');
+        }
+
+        // Firebase real-time yangilanishini kuchaytirilgan trigger qilish
+        try {
+          await this.updateCake(cakeId, { 
+            ...updateData,
+            lastModified: new Date().getTime() 
+          });
+        } catch (triggerError) {
+          console.warn('⚠️ Real-time trigger da xato:', triggerError);
         }
       } else {
         console.warn('⚠️ Yangilanishi kerak bo\'lgan ma\'lumotlar topilmadi');

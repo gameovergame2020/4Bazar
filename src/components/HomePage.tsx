@@ -153,15 +153,58 @@ const HomePage = () => {
       }
     });
 
-    // Buyurtmalar holatini ham kuzatish - yangilanishlar
+    // Buyurtmalar holatini ham kuzatish - darhol yangilanish
     const unsubscribeOrders = dataService.subscribeToOrders(async (updatedOrders) => {
       console.log('🔄 Real-time orders yangilandi:', updatedOrders.length, 'ta buyurtma');
       
-      // Buyurtmalar o'zgarganda tortlarni qayta yuklash
-      setTimeout(() => {
-        console.log('🔄 Orders o\'zgargani uchun tortlarni qayta yuklash...');
-        loadCakes();
-      }, 500); // 500ms kechikish bilan tortlarni qayta yuklash
+      // Orders o'zgarganda darhol tortlarni qayta yuklash
+      try {
+        const filters: any = {};
+        if (selectedCategory !== 'Hammasi') {
+          const category = categories.find(cat => cat.name === selectedCategory);
+          if (category?.value) {
+            filters.category = category.value;
+          }
+        }
+
+        const freshCakes = await dataService.getCakes(filters);
+        
+        const processedCakes = freshCakes.filter(cake => {
+          const isBakerProduct = cake.productType === 'baked' || (cake.bakerId && !cake.shopId);
+          const isShopProduct = cake.productType === 'ready' || (cake.shopId && !cake.bakerId);
+
+          if (isBakerProduct) {
+            return true;
+          }
+          if (isShopProduct) {
+            return cake.available === true;
+          }
+          return cake.available === true;
+        }).map(cake => {
+          if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
+            const orderedQuantity = updatedOrders
+              .filter(order => 
+                order.cakeId === cake.id && 
+                !['cancelled', 'ready', 'delivering', 'delivered'].includes(order.status)
+              )
+              .reduce((total, order) => total + order.quantity, 0);
+
+            return {
+              ...cake,
+              orderedQuantity: orderedQuantity
+            };
+          }
+          return cake;
+        });
+
+        console.log('✅ Orders o\'zgarishi bilan tortlar yangilandi:', processedCakes.length);
+        setCakes(processedCakes);
+        if (!searchQuery) {
+          setFilteredCakes(processedCakes);
+        }
+      } catch (error) {
+        console.error('❌ Orders o\'zgarishi bilan tortlarni yangilashda xato:', error);
+      }
     });
 
     return () => {
@@ -173,7 +216,7 @@ const HomePage = () => {
         unsubscribeOrders();
       }
     };
-  }, []);
+  }, [selectedCategory]);
 
   const handleSearch = (query: string) => {
     if (query) {
