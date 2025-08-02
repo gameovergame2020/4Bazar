@@ -1,0 +1,221 @@
+[2025-08-02T18:30:31.007Z]  @firebase/firestore: Firestore (12.0.0): BloomFilter error:  {"name":"BloomFilterError"}
+defaultLogHandler @ chunk-EC3L4GAJ.js?v=c8e5f475:1231
+warn @ chunk-EC3L4GAJ.js?v=c8e5f475:1295
+__PRIVATE_logWarn @ firebase_firestore.js?v=c8e5f475:2632
+ut @ firebase_firestore.js?v=c8e5f475:6888
+st @ firebase_firestore.js?v=c8e5f475:6843
+__PRIVATE_onWatchStreamChange @ firebase_firestore.js?v=c8e5f475:13327
+onNext @ firebase_firestore.js?v=c8e5f475:12981
+(anonymous) @ firebase_firestore.js?v=c8e5f475:12940
+(anonymous) @ firebase_firestore.js?v=c8e5f475:12960
+(anonymous) @ firebase_firestore.js?v=c8e5f475:16051
+(anonymous) @ firebase_firestore.js?v=c8e5f475:16082
+Promise.then
+cc @ firebase_firestore.js?v=c8e5f475:16082
+enqueue @ firebase_firestore.js?v=c8e5f475:16051
+enqueueAndForget @ firebase_firestore.js?v=c8e5f475:16033
+(anonymous) @ firebase_firestore.js?v=c8e5f475:12960
+(anonymous) @ firebase_firestore.js?v=c8e5f475:12940
+u_ @ firebase_firestore.js?v=c8e5f475:12553
+(anonymous) @ firebase_firestore.js?v=c8e5f475:12693
+(anonymous) @ firebase_firestore.js?v=c8e5f475:12656
+ab @ firebase_firestore.js?v=c8e5f475:950
+F2 @ firebase_firestore.js?v=c8e5f475:920
+Z2.ta @ firebase_firestore.js?v=c8e5f475:2540
+Rb @ firebase_firestore.js?v=c8e5f475:1419
+M2.Y @ firebase_firestore.js?v=c8e5f475:1284
+M2.ca @ firebase_firestore.js?v=c8e5f475:1215
+ab @ firebase_firestore.js?v=c8e5f475:950
+F2 @ firebase_firestore.js?v=c8e5f475:920
+Wc @ firebase_firestore.js?v=c8e5f475:1954
+h.bb @ firebase_firestore.js?v=c8e5f475:1949
+h.Ea @ firebase_firestore.js?v=c8e5f475:1946
+Lc @ firebase_firestore.js?v=c8e5f475:1846
+h.Pa @ firebase_firestore.js?v=c8e5f475:1813
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Sa @ firebase_firestore.js?v=c8e5f475:1800
+Promise.then
+h.send @ firebase_firestore.js?v=c8e5f475:1781
+h.ea @ firebase_firestore.js?v=c8e5f475:1922
+Jb @ firebase_firestore.js?v=c8e5f475:1208
+fd @ firebase_firestore.js?v=c8e5f475:2341
+h.Fa @ firebase_firestore.js?v=c8e5f475:2308
+Da @ firebase_firestore.js?v=c8e5f475:669
+Promise.then
+x2 @ firebase_firestore.js?v=c8e5f475:663
+ec @ firebase_firestore.js?v=c8e5f475:2294
+Ub @ firebase_firestore.js?v=c8e5f475:2366
+M2.Y @ firebase_firestore.js?v=c8e5f475:1296
+M2.ca @ firebase_firestore.js?v=c8e5f475:1215
+ab @ firebase_firestore.js?v=c8e5f475:950
+F2 @ firebase_firestore.js?v=c8e5f475:920
+Wc @ firebase_firestore.js?v=c8e5f475:1954
+h.bb @ firebase_firestore.js?v=c8e5f475:1949
+h.Ea @ firebase_firestore.js?v=c8e5f475:1946
+Lc @ firebase_firestore.js?v=c8e5f475:1846
+Mc @ firebase_firestore.js?v=c8e5f475:1831
+h.Pa @ firebase_firestore.js?v=c8e5f475:1813
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Pa @ firebase_firestore.js?v=c8e5f475:1814
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Pa @ firebase_firestore.js?v=c8e5f475:1814
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Sa @ firebase_firestore.js?v=c8e5f475:1800
+Promise.then
+h.send @ firebase_firestore.js?v=c8e5f475:1781
+h.ea @ firebase_firestore.js?v=c8e5f475:1922
+Jb @ firebase_firestore.js?v=c8e5f475:1208
+fd @ firebase_firestore.js?v=c8e5f475:2341
+h.Fa @ firebase_firestore.js?v=c8e5f475:2308
+Da @ firebase_firestore.js?v=c8e5f475:669
+Promise.then
+x2 @ firebase_firestore.js?v=c8e5f475:663
+ec @ firebase_firestore.js?v=c8e5f475:2294
+Ub @ firebase_firestore.js?v=c8e5f475:2366
+M2.Y @ firebase_firestore.js?v=c8e5f475:1296
+M2.ca @ firebase_firestore.js?v=c8e5f475:1215
+ab @ firebase_firestore.js?v=c8e5f475:950
+F2 @ firebase_firestore.js?v=c8e5f475:920
+Wc @ firebase_firestore.js?v=c8e5f475:1954
+h.bb @ firebase_firestore.js?v=c8e5f475:1949
+h.Ea @ firebase_firestore.js?v=c8e5f475:1946
+Lc @ firebase_firestore.js?v=c8e5f475:1846
+Mc @ firebase_firestore.js?v=c8e5f475:1831
+h.Pa @ firebase_firestore.js?v=c8e5f475:1813
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Pa @ firebase_firestore.js?v=c8e5f475:1814
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Pa @ firebase_firestore.js?v=c8e5f475:1814
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Sa @ firebase_firestore.js?v=c8e5f475:1800
+Promise.then
+h.send @ firebase_firestore.js?v=c8e5f475:1781
+h.ea @ firebase_firestore.js?v=c8e5f475:1922
+Jb @ firebase_firestore.js?v=c8e5f475:1208
+fd @ firebase_firestore.js?v=c8e5f475:2341
+h.Fa @ firebase_firestore.js?v=c8e5f475:2308
+Da @ firebase_firestore.js?v=c8e5f475:669
+Promise.then
+x2 @ firebase_firestore.js?v=c8e5f475:663
+ec @ firebase_firestore.js?v=c8e5f475:2294
+Ub @ firebase_firestore.js?v=c8e5f475:2366
+M2.Y @ firebase_firestore.js?v=c8e5f475:1296
+M2.ca @ firebase_firestore.js?v=c8e5f475:1215
+ab @ firebase_firestore.js?v=c8e5f475:950
+F2 @ firebase_firestore.js?v=c8e5f475:920
+Wc @ firebase_firestore.js?v=c8e5f475:1954
+h.bb @ firebase_firestore.js?v=c8e5f475:1949
+h.Ea @ firebase_firestore.js?v=c8e5f475:1946
+Lc @ firebase_firestore.js?v=c8e5f475:1846
+Mc @ firebase_firestore.js?v=c8e5f475:1831
+h.Pa @ firebase_firestore.js?v=c8e5f475:1813
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Pa @ firebase_firestore.js?v=c8e5f475:1814
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Sa @ firebase_firestore.js?v=c8e5f475:1800
+Promise.then
+h.send @ firebase_firestore.js?v=c8e5f475:1781
+h.ea @ firebase_firestore.js?v=c8e5f475:1922
+Jb @ firebase_firestore.js?v=c8e5f475:1208
+fd @ firebase_firestore.js?v=c8e5f475:2341
+h.Fa @ firebase_firestore.js?v=c8e5f475:2308
+Da @ firebase_firestore.js?v=c8e5f475:669
+Promise.then
+x2 @ firebase_firestore.js?v=c8e5f475:663
+ec @ firebase_firestore.js?v=c8e5f475:2294
+Ub @ firebase_firestore.js?v=c8e5f475:2366
+M2.Y @ firebase_firestore.js?v=c8e5f475:1296
+M2.ca @ firebase_firestore.js?v=c8e5f475:1215
+ab @ firebase_firestore.js?v=c8e5f475:950
+F2 @ firebase_firestore.js?v=c8e5f475:920
+Wc @ firebase_firestore.js?v=c8e5f475:1954
+h.bb @ firebase_firestore.js?v=c8e5f475:1949
+h.Ea @ firebase_firestore.js?v=c8e5f475:1946
+Lc @ firebase_firestore.js?v=c8e5f475:1846
+Mc @ firebase_firestore.js?v=c8e5f475:1831
+h.Pa @ firebase_firestore.js?v=c8e5f475:1813
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Pa @ firebase_firestore.js?v=c8e5f475:1814
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Pa @ firebase_firestore.js?v=c8e5f475:1814
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Sa @ firebase_firestore.js?v=c8e5f475:1800
+Promise.then
+h.send @ firebase_firestore.js?v=c8e5f475:1781
+h.ea @ firebase_firestore.js?v=c8e5f475:1922
+Jb @ firebase_firestore.js?v=c8e5f475:1208
+fd @ firebase_firestore.js?v=c8e5f475:2341
+h.Fa @ firebase_firestore.js?v=c8e5f475:2308
+Da @ firebase_firestore.js?v=c8e5f475:669
+Promise.then
+x2 @ firebase_firestore.js?v=c8e5f475:663
+ec @ firebase_firestore.js?v=c8e5f475:2294
+Ub @ firebase_firestore.js?v=c8e5f475:2366
+M2.Y @ firebase_firestore.js?v=c8e5f475:1296
+M2.ca @ firebase_firestore.js?v=c8e5f475:1215
+ab @ firebase_firestore.js?v=c8e5f475:950
+F2 @ firebase_firestore.js?v=c8e5f475:920
+Wc @ firebase_firestore.js?v=c8e5f475:1954
+h.bb @ firebase_firestore.js?v=c8e5f475:1949
+h.Ea @ firebase_firestore.js?v=c8e5f475:1946
+Lc @ firebase_firestore.js?v=c8e5f475:1846
+Mc @ firebase_firestore.js?v=c8e5f475:1831
+h.Pa @ firebase_firestore.js?v=c8e5f475:1813
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Pa @ firebase_firestore.js?v=c8e5f475:1814
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Pa @ firebase_firestore.js?v=c8e5f475:1814
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Sa @ firebase_firestore.js?v=c8e5f475:1800
+Promise.then
+h.send @ firebase_firestore.js?v=c8e5f475:1781
+h.ea @ firebase_firestore.js?v=c8e5f475:1922
+Jb @ firebase_firestore.js?v=c8e5f475:1208
+fd @ firebase_firestore.js?v=c8e5f475:2341
+h.Fa @ firebase_firestore.js?v=c8e5f475:2308
+Da @ firebase_firestore.js?v=c8e5f475:669
+Promise.then
+x2 @ firebase_firestore.js?v=c8e5f475:663
+ec @ firebase_firestore.js?v=c8e5f475:2294
+Ub @ firebase_firestore.js?v=c8e5f475:2366
+M2.Y @ firebase_firestore.js?v=c8e5f475:1296
+M2.ca @ firebase_firestore.js?v=c8e5f475:1215
+ab @ firebase_firestore.js?v=c8e5f475:950
+F2 @ firebase_firestore.js?v=c8e5f475:920
+Wc @ firebase_firestore.js?v=c8e5f475:1954
+h.bb @ firebase_firestore.js?v=c8e5f475:1949
+h.Ea @ firebase_firestore.js?v=c8e5f475:1946
+Lc @ firebase_firestore.js?v=c8e5f475:1846
+Mc @ firebase_firestore.js?v=c8e5f475:1831
+h.Pa @ firebase_firestore.js?v=c8e5f475:1813
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Pa @ firebase_firestore.js?v=c8e5f475:1814
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Pa @ firebase_firestore.js?v=c8e5f475:1814
+Promise.then
+Nc @ firebase_firestore.js?v=c8e5f475:1804
+h.Sa @ firebase_firestore.js?v=c8e5f475:1800
+Promise.then
+h.send @ firebase_firestore.js?v=c8e5f475:1781
+h.ea @ firebase_firestore.js?v=c8e5f475:1922
+Jb @ firebase_firestore.js?v=c8e5f475:1208
+fd @ firebase_firestore.js?v=c8e5f475:2341
+h.Fa @ firebase_firestore.js?v=c8e5f475:2308
+Da @ firebase_firestore.js?v=c8e5f475:669Understand this warning
