@@ -482,19 +482,35 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     }
 
     try {
-      // Buyurtma ma'lumotlarini tayyorlash - haqiqiy foydalanuvchi ID sini olish
-      const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId') || `customer-${Date.now()}`;
+      // Haqiqiy foydalanuvchi ID sini olish va yaratish
+      let userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+      
+      // Agar ID mavjud bo'lmasa, telefon raqami asosida yaratish
+      if (!userId) {
+        // Telefon raqamini normalize qilish
+        const normalizedPhone = userInfo.phone.replace(/\D/g, ''); // Faqat raqamlar
+        userId = `customer_${normalizedPhone}_${Date.now()}`;
+        
+        // ID ni saqlash
+        localStorage.setItem('userId', userId);
+        sessionStorage.setItem('userId', userId);
+        
+        console.log('🆔 Yangi customer ID yaratildi:', userId);
+      }
+
+      console.log('🛒 Customer ID dan foydalanilmoqda:', userId);
+      console.log('📱 Customer telefon:', userInfo.phone);
 
       const orderData = {
-        customerId: userId, // Haqiqiy foydalanuvchi ID si
-        customerName: userInfo.name,
-        customerPhone: userInfo.phone,
+        customerId: userId.toString(), // String formatida saqlash
+        customerName: userInfo.name.trim(),
+        customerPhone: userInfo.phone.trim(),
         cakeId: cartProducts[0]?.id || '', // Birinchi mahsulot ID si
         cakeName: cartProducts.map(p => p.name).join(', '), // Barcha mahsulotlar nomlari
         quantity: cartProducts.reduce((sum, p) => sum + p.quantity, 0), // Jami miqdor
         totalPrice: totalPrice,
         status: 'pending', // Operator tasdiqlashini kutmoqda
-        deliveryAddress: deliveryAddress,
+        deliveryAddress: deliveryAddress.trim(),
         coordinates: selectedCoordinates ? { 
           lat: selectedCoordinates[0], 
           lng: selectedCoordinates[1] 
@@ -577,11 +593,26 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     const finalPaymentType = paymentType || userInfo.paymentType;
 
     try {
-      // Buyurtma ma'lumotlarini tayyorlash - haqiqiy foydalanuvchi ID sini olish
-      const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId') || `customer-${Date.now()}`;
+      // Haqiqiy foydalanuvchi ID sini olish va yaratish
+      let userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+      
+      // Agar ID mavjud bo'lmasa, telefon raqami asosida yaratish
+      if (!userId) {
+        // Telefon raqamini normalize qilish
+        const normalizedPhone = userInfo.phone.replace(/\D/g, ''); // Faqat raqamlar
+        userId = `customer_${normalizedPhone}_${Date.now()}`;
+        
+        // ID ni saqlash
+        localStorage.setItem('userId', userId);
+        sessionStorage.setItem('userId', userId);
+        
+        console.log('🆔 Yangi customer ID yaratildi (processOrder):', userId);
+      }
+
+      console.log('🛒 Customer ID dan foydalanilmoqda (processOrder):', userId);
 
       const orderData = {
-        customerId: userId, // Haqiqiy foydalanuvchi ID si
+        customerId: userId.toString(), // String formatida saqlash
         customerName: userInfo.name,
         customerPhone: userInfo.phone,
         cakeId: cartProducts[0]?.id || '',

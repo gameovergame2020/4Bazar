@@ -160,12 +160,18 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     let loadingTimeout: NodeJS.Timeout | null = null;
 
     const loadOrdersOptimized = async () => {
-      if (!user.id) {
-        console.log('⚠️ Foydalanuvchi ID mavjud emas');
+      // User ID ni tekshirish va localStorage dan olish
+      let customerId = user.id || localStorage.getItem('userId') || sessionStorage.getItem('userId');
+      
+      if (!customerId) {
+        console.log('⚠️ Foydalanuvchi ID mavjud emas, localStorage va sessionStorage ham bo\'sh');
         setUserOrders([]);
         setIsLoadingOrders(false);
         return;
       }
+
+      console.log('🔍 Buyurtmalar qidirilmoqda, Customer ID:', customerId);
+      console.log('📱 User phone:', user.phone);
 
       try {
         setIsLoadingOrders(true);
@@ -179,8 +185,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
           }
         }, 10000);
 
-        // Faqat Customer ID bo'yicha qidirish
-        const userOrders = await dataService.getOrdersByCustomerId(user.id.toString());
+        // Customer ID bo'yicha qidirish
+        const userOrders = await dataService.getOrdersByCustomerId(customerId.toString());
 
         if (isActive) {
           const sortedOrders = userOrders.sort((a, b) => 
@@ -189,6 +195,20 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
           setUserOrders(sortedOrders);
           console.log('✅ Customer ID bo\'yicha yuklandi:', sortedOrders.length, 'ta buyurtma');
+          
+          // Agar telefon bo'yicha ham qidirish kerak bo'lsa (fallback)
+          if (sortedOrders.length === 0 && user.phone) {
+            console.log('📱 Telefon bo\'yicha fallback qidiruv...');
+            try {
+              const phoneOrders = await dataService.getOrdersByCustomerPhone(user.phone);
+              if (phoneOrders.length > 0) {
+                setUserOrders(phoneOrders);
+                console.log('✅ Telefon bo\'yicha topildi:', phoneOrders.length, 'ta buyurtma');
+              }
+            } catch (phoneError) {
+              console.warn('⚠️ Telefon bo\'yicha qidirishda xato:', phoneError);
+            }
+          }
         }
 
       } catch (error) {
@@ -209,19 +229,20 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
       try {
         console.log('🔄 Real-time subscription boshlanmoqda... Customer ID:', user.id);
 
-        if (!user.id) {
+        if (!customerId) {
           console.log('⚠️ Customer ID yo\'q, real-time subscription o\'rnatilmadi');
           return;
         }
 
-        // Faqat customer ID bo'yicha subscription
+        // Customer ID bo'yicha subscription
         unsubscribe = dataService.subscribeToOrders((allOrders) => {
           if (!isActive) return;
 
           try {
-            // Faqat Customer ID bo'yicha filtirlash
+            // Customer ID bo'yicha filtirlash
             const userOrders = allOrders.filter(order => 
-              order.customerId === user.id.toString()
+              order.customerId === customerId.toString() || 
+              (user.phone && order.customerPhone === user.phone) // Telefon bo'yicha ham filtirlash
             );
 
             const sortedOrders = userOrders.sort((a, b) => 
@@ -234,7 +255,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
           } catch (error) {
             console.error('❌ Real-time filtirlashda xato:', error);
           }
-        }, { customerId: user.id.toString() }); // Customer ID filter qo'shish
+        }, { customerId: customerId.toString() }); // Customer ID filter qo'shish
 
       } catch (error) {
         console.error('❌ Real-time subscription xatosi:', error);
@@ -265,7 +286,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
         }
       }
     };
-  }, [user.id]); // Faqat user.id dependency
+  }, [user.id, user.phone]); // user.id va user.phone dependency
 
   // Buyurtmani bekor qilish uchun modal holatini boshqarish
   const [showCancelModal, setShowCancelModal] = useState(false);
