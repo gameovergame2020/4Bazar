@@ -23,7 +23,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     phone: '',
     address: '',
     paymentMethod: 'cash',
-    deliveryTime: ['asap'] // Array qilib o'zgartiramiz - multiple selection
+    deliveryTime: 'asap' // Bitta tanlov
   });
 
   const [deliveryAddress, setDeliveryAddress] = useState('');
@@ -421,11 +421,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           lng: selectedCoordinates[1] 
         } : undefined,
         notes: `To'lov usuli: ${userInfo.paymentMethod === 'cash' ? 'Naqd pul' : 'Bank kartasi'}. Yetkazib berish: ${
-          userInfo.deliveryTime.map(time => 
-            time === 'asap' ? 'Tez (2-3 soat)' :
-            time === 'today' ? 'Bugun (18:00-22:00)' :
-            time === 'tomorrow' ? 'Ertaga (09:00-21:00)' : time
-          ).join(', ')
+          userInfo.deliveryTime === 'asap' ? 'Tez (2-3 soat)' :
+          userInfo.deliveryTime === 'today' ? 'Bugun (18:00-22:00)' :
+          userInfo.deliveryTime === 'tomorrow' ? 'Ertaga (09:00-21:00)' : userInfo.deliveryTime
         }. Mahsulotlar: ${cartProducts.map(p => `${p.name} (${p.quantity} dona)`).join(', ')}`
       };
 
@@ -567,82 +565,15 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 Yetkazib berish muddati
               </h3>
 
-              <div className="space-y-2">
-                <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                  userInfo.deliveryTime.includes('asap') 
-                    ? 'bg-orange-100 border-orange-400 text-orange-900 shadow-sm' 
-                    : 'bg-white border-gray-200 hover:bg-gray-50'
-                }`}>
-                  <input
-                    type="checkbox"
-                    checked={userInfo.deliveryTime.includes('asap')}
-                    onChange={(e) => {
-                      const isChecked = e.target.checked;
-                      setUserInfo(prev => ({
-                        ...prev,
-                        deliveryTime: isChecked 
-                          ? [...prev.deliveryTime, 'asap']
-                          : prev.deliveryTime.filter(time => time !== 'asap')
-                      }));
-                    }}
-                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
-                  />
-                  <span className="font-medium">⚡ Tez (2-3 soat)</span>
-                  {userInfo.deliveryTime.includes('asap') && (
-                    <span className="ml-auto text-orange-600 font-bold">✓</span>
-                  )}
-                </label>
-
-                <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                  userInfo.deliveryTime.includes('today') 
-                    ? 'bg-orange-100 border-orange-400 text-orange-900 shadow-sm' 
-                    : 'bg-white border-gray-200 hover:bg-gray-50'
-                }`}>
-                  <input
-                    type="checkbox"
-                    checked={userInfo.deliveryTime.includes('today')}
-                    onChange={(e) => {
-                      const isChecked = e.target.checked;
-                      setUserInfo(prev => ({
-                        ...prev,
-                        deliveryTime: isChecked 
-                          ? [...prev.deliveryTime, 'today']
-                          : prev.deliveryTime.filter(time => time !== 'today')
-                      }));
-                    }}
-                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
-                  />
-                  <span className="font-medium">🌅 Bugun (18:00-22:00)</span>
-                  {userInfo.deliveryTime.includes('today') && (
-                    <span className="ml-auto text-orange-600 font-bold">✓</span>
-                  )}
-                </label>
-
-                <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                  userInfo.deliveryTime.includes('tomorrow') 
-                    ? 'bg-orange-100 border-orange-400 text-orange-900 shadow-sm' 
-                    : 'bg-white border-gray-200 hover:bg-gray-50'
-                }`}>
-                  <input
-                    type="checkbox"
-                    checked={userInfo.deliveryTime.includes('tomorrow')}
-                    onChange={(e) => {
-                      const isChecked = e.target.checked;
-                      setUserInfo(prev => ({
-                        ...prev,
-                        deliveryTime: isChecked 
-                          ? [...prev.deliveryTime, 'tomorrow']
-                          : prev.deliveryTime.filter(time => time !== 'tomorrow')
-                      }));
-                    }}
-                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
-                  />
-                  <span className="font-medium">📅 Ertaga (09:00-21:00)</span>
-                  {userInfo.deliveryTime.includes('tomorrow') && (
-                    <span className="ml-auto text-orange-600 font-bold">✓</span>
-                  )}
-                </label>
-              </div>
+              <select
+                value={userInfo.deliveryTime}
+                onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
+              >
+                <option value="asap">⚡ Tez (2-3 soat)</option>
+                <option value="today">🌅 Bugun (18:00-22:00)</option>
+                <option value="tomorrow">📅 Ertaga (09:00-21:00)</option>
+              </select>
             </div>
           </div>
 
@@ -801,11 +732,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">🚚 Yetkazib berish:</span>
                   <span className="font-medium text-blue-600">
-                    {userInfo.deliveryTime.map(time => 
-                      time === 'asap' ? 'Tez (2-3 soat)' :
-                      time === 'today' ? 'Bugun (18:00-22:00)' :
-                      time === 'tomorrow' ? 'Ertaga (09:00-21:00)' : time
-                    ).join(', ')}
+                    {userInfo.deliveryTime === 'asap' ? 'Tez (2-3 soat)' :
+                     userInfo.deliveryTime === 'today' ? 'Bugun (18:00-22:00)' :
+                     userInfo.deliveryTime === 'tomorrow' ? 'Ertaga (09:00-21:00)' : userInfo.deliveryTime}
                   </span>
                 </div>
               </div>
