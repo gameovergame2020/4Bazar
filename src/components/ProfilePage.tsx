@@ -435,7 +435,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                 <ShoppingBag size={16} className="text-orange-400" />
                 <span>Oxirgi buyurtmalar</span>
               </h4>
-              <div className="space-y-2 sm:space-y-3 max-h-48 sm:max-h-64 overflow-y-auto">
+              <div className="space-y-2 sm:space-y-3 max-h-96 sm:max-h-[32rem] overflow-y-auto">
                 {isLoadingOrders ? (
                   <div className="flex flex-col items-center justify-center py-8">
                     <div className="animate-spin h-8 w-8 border-2 border-orange-500 border-t-transparent rounded-full mb-3"></div>
