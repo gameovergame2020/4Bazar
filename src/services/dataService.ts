@@ -223,18 +223,18 @@ class DataService {
       const randomSuffix = Math.random().toString(36).substr(2, 9); // 9 ta random belgi
       const uniqueOrderId = `ORD_${timestamp}_${randomSuffix}`;
       
-      // Foydalanuvchi ID ni to'g'ri formatlash va saqlash
-      const cleanUserId = order.customerId?.toString().trim() || '';
+      // users collection'dagi id bilan bir xil bo'lishi kerak
+      const userIdFromUsersCollection = order.customerId?.toString().trim() || '';
       
       console.log('🆔 Noyob buyurtma ID yaratildi:', uniqueOrderId);
-      console.log('👤 Foydalanuvchi ID:', cleanUserId);
+      console.log('👤 Users collection ID:', userIdFromUsersCollection);
       console.log('🍰 Mahsulot ID:', order.cakeId);
       
       const orderData = {
         ...order,
         orderUniqueId: uniqueOrderId, // Bir martalik noyob ID
-        customerId: cleanUserId, // Mijoz ID sifatida
-        userId: cleanUserId, // Faqat foydalanuvchi ID bilan bir xil
+        customerId: userIdFromUsersCollection, // Users collection'dagi id
+        userId: userIdFromUsersCollection, // Users collection'dagi id bilan bir xil
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       };
@@ -244,7 +244,7 @@ class DataService {
       
       console.log('✅ Firebase hujjat ID:', docRef.id);
       console.log('🆔 Noyob buyurtma ID:', uniqueOrderId);
-      console.log('👤 Saqlangan foydalanuvchi ID:', cleanUserId);
+      console.log('👤 Users ID bilan bog\'langan:', userIdFromUsersCollection);
       
       return docRef.id;
     } catch (error) {
@@ -255,30 +255,30 @@ class DataService {
 
   
 
-  // Foydalanuvchi buyurtmalarini customer ID bo'yicha olish
-  async getOrdersByCustomerId(customerId: string): Promise<Order[]> {
+  // Foydalanuvchi buyurtmalarini users collection ID bo'yicha olish
+  async getOrdersByCustomerId(userId: string): Promise<Order[]> {
     try {
       // Input validation
-      if (!customerId || typeof customerId !== 'string' || customerId.trim() === '') {
-        console.log('⚠️ Customer ID noto\'g\'ri yoki bo\'sh:', customerId);
+      if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+        console.log('⚠️ User ID noto\'g\'ri yoki bo\'sh:', userId);
         return [];
       }
 
-      const cleanCustomerId = customerId.trim();
-      console.log('🔍 Customer buyurtmalarini qidirish:', cleanCustomerId);
+      const cleanUserId = userId.trim();
+      console.log('🔍 Users collection ID bo\'yicha qidirish:', cleanUserId);
 
-      // Firebase query - customer ID bo'yicha filter
-      const customerIdQuery = query(
+      // Firebase query - users collection ID bo'yicha filter
+      const userIdQuery = query(
         collection(db, 'orders'),
-        where('customerId', '==', cleanCustomerId),
+        where('userId', '==', cleanUserId),
         orderBy('createdAt', 'desc'),
         limit(1000) // Yetarli limit
       );
 
-      const querySnapshot = await getDocs(customerIdQuery);
+      const querySnapshot = await getDocs(userIdQuery);
 
       if (querySnapshot.empty) {
-        console.log('📭 Customer buyurtmalari topilmadi:', cleanCustomerId);
+        console.log('📭 Users buyurtmalari topilmadi:', cleanUserId);
         return [];
       }
 
@@ -290,9 +290,9 @@ class DataService {
         try {
           const data = doc.data();
           
-          // Strict customer ID checking
-          if (data.customerId !== cleanCustomerId) {
-            console.warn('⚠️ Customer ID noto\'g\'ri:', data.customerId, '!=', cleanCustomerId);
+          // Strict users ID checking
+          if (data.userId !== cleanUserId) {
+            console.warn('⚠️ Users ID noto\'g\'ri:', data.userId, '!=', cleanUserId);
             return;
           }
 
@@ -305,8 +305,8 @@ class DataService {
           const order: Order = {
             id: doc.id,
             orderUniqueId: data.orderUniqueId || doc.id,
-            customerId: data.customerId,
-            userId: data.customerId, // userId faqat customerId bilan bir xil
+            customerId: data.userId, // Users collection ID
+            userId: data.userId, // Users collection ID bilan bir xil
             customerName: data.customerName || 'Noma\'lum mijoz',
             customerPhone: data.customerPhone || '',
             cakeId: data.cakeId,
@@ -331,18 +331,18 @@ class DataService {
         }
       });
 
-      console.log(`✅ Customer (${cleanCustomerId}): ${orders.length} ta buyurtma yuklandi`);
+      console.log(`✅ Users (${cleanUserId}): ${orders.length} ta buyurtma yuklandi`);
       
-      // Verify all orders belong to correct customer
-      const invalidOrders = orders.filter(order => order.customerId !== cleanCustomerId);
+      // Verify all orders belong to correct user
+      const invalidOrders = orders.filter(order => order.userId !== cleanUserId);
       if (invalidOrders.length > 0) {
-        console.error('❌ Noto\'g\'ri customer ID li buyurtmalar topildi:', invalidOrders.length);
+        console.error('❌ Noto\'g\'ri users ID li buyurtmalar topildi:', invalidOrders.length);
       }
 
       return orders;
       
     } catch (error) {
-      console.error('❌ Customer buyurtmalarini yuklashda xato:', error);
+      console.error('❌ Users buyurtmalarini yuklashda xato:', error);
       
       // Detailed error logging
       if (error instanceof Error) {
@@ -376,7 +376,7 @@ class DataService {
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         orderUniqueId: doc.data().orderUniqueId,
-        userId: doc.data().customerId, // userId faqat customerId bilan bir xil
+        userId: doc.data().userId, // Users collection ID
         ...doc.data(),
         createdAt: doc.data().createdAt.toDate(),
         updatedAt: doc.data().updatedAt.toDate(),
@@ -1300,7 +1300,7 @@ class DataService {
               id: doc.id,
               orderUniqueId: data.orderUniqueId,
               customerId: data.customerId || 'unknown',
-              userId: data.customerId || 'unknown', // userId faqat customerId bilan bir xil
+              userId: data.userId || 'unknown', // Users collection ID
               customerName: data.customerName || 'Noma\'lum',
               customerPhone: data.customerPhone || '',
               cakeId: data.cakeId || '',
