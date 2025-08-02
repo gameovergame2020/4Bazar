@@ -132,7 +132,17 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       if (!showLocationPicker) return;
 
       const initializeYandexMap = () => {
-        if (!window.ymaps || !mapRef.current) return;
+        if (!window.ymaps || !mapRef.current) {
+          console.error('window.ymaps yoki mapRef mavjud emas');
+          return;
+        }
+
+        // ymaps ob'ekti to'liq yuklanganini tekshirish
+        if (typeof window.ymaps.Map !== 'function' || typeof window.ymaps.Placemark !== 'function') {
+          console.error('ymaps ob'ektlari to'liq yuklanmagan');
+          setTimeout(() => initializeYandexMap(), 500);
+          return;
+        }
 
         window.ymaps.ready(() => {
           // Eski xaritani tozalash
@@ -259,19 +269,28 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
               }
             }).catch((error) => {
               console.error('Geocoding xatosi:', error);
+              
+              // Script error bo'lsa, xarita ishlashini to'xtatamiz
+              if (error.message === 'scriptError' || !window.ymaps) {
+                console.error('Script yuklash xatosi aniqlandi. Xarita ishlamayapti.');
+                alert('Xarita xizmati ishlamayapti. Iltimos, manzilni qo\'lda kiriting.');
+                setShowLocationPicker(false);
+                return;
+              }
+              
               console.error('Xato tafsilotlari:', {
                 message: error.message,
                 code: error.code,
+                type: typeof error,
                 stack: error.stack
               });
               
-              // Xato bo'lsa, koordinatalarni o'zi manzil sifatida ishlatamiz
+              // Boshqa xatolar uchun fallback address
               const fallbackAddress = `Tanlangan joylashuv: ${coords[0].toFixed(6)}, ${coords[1].toFixed(6)}`;
               setSelectedMapAddress(fallbackAddress);
               setSelectedCoordinates({ lat: coords[0], lng: coords[1] });
               placemark.properties.set('balloonContent', `📍 ${fallbackAddress}`);
               
-              // Foydalanuvchiga xato haqida xabar berish
               console.warn('Manzil aniqlanmadi, koordinatalar ishlatilmoqda');
             });
           };
@@ -320,22 +339,41 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         
         const script = document.createElement('script');
         const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY || '40496c4d-9fd2-450a-bea8-9a78d5955593';
-        const cacheBuster = Date.now() + Math.random(); // Har safar yangi parametr
         
         console.log('Yandex Maps yuklanmoqda, API kalit:', apiKey);
         
-        script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&cb=${cacheBuster}`;
+        // API kalitni tekshirish
+        if (!apiKey || apiKey === 'your_yandex_maps_api_key_here') {
+          console.error('API kalit noto\'g\'ri yoki mavjud emas');
+          alert('Xarita API kaliti noto\'g\'ri. Manzilni qo\'lda kiriting.');
+          return;
+        }
+        
+        // Script URL ni oddiy qilish - cache buster olib tashlash
+        script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ`;
         script.type = 'text/javascript';
         script.async = true;
+        
         script.onload = () => {
           console.log('Yandex Maps muvaffaqiyatli yuklandi');
-          initializeYandexMap();
+          // ymaps ready bo'lishini kutish
+          if (window.ymaps) {
+            window.ymaps.ready(() => {
+              console.log('ymaps.ready() chaqirildi');
+              initializeYandexMap();
+            });
+          } else {
+            console.error('window.ymaps mavjud emas script yuklangandan keyin');
+            alert('Xarita xizmati ishlamayapti. Manzilni qo\'lda kiriting.');
+          }
         };
+        
         script.onerror = (error) => {
           console.error('Yandex Maps API yuklanmadi:', error);
           console.error('Ishlatilgan URL:', script.src);
           alert('Xarita xizmati vaqtincha ishlamayapti. Manzilni qo\'lda kiriting.');
         };
+        
         document.head.appendChild(script);
       } else {
         initializeYandexMap();
