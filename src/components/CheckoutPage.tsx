@@ -42,6 +42,27 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const placemarkRef = useRef<any>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Component yuklanganida
+  useEffect(() => {
+    initializeYandexMap();
+
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+
+      // Component unmount bo'lganda xaritani tozalash
+      if (mapInstanceRef.current) {
+        try {
+          mapInstanceRef.current.destroy();
+          mapInstanceRef.current = null;
+        } catch (error) {
+          console.warn('Xaritani tozalashda xato:', error);
+        }
+      }
+    };
+  }, []);
+
   // Mahsulotlar ro'yxatini yaratish
   const cartProducts = cart ? Object.entries(cart).map(([productId, quantity]) => {
     const product = cakes.find(p => p.id === productId);
@@ -360,27 +381,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       }
     }, 500);
   };
-
-  // Component yuklanganida
-  useEffect(() => {
-    initializeYandexMap();
-
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-
-      // Component unmount bo'lganda xaritani tozalash
-      if (mapInstanceRef.current) {
-        try {
-          mapInstanceRef.current.destroy();
-          mapInstanceRef.current = null;
-        } catch (error) {
-          console.warn('Xaritani tozalashda xato:', error);
-        }
-      }
-    };
-  }, []);
 
   // Mahsulotni butunlay o'chirish uchun alohida funksiya
   const removeProductCompletely = (cakeId: string) => {
