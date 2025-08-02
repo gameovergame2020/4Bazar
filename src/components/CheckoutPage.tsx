@@ -169,57 +169,17 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     return null; // Hech narsa ko'rsatmaslik, useEffect avtomatik qaytaradi
   }
 
-  // Yandex Maps skriptini yuklash
-  const loadYandexMaps = () => {
-    return new Promise<void>((resolve, reject) => {
-      // Agar allaqachon yuklangan bo'lsa
-      if (window.ymaps && isYmapsLoaded) {
-        resolve();
-        return;
-      }
-
-      // Eski skriptlarni olib tashlash
-      const existingScripts = document.querySelectorAll('script[src*="api-maps.yandex.ru"]');
-      existingScripts.forEach(script => script.remove());
-
-      // Window.ymaps ni tozalash
-      if (window.ymaps) {
-        delete window.ymaps;
-      }
-
-      const script = document.createElement('script');
-      const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
-
-      console.log('🗺️ Yandex Maps yuklanmoqda, API kalit:', apiKey);
-
-      script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&load=package.full`;
-      script.type = 'text/javascript';
-      script.async = true;
-
-      script.onload = () => {
-        console.log('✅ Yandex Maps skriti yuklandi');
-        setIsYmapsLoaded(true);
-        resolve();
-      };
-
-      script.onerror = (error) => {
-        console.error('❌ Yandex Maps skriptini yuklashda xato:', error);
-        setGeocodingError('Yandex Maps skriptini yuklashda xato');
-        reject(new Error('Yandex Maps skriptini yuklashda xato'));
-      };
-
-      document.head.appendChild(script);
-    });
-  };
+  // Yandex Maps xizmatini import qilish
+  const { yandexMapsService } = await import('../services/yandexMapsService');
 
   // Yandex Maps ni ishga tushirish
   const initializeYandexMap = async () => {
     try {
       console.log('🚀 Yandex Maps ishga tushirilmoqda...');
 
-      if (!isYmapsLoaded) {
-        await loadYandexMaps();
-      }
+      const { yandexMapsService } = await import('../services/yandexMapsService');
+      await yandexMapsService.loadYandexMaps();
+      setIsYmapsLoaded(true);
 
       // ymaps ready bo'lishini kutish
       await new Promise<void>((resolve, reject) => {

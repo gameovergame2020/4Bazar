@@ -24,7 +24,6 @@ const RestaurantsPage: React.FC = () => {
   const [mapLoaded, setMapLoaded] = useState<boolean>(false);
   const [ymapsReady, setYmapsReady] = useState<boolean>(false);
   const mapRef = useRef<HTMLDivElement>(null);
-  const scriptRef = useRef<HTMLScriptElement | null>(null);
 
   // Sample restaurant data
   const restaurants: Restaurant[] = [
@@ -81,36 +80,10 @@ const RestaurantsPage: React.FC = () => {
   const cuisines = ['All', 'Italian', 'Japanese', 'American', 'Uzbek', 'Chinese', 'Indian'];
 
   // Yandex Maps API ni yuklash
-  const loadYandexMaps = (): Promise<void> => {
-    return new Promise<void>((resolve, reject) => {
-      // Agar allaqachon yuklangan bo'lsa
-      if (window.ymaps) {
-        setYmapsReady(true);
-        resolve();
-        return;
-      }
-
-      // Script allaqachon mavjud bo'lsa
-      if (scriptRef.current) {
-        return;
-      }
-
-      const script = document.createElement('script');
-      const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
-      script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&v=2025.01.12`;
-      script.async = true;
-      script.onload = (): void => {
-        setYmapsReady(true);
-        resolve();
-      };
-      script.onerror = (): void => {
-        console.error('Yandex Maps yuklanmadi');
-        reject(new Error('Yandex Maps yuklanmadi'));
-      };
-      
-      document.head.appendChild(script);
-      scriptRef.current = script;
-    });
+  const loadYandexMaps = async (): Promise<void> => {
+    const { yandexMapsService } = await import('../services/yandexMapsService');
+    await yandexMapsService.loadYandexMaps();
+    setYmapsReady(true);
   };
 
   // Xaritani ishga tushirish
@@ -269,12 +242,8 @@ const RestaurantsPage: React.FC = () => {
       if (yandexMap) {
         yandexMap.destroy();
       }
-      if (scriptRef.current && scriptRef.current.parentNode) {
-        document.head.removeChild(scriptRef.current);
-        scriptRef.current = null;
-      }
     };
-  }, [yandexMap]);
+  }, [yandexMap]);exMap]);
 
   return (
     <div className="min-h-screen bg-gray-50">
