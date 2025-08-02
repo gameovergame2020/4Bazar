@@ -44,6 +44,7 @@ export interface Cake {
 export interface Order {
   id?: string;
   orderUniqueId?: string; // Har bir buyurtma uchun bir martalik noyob ID
+  customerId?: string; // Foydalanuvchi ID
   customerName: string;
   customerPhone: string;
   cakeId: string; // Mahsulot uchun bir martalik noyob ID
@@ -296,6 +297,7 @@ class DataService {
           const order: Order = {
             id: doc.id,
             orderUniqueId: data.orderUniqueId || doc.id,
+            customerId: data.customerId || data.customerPhone || '',
             customerName: data.customerName || 'Noma\'lum mijoz',
             customerPhone: data.customerPhone || '',
             cakeId: data.cakeId,
@@ -370,6 +372,7 @@ class DataService {
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         orderUniqueId: doc.data().orderUniqueId,
+        customerId: doc.data().customerId,
         ...doc.data(),
         createdAt: doc.data().createdAt.toDate(),
         updatedAt: doc.data().updatedAt.toDate(),
@@ -1292,6 +1295,7 @@ class DataService {
             const order: Order = {
               id: doc.id,
               orderUniqueId: data.orderUniqueId,
+              customerId: data.customerId || data.customerPhone || '',
               customerName: data.customerName || 'Noma\'lum',
               customerPhone: data.customerPhone || '',
               cakeId: data.cakeId || '',

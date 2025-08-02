@@ -485,6 +485,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       console.log('📱 Customer telefon:', userInfo.phone);
 
       const orderData = {
+        customerId: userInfo.phone.trim(), // Customer phone ni ID sifatida ishlatish
         customerName: userInfo.name.trim(),
         customerPhone: userInfo.phone.trim(),
         cakeId: cartProducts[0]?.id || '', // Birinchi mahsulot ID si
@@ -576,6 +577,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
     try {
       const orderData = {
+        customerId: userInfo.phone.trim(), // Customer phone ni ID sifatida ishlatish
         customerName: userInfo.name,
         customerPhone: userInfo.phone,
         cakeId: cartProducts[0]?.id || '',
