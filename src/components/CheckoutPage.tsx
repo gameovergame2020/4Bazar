@@ -684,11 +684,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
                       >
                         <option value="">Vaqt oralig'ini tanlang</option>
-                        <option value="09:00-12:00">🌅 09:00-12:00 (Ertalab)</option>
-                        <option value="12:00-15:00">☀️ 12:00-15:00 (Tush)</option>
-                        <option value="15:00-18:00">🌤️ 15:00-18:00 (Tushdan keyin)</option>
-                        <option value="18:00-21:00">🌆 18:00-21:00 (Kechqurun)</option>
-                        <option value="21:00-22:00">🌙 21:00-22:00 (Kech)</option>
+                        <option value="09:00-15:00">🌅 09:00-15:00 (Ertalab)</option>
+                        <option value="15:00-22:00">🌆 15:00-22:00 (Kechqurun)</option>
                       </select>
                     </div>
                   </div>
