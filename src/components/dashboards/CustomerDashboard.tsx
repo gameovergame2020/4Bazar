@@ -37,8 +37,9 @@ const CustomerDashboard = () => {
         }).map(cake => {
           // Baker mahsulotlari uchun buyurtma qilingan miqdorni hisoblash
           if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
-            // Faqat available: false (buyurtma uchun) holatidagi mahsulotlar uchun buyurtma miqdorini ko'rsatish
-            if (!cake.available) {
+            // Faqat dastlab "Buyurtma uchun" yaratilgan mahsulotlar uchun buyurtma miqdorini ko'rsatish
+            // "Hozir mavjud"dan "Buyurtma uchun"ga o'tgan mahsulotlarni chiqarib tashlash
+            if (!cake.available && cake.quantity === undefined) {
               const orderedQuantity = allOrders
                 .filter(order => 
                   order.cakeId === cake.id && 
@@ -51,7 +52,7 @@ const CustomerDashboard = () => {
                 quantity: orderedQuantity
               };
             }
-            // Available: true (hozir mavjud) holatidagi mahsulotlar uchun real quantity ni saqlab qolish
+            // Available: true (hozir mavjud) yoki quantity mavjud bo'lgan mahsulotlar uchun real quantity ni saqlab qolish
             return cake;
           }
 
@@ -116,8 +117,9 @@ const CustomerDashboard = () => {
       }).map(cake => {
           // Baker mahsulotlari uchun buyurtma qilingan miqdorni hisoblash
           if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
-            // Faqat available: false (buyurtma uchun) holatidagi mahsulotlar uchun buyurtma miqdorini ko'rsatish
-            if (!cake.available) {
+            // Faqat dastlab "Buyurtma uchun" yaratilgan mahsulotlar uchun buyurtma miqdorini ko'rsatish
+            // "Hozir mavjud"dan "Buyurtma uchun"ga o'tgan mahsulotlarni chiqarib tashlash
+            if (!cake.available && cake.quantity === undefined) {
               const orderedQuantity = allOrders
                 .filter(order => 
                   order.cakeId === cake.id && 
@@ -130,7 +132,7 @@ const CustomerDashboard = () => {
                 quantity: orderedQuantity
               };
             }
-            // Available: true (hozir mavjud) holatidagi mahsulotlar uchun real quantity ni saqlab qolish
+            // Available: true (hozir mavjud) yoki quantity mavjud bo'lgan mahsulotlar uchun real quantity ni saqlab qolish
             return cake;
           }
 
