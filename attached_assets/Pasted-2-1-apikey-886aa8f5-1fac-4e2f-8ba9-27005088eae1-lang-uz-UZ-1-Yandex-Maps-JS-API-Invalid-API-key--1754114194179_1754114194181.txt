@@ -1,0 +1,42 @@
+2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1 (Yandex Maps JS API): Invalid API key
+ymapsInit @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+react-dom_client.js?v=c8e5f475:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+firebase.ts:21 ⚠️ Firebase konfiguratsiyasi to'liq emas. .env faylini to'ldiring!
+(anonymous) @ firebase.ts:21
+dataService.ts:122 Tort qo'shishda xatolik: FirebaseError: Function addDoc() called with invalid data. Unsupported field value: undefined (found in field quantity in document cakes/OhvWAt952iDxhDTMTaLs)
+addCake @ dataService.ts:122
+handleAddCake @ BakerDashboard.tsx:239
+callCallback2 @ react-dom_client.js?v=c8e5f475:3674
+invokeGuardedCallbackDev @ react-dom_client.js?v=c8e5f475:3699
+invokeGuardedCallback @ react-dom_client.js?v=c8e5f475:3733
+invokeGuardedCallbackAndCatchFirstError @ react-dom_client.js?v=c8e5f475:3736
+executeDispatch @ react-dom_client.js?v=c8e5f475:7014
+processDispatchQueueItemsInOrder @ react-dom_client.js?v=c8e5f475:7034
+processDispatchQueue @ react-dom_client.js?v=c8e5f475:7043
+dispatchEventsForPlugins @ react-dom_client.js?v=c8e5f475:7051
+(anonymous) @ react-dom_client.js?v=c8e5f475:7174
+batchedUpdates$1 @ react-dom_client.js?v=c8e5f475:18913
+batchedUpdates @ react-dom_client.js?v=c8e5f475:3579
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=c8e5f475:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom_client.js?v=c8e5f475:5478
+dispatchEvent @ react-dom_client.js?v=c8e5f475:5472
+dispatchDiscreteEvent @ react-dom_client.js?v=c8e5f475:5449
+BakerDashboard.tsx:259 Tort qo'shishda xatolik: FirebaseError: Function addDoc() called with invalid data. Unsupported field value: undefined (found in field quantity in document cakes/OhvWAt952iDxhDTMTaLs)
+handleAddCake @ BakerDashboard.tsx:259
+await in handleAddCake
+callCallback2 @ react-dom_client.js?v=c8e5f475:3674
+invokeGuardedCallbackDev @ react-dom_client.js?v=c8e5f475:3699
+invokeGuardedCallback @ react-dom_client.js?v=c8e5f475:3733
+invokeGuardedCallbackAndCatchFirstError @ react-dom_client.js?v=c8e5f475:3736
+executeDispatch @ react-dom_client.js?v=c8e5f475:7014
+processDispatchQueueItemsInOrder @ react-dom_client.js?v=c8e5f475:7034
+processDispatchQueue @ react-dom_client.js?v=c8e5f475:7043
+dispatchEventsForPlugins @ react-dom_client.js?v=c8e5f475:7051
+(anonymous) @ react-dom_client.js?v=c8e5f475:7174
+batchedUpdates$1 @ react-dom_client.js?v=c8e5f475:18913
+batchedUpdates @ react-dom_client.js?v=c8e5f475:3579
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=c8e5f475:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom_client.js?v=c8e5f475:5478
+dispatchEvent @ react-dom_client.js?v=c8e5f475:5472
+dispatchDiscreteEvent @ react-dom_client.js?v=c8e5f475:5449
