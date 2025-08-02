@@ -429,15 +429,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           lng: selectedCoordinates[1] 
         } : undefined,
         notes: `To'lov usuli: ${userInfo.paymentMethod === 'cash' ? 'Naqd pul' : 'Bank kartasi'}. Yetkazib berish: ${
-          userInfo.deliveryTime === 'asap' ? 'Tez (2-3 soat)' :
-          userInfo.deliveryTime === 'today_morning' ? 'Bugun ertalab (09:00-12:00)' :
-          userInfo.deliveryTime === 'today_afternoon' ? 'Bugun tushdan keyin (12:00-18:00)' :
-          userInfo.deliveryTime === 'today_evening' ? 'Bugun kechqurun (18:00-22:00)' :
-          userInfo.deliveryTime === 'tomorrow_morning' ? 'Ertaga ertalab (09:00-12:00)' :
-          userInfo.deliveryTime === 'tomorrow_afternoon' ? 'Ertaga tushdan keyin (12:00-18:00)' :
-          userInfo.deliveryTime === 'tomorrow_evening' ? 'Ertaga kechqurun (18:00-22:00)' :
-          userInfo.deliveryTime === 'weekend' ? 'Dam olish kunlari (Shanba-Yakshanba)' :
-          userInfo.deliveryTime === 'custom' ? `Maxsus vaqt: ${userInfo.customDeliveryDate ? new Date(userInfo.customDeliveryDate).toLocaleDateString('uz-UZ') : 'tanlanmagan'} soat ${userInfo.customDeliveryTime || 'tanlanmagan'}` : userInfo.deliveryTime
+          userInfo.deliveryTime === 'asap' ? 'Tez yetkazish (2-3 soat)' :
+          userInfo.deliveryTime === 'today' ? 'Bugun yetkazish (09:00-22:00)' :
+          userInfo.deliveryTime === 'tomorrow' ? 'Ertaga yetkazish (09:00-22:00)' :
+          userInfo.deliveryTime === 'custom' ? `O'zi tanlagan vaqt: ${userInfo.customDeliveryDate ? new Date(userInfo.customDeliveryDate).toLocaleDateString('uz-UZ') : 'tanlanmagan'} soat ${userInfo.customDeliveryTime || 'tanlanmagan'}` : userInfo.deliveryTime
         }. Mahsulotlar: ${cartProducts.map(p => `${p.name} (${p.quantity} dona)`).join(', ')}`
       };
 
@@ -584,48 +579,57 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
               >
-                <option value="asap">⚡ Tez (2-3 soat)</option>
-                <option value="today_morning">🌅 Bugun ertalab (09:00-12:00)</option>
-                <option value="today_afternoon">☀️ Bugun tushdan keyin (12:00-18:00)</option>
-                <option value="today_evening">🌆 Bugun kechqurun (18:00-22:00)</option>
-                <option value="tomorrow_morning">🌄 Ertaga ertalab (09:00-12:00)</option>
-                <option value="tomorrow_afternoon">☀️ Ertaga tushdan keyin (12:00-18:00)</option>
-                <option value="tomorrow_evening">🌆 Ertaga kechqurun (18:00-22:00)</option>
-                <option value="weekend">📅 Dam olish kunlari (Shanba-Yakshanba)</option>
-                <option value="custom">⏰ Boshqa vaqt (kun va soatni tanlang)</option>
+                <option value="asap">⚡ Tez yetkazish (2-3 soat)</option>
+                <option value="today">🌅 Bugun yetkazish (09:00-22:00)</option>
+                <option value="tomorrow">📅 Ertaga yetkazish (09:00-22:00)</option>
+                <option value="custom">⏰ O'zi muddatini tanlash</option>
               </select>
 
               {/* Custom vaqt tanlash */}
               {userInfo.deliveryTime === 'custom' && (
-                <div className="mt-4 space-y-3 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <div className="mt-4 space-y-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
                   <p className="text-sm text-orange-700 font-medium">
-                    📅 Kerakli kun va soatni tanlang:
+                    📅 Yetkazib berish kun va vaqtini tanlang:
                   </p>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Kun
+                        Kunni tanlang
                       </label>
                       <input
                         type="date"
                         value={userInfo.customDeliveryDate}
                         onChange={(e) => setUserInfo(prev => ({ ...prev, customDeliveryDate: e.target.value }))}
-                        min={new Date().toISOString().split('T')[0]} // Bugundan boshlab
+                        min={new Date().toISOString().split('T')[0]}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                       />
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Soat
+                        Vaqtni tanlang
                       </label>
-                      <input
-                        type="time"
+                      <select
                         value={userInfo.customDeliveryTime}
                         onChange={(e) => setUserInfo(prev => ({ ...prev, customDeliveryTime: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      />
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
+                      >
+                        <option value="">Vaqtni tanlang</option>
+                        <option value="09:00">09:00 - Ertalab</option>
+                        <option value="10:00">10:00 - Ertalab</option>
+                        <option value="11:00">11:00 - Ertalab</option>
+                        <option value="12:00">12:00 - Tush</option>
+                        <option value="13:00">13:00 - Tushdan keyin</option>
+                        <option value="14:00">14:00 - Tushdan keyin</option>
+                        <option value="15:00">15:00 - Tushdan keyin</option>
+                        <option value="16:00">16:00 - Tushdan keyin</option>
+                        <option value="17:00">17:00 - Kechqurun</option>
+                        <option value="18:00">18:00 - Kechqurun</option>
+                        <option value="19:00">19:00 - Kechqurun</option>
+                        <option value="20:00">20:00 - Kechqurun</option>
+                        <option value="21:00">21:00 - Kechqurun</option>
+                      </select>
                     </div>
                   </div>
                   
@@ -803,15 +807,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">🚚 Yetkazib berish:</span>
                   <span className="font-medium text-blue-600">
-                    {userInfo.deliveryTime === 'asap' ? 'Tez (2-3 soat)' :
-                     userInfo.deliveryTime === 'today_morning' ? 'Bugun ertalab (09:00-12:00)' :
-                     userInfo.deliveryTime === 'today_afternoon' ? 'Bugun tushdan keyin (12:00-18:00)' :
-                     userInfo.deliveryTime === 'today_evening' ? 'Bugun kechqurun (18:00-22:00)' :
-                     userInfo.deliveryTime === 'tomorrow_morning' ? 'Ertaga ertalab (09:00-12:00)' :
-                     userInfo.deliveryTime === 'tomorrow_afternoon' ? 'Ertaga tushdan keyin (12:00-18:00)' :
-                     userInfo.deliveryTime === 'tomorrow_evening' ? 'Ertaga kechqurun (18:00-22:00)' :
-                     userInfo.deliveryTime === 'weekend' ? 'Dam olish kunlari (Shanba-Yakshanba)' :
-                     userInfo.deliveryTime === 'custom' ? `${userInfo.customDeliveryDate ? new Date(userInfo.customDeliveryDate).toLocaleDateString('uz-UZ') : 'Kun tanlanmagan'} soat ${userInfo.customDeliveryTime || 'tanlanmagan'}` :
+                    {userInfo.deliveryTime === 'asap' ? 'Tez yetkazish (2-3 soat)' :
+                     userInfo.deliveryTime === 'today' ? 'Bugun yetkazish (09:00-22:00)' :
+                     userInfo.deliveryTime === 'tomorrow' ? 'Ertaga yetkazish (09:00-22:00)' :
+                     userInfo.deliveryTime === 'custom' ? `O'zi tanlagan: ${userInfo.customDeliveryDate ? new Date(userInfo.customDeliveryDate).toLocaleDateString('uz-UZ') : 'Kun tanlanmagan'} soat ${userInfo.customDeliveryTime || 'tanlanmagan'}` :
                      userInfo.deliveryTime}
                   </span>
                 </div>
