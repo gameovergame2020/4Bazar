@@ -13,7 +13,8 @@ import {
   Eye,
   Filter,
   Search,
-  RefreshCw
+  RefreshCw,
+  MapPin
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { dataService, Order, SupportTicket } from '../../services/dataService';
@@ -868,7 +869,7 @@ const OperatorDashboard = () => {
       {/* Order Details Modal */}
       {selectedOrderForDetails && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Buyurtma tafsilotlari</h3>
               <button
@@ -919,10 +920,32 @@ const OperatorDashboard = () => {
               </div>
 
               <div>
-                <h5 className="font-medium text-gray-900 mb-2">Yetkazib berish manzili:</h5>
+                <div className="flex items-center justify-between mb-2">
+                  <h5 className="font-medium text-gray-900">Yetkazib berish manzili:</h5>
+                  {selectedOrderForDetails.coordinates && (
+                    <button
+                      onClick={() => {
+                        const coords = selectedOrderForDetails.coordinates;
+                        if (coords && coords.lat && coords.lng) {
+                          window.open(`https://yandex.uz/maps/?pt=${coords.lng},${coords.lat}&z=16&l=map`, '_blank');
+                        }
+                      }}
+                      className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center space-x-1"
+                      title="Xaritada ko'rish"
+                    >
+                      <MapPin size={14} />
+                      <span>Xaritada ko'rish</span>
+                    </button>
+                  )}
+                </div>
                 <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
                   {selectedOrderForDetails.deliveryAddress}
                 </p>
+                {selectedOrderForDetails.coordinates && (
+                  <div className="mt-2 text-xs text-gray-500">
+                    📍 Koordinatalar: {selectedOrderForDetails.coordinates.lat?.toFixed(6)}, {selectedOrderForDetails.coordinates.lng?.toFixed(6)}
+                  </div>
+                )}
               </div>
 
               {selectedOrderForDetails.notes && (
