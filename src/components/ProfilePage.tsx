@@ -1,3 +1,4 @@
+typescript
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   User, 
@@ -495,7 +496,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                     )}
                   </div>
                 ) : (
-                  userOrders.slice(0, 5).map((order) => {
+                  <>
+                    <div className="mb-3 text-xs text-gray-400 text-center">
+                      Jami {userOrders.length} ta buyurtma (so'nggi 5 tasi ko'rsatilgan)
+                    </div>
+                    {userOrders.slice(0, 5).map((order) => {
                       const StatusIcon = getStatusIcon(order.status);
                       return (
                         <div key={order.id} className="bg-gray-600/30 rounded-lg p-3 hover:bg-gray-600/50 transition-colors border border-gray-600/20">
@@ -612,12 +617,19 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                                     )}
                                   </button>
                                 </div>
-                              )}
+                              </div>
                             </div>
                           </div>
                         </div>
                       );
-                    })
+                    })}
+
+                    {userOrders.length > 5 && (
+                      <div className="text-center mt-3">
+                        <p className="text-xs text-gray-500">Va yana {userOrders.length - 5} ta buyurtma...</p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
