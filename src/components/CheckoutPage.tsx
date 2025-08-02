@@ -326,6 +326,17 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 <div key={item.cake.id} className="flex justify-between items-start group">
                   <div className="flex-1">
                     <h4 className="text-sm font-medium text-gray-900">{item.cake.name}</h4>
+                     <p className="text-xs text-gray-500 mb-2">
+                  {item.cake.productType === 'baked' 
+                    ? item.cake.available 
+                      ? item.cake.quantity !== undefined 
+                        ? `Qoldi: ${item.cake.quantity} ta`
+                        : 'Miqdor: cheklanmagan'
+                      : `Buyurtma qilingan: ${item.cake.amount || 0} ta` 
+                    : item.cake.quantity !== undefined 
+                      ? `Qoldi: ${item.cake.quantity} ta`
+                      : 'Miqdor: cheklanmagan'
+                  }</p>
                     <p className="text-xs text-gray-500">
                       {item.quantity} x {item.price.toLocaleString('uz-UZ')} so'm
                     </p>
