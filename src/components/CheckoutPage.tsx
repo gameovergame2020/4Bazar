@@ -162,11 +162,16 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
               const firstGeoObject = result.geoObjects.get(0);
               if (firstGeoObject) {
                 const address = firstGeoObject.getAddressLine();
-                setFormData(prev => ({
-                  ...prev,
-                  deliveryAddress: address,
-                  coordinates: { lat: coords[0], lng: coords[1] }
-                }));
+                console.log('Drag tugallandi, manzil:', address);
+                setFormData(prev => {
+                  const newData = {
+                    ...prev,
+                    deliveryAddress: address,
+                    coordinates: { lat: coords[0], lng: coords[1] }
+                  };
+                  console.log('FormData yangilandi:', newData);
+                  return newData;
+                });
               }
             });
           });
@@ -180,11 +185,16 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
               const firstGeoObject = result.geoObjects.get(0);
               if (firstGeoObject) {
                 const address = firstGeoObject.getAddressLine();
-                setFormData(prev => ({
-                  ...prev,
-                  deliveryAddress: address,
-                  coordinates: { lat: coords[0], lng: coords[1] }
-                }));
+                console.log('Xarita bosildi, manzil:', address);
+                setFormData(prev => {
+                  const newData = {
+                    ...prev,
+                    deliveryAddress: address,
+                    coordinates: { lat: coords[0], lng: coords[1] }
+                  };
+                  console.log('FormData yangilandi:', newData);
+                  return newData;
+                });
               }
             });
           });
@@ -200,11 +210,16 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 const firstGeoObject = result.geoObjects.get(0);
                 if (firstGeoObject) {
                   const address = firstGeoObject.getAddressLine();
-                  setFormData(prev => ({
-                    ...prev,
-                    deliveryAddress: address,
-                    coordinates: { lat: coords[0], lng: coords[1] }
-                  }));
+                  console.log('Geolocation topildi, manzil:', address);
+                  setFormData(prev => {
+                    const newData = {
+                      ...prev,
+                      deliveryAddress: address,
+                      coordinates: { lat: coords[0], lng: coords[1] }
+                    };
+                    console.log('FormData yangilandi:', newData);
+                    return newData;
+                  });
                 }
               });
             }
@@ -580,18 +595,21 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 </button>
                 <button
                   onClick={() => {
-                    if (formData.deliveryAddress.trim()) {
+                    console.log('Tanlash tugmasi bosildi, manzil:', formData.deliveryAddress);
+                    if (formData.deliveryAddress && formData.deliveryAddress.trim()) {
+                      console.log('Manzil mavjud, modal yopilmoqda');
                       setShowLocationPicker(false);
                     } else {
+                      console.log('Manzil mavjud emas');
                       alert('Iltimos, xaritadan manzilni tanlang');
                     }
                   }}
                   className={`flex-1 py-2 rounded-lg transition-colors ${
-                    formData.deliveryAddress.trim() 
+                    formData.deliveryAddress && formData.deliveryAddress.trim() 
                       ? 'bg-orange-500 text-white hover:bg-orange-600' 
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
-                  disabled={!formData.deliveryAddress.trim()}
+                  disabled={!formData.deliveryAddress || !formData.deliveryAddress.trim()}
                 >
                   Tanlash
                 </button>
