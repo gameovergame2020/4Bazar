@@ -169,9 +169,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     return null; // Hech narsa ko'rsatmaslik, useEffect avtomatik qaytaradi
   }
 
-  // Yandex Maps xizmatini import qilish
-  const { yandexMapsService } = await import('../services/yandexMapsService');
-
   // Yandex Maps ni ishga tushirish
   const initializeYandexMap = async () => {
     try {
