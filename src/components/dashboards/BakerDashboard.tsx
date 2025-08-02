@@ -368,15 +368,18 @@ const BakerDashboard = () => {
           const updateData: any = {};
           
           if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
-            // Baker mahsulotlari uchun amount kamayishi va available holatini tekshirish
+            // Baker mahsulotlari uchun amount kamayishi va quantity qaytarish
             const newAmount = Math.max(0, (cake.amount || 0) - order.quantity);
             updateData.amount = newAmount;
             
-            // Baker mahsulotlari uchun available holati quantity ga bog'liq
-            if (cake.quantity !== undefined && cake.quantity > 0) {
-              updateData.available = true; // Quantity mavjud bo'lsa "Hozir mavjud"
+            // Agar mahsulot "Hozir mavjud" holatida bo'lsa, quantity ni qaytarish
+            if (cake.available && cake.quantity !== undefined) {
+              const newQuantity = cake.quantity + order.quantity;
+              updateData.quantity = newQuantity;
+              updateData.available = newQuantity > 0;
             } else {
-              updateData.available = false; // Quantity yo'q bo'lsa "Buyurtma uchun"
+              // "Buyurtma uchun" holatida quantity yo'q, faqat available holatini tekshirish
+              updateData.available = false;
             }
           } else {
             // Shop mahsulotlari uchun quantity qaytarish
