@@ -299,8 +299,20 @@ const addToCart = (cakeId: string) => {
       setCart(newCart);
     };
 
+    const handleRemoveFromCartCompletely = (event: any) => {
+      const { cakeId } = event.detail;
+      const newCart = { ...cart };
+      delete newCart[cakeId];
+      setCart(newCart);
+    };
+
     window.addEventListener('removeFromCart', handleRemoveFromCart);
-    return () => window.removeEventListener('removeFromCart', handleRemoveFromCart);
+    window.addEventListener('removeFromCartCompletely', handleRemoveFromCartCompletely);
+    
+    return () => {
+      window.removeEventListener('removeFromCart', handleRemoveFromCart);
+      window.removeEventListener('removeFromCartCompletely', handleRemoveFromCartCompletely);
+    };
   }, [cart]);
 
   const formatPrice = (price: number, discount?: number) => {

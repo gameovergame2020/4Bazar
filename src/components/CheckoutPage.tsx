@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, MapPin, Phone, User, CreditCard, Truck } from 'lucide-react';
 
@@ -229,7 +228,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       if (firstGeoObject) {
         const address = firstGeoObject.getAddressLine();
         console.log('✅ Manzil topildi:', address);
-        
+
         if (address && address.trim()) {
           setDeliveryAddress(address);
           setUserInfo(prev => ({ ...prev, address }));
@@ -273,7 +272,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       });
 
       const suggestions: string[] = [];
-      
+
       // Iterator orqali natijalarni olish
       for (let i = 0; i < result.geoObjects.getLength(); i++) {
         const geoObject = result.geoObjects.get(i);
@@ -370,7 +369,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
       }
-      
+
       // Component unmount bo'lganda xaritani tozalash
       if (mapInstanceRef.current) {
         try {
@@ -382,6 +381,18 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       }
     };
   }, []);
+
+  // Mahsulotni butunlay o'chirish uchun alohida funksiya
+  const removeProductCompletely = (cakeId: string) => {
+    // HomePage dan kelgan removeFromCart funksiyasini chaqirish
+    removeFromCart(cakeId);
+
+    // Agar bu kifoya qilmasa, to'liq o'chirish
+    const event = new CustomEvent('removeFromCartCompletely', {
+      detail: { cakeId }
+    });
+    window.dispatchEvent(event);
+  };
 
   // Buyurtmani yuborish
   const handleSubmitOrder = async () => {
@@ -410,16 +421,16 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       };
 
       console.log('🛒 Buyurtma Firebase ga yuborilmoqda:', orderData);
-      
+
       // Firebase'ga buyurtma yaratish
       const { dataService } = await import('../services/dataService');
       const orderId = await dataService.createOrder(orderData);
-      
+
       console.log('✅ Buyurtma yaratildi, ID:', orderId);
 
       // Operator telefon raqami
       const operatorPhone = '+998 90 123 45 67';
-      
+
       // Buyurtma tasdiqlash modalini ko'rsatish
       setOrderDetails({ 
         orderId: `ORD-${orderId.slice(-8).toUpperCase()}`, 
@@ -634,7 +645,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 <div className="flex items-center gap-3">
                   <p className="font-semibold">{(product.price * product.quantity).toLocaleString()} so'm</p>
                   <button
-                    onClick={() => removeFromCart(product.id)}
+                    onClick={() => removeProductCompletely(product.id)}
                     className="p-1 text-red-500 hover:bg-red-50 rounded-full transition-colors"
                     title="Mahsulotni o'chirish"
                   >
