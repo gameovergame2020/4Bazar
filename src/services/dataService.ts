@@ -1359,24 +1359,48 @@ class DataService {
     });
   }
 
-  // Buyurtmalar holatini real-time kuzatish
+  // Buyurtmalar holatini real-time kuzatish (optimallashtirilgan)
   subscribeToOrders(callback: (orders: Order[]) => void, filters?: { customerId?: string }) {
-    let q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+    let q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(100)); // Limit qo'shish
 
     if (filters?.customerId) {
       q = query(q, where('customerId', '==', filters.customerId));
     }
 
     return onSnapshot(q, (querySnapshot) => {
-      const orders = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt.toDate(),
-        updatedAt: doc.data().updatedAt.toDate(),
-        deliveryTime: doc.data().deliveryTime?.toDate()
-      } as Order));
+      try {
+        const orders = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            customerId: data.customerId || 'unknown',
+            customerName: data.customerName || 'Noma\'lum',
+            customerPhone: data.customerPhone || '',
+            cakeId: data.cakeId || '',
+            cakeName: data.cakeName || '',
+            quantity: data.quantity || 1,
+            amount: data.amount,
+            totalPrice: data.totalPrice || 0,
+            status: data.status || 'pending',
+            deliveryAddress: data.deliveryAddress || '',
+            coordinates: data.coordinates,
+            paymentMethod: data.paymentMethod,
+            paymentType: data.paymentType,
+            notes: data.notes,
+            createdAt: data.createdAt?.toDate() || new Date(),
+            updatedAt: data.updatedAt?.toDate() || new Date(),
+            deliveryTime: data.deliveryTime?.toDate()
+          } as Order;
+        });
 
-      callback(orders);
+        callback(orders);
+      } catch (error) {
+        console.error('❌ Subscription callback xatosi:', error);
+        callback([]); // Empty array on error
+      }
+    }, (error) => {
+      console.error('❌ Subscription xatosi:', error);
+      callback([]); // Empty array on error
     });
   }
 }
