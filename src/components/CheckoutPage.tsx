@@ -379,7 +379,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   }, []);
 
   // Buyurtmani yuborish
-  const handleSubmitOrder = () => {
+  const handleSubmitOrder = async () => {
     if (!userInfo.name || !userInfo.phone || !deliveryAddress) {
       alert('Iltimos, barcha maydonlarni to\'ldiring');
       return;
@@ -395,7 +395,28 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     };
 
     console.log('🛒 Buyurtma yuborilmoqda:', orderData);
-    alert('Buyurtma muvaffaqiyatli yuborildi!');
+    
+    // Buyurtma ID generatsiya qilish (real holatda Firebase'dan keladi)
+    const orderId = 'ORD-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 3).toUpperCase();
+    
+    // Operator telefon raqami
+    const operatorPhone = '+998 90 123 45 67';
+    
+    // Buyurtma tasdiqlash modalini ko'rsatish
+    const confirmationMessage = `🎉 Buyurtma muvaffaqiyatli yuborildi!
+
+📋 Buyurtma ID: ${orderId}
+
+👥 Operator siz bilan tez orada bog'lanadi va buyurtmani tasdiqlaydi.
+
+📞 Agar savollaringiz bo'lsa, operator bilan bog'laning:
+${operatorPhone}
+
+⏰ Buyurtma holati haqida SMS orqali xabar beramiz.
+
+Rahmat! 😊`;
+
+    alert(confirmationMessage);
     onOrderComplete();
   };
 
