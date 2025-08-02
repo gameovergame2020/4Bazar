@@ -100,7 +100,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
         // Birinchi telefon raqami bo'yicha to'g'ridan-to'g'ri qidirish
         let userOrders: Order[] = [];
-        
+
         if (user.phone) {
           console.log('📞 Telefon bo\'yicha qidirish boshlandi:', user.phone);
           userOrders = await dataService.getOrdersByCustomerPhone(user.phone);
@@ -110,31 +110,31 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
         // Agar telefon bo'yicha buyurtma topilmasa, ism bo'yicha qidirish
         if (userOrders.length === 0 && user.name && user.name.trim().length >= 2) {
           console.log('👤 Ism bo\'yicha qidirish boshlandi:', user.name);
-          
+
           try {
             const allOrders = await dataService.getOrders();
             console.log('📊 Jami buyurtmalar:', allOrders.length);
-            
+
             const userName = user.name.toLowerCase().trim();
             const nameMatches = allOrders.filter(order => {
               if (!order.customerName) return false;
-              
+
               const orderName = order.customerName.toLowerCase().trim();
-              
+
               // To'liq mos kelish
               if (orderName === userName) return true;
-              
+
               // Qisman mos kelish (3+ belgi)
               if (userName.length >= 3 && orderName.length >= 3) {
                 if (orderName.includes(userName) || userName.includes(orderName)) {
                   return true;
                 }
               }
-              
+
               // So'zlar bo'yicha mos kelish
               const orderWords = orderName.split(/\s+/).filter(w => w.length >= 2);
               const userWords = userName.split(/\s+/).filter(w => w.length >= 2);
-              
+
               return orderWords.some(orderWord => 
                 userWords.some(userWord => 
                   (orderWord.includes(userWord) || userWord.includes(orderWord)) &&
@@ -142,7 +142,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                 )
               );
             });
-            
+
             userOrders = nameMatches;
             console.log('👤 Ism bo\'yicha topildi:', userOrders.length, 'ta buyurtma');
           } catch (error) {
@@ -157,13 +157,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
             const userIdMatches = allOrders.filter(order => 
               order.customerId === user.id.toString()
             );
-            
+
             // Existing orders bilan birlashtirish va duplikatlarni olib tashlash
             const combinedOrders = [...userOrders, ...userIdMatches];
             userOrders = combinedOrders.filter((order, index, self) => 
               index === self.findIndex(o => o.id === order.id)
             );
-            
+
             console.log('🆔 User ID bo\'yicha qo\'shildi, jami:', userOrders.length, 'ta');
           } catch (error) {
             console.error('❌ User ID bo\'yicha qidirishda xato:', error);
@@ -178,7 +178,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
         if (isActive) {
           setUserOrders(sortedOrders);
           console.log('✅ Jami buyurtmalar saqlandi:', sortedOrders.length, 'ta');
-          
+
           if (sortedOrders.length > 0) {
             console.log('📋 Birinchi 3 buyurtma:', sortedOrders.slice(0, 3).map(o => ({
               id: o.id?.slice(-8),
@@ -201,94 +201,107 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
       }
     };
 
-    // Real-time subscription o'rnatish
+    // Real-time subscription o'rnatish (customer ID orqali optimallashtirilgan)
     const setupRealTimeSubscription = () => {
       try {
         console.log('🔄 Real-time kuzatish boshlandi');
-        
-        unsubscribe = dataService.subscribeToOrders(async (allOrders) => {
-          if (!isActive) return;
-          
-          try {
-            console.log('📡 Real-time yangilanish:', allOrders.length, 'ta buyurtma olindi');
-            
-            // Foydalanuvchi buyurtmalarini filtrlash
-            let userOrders: Order[] = [];
-            
-            if (user.phone) {
-              const userPhoneClean = user.phone.replace(/\D/g, '');
-              userOrders = allOrders.filter(order => {
-                if (!order.customerPhone) return false;
-                const orderPhoneClean = order.customerPhone.replace(/\D/g, '');
-                
-                // Telefon raqamlarini solishtirish
-                if (orderPhoneClean === userPhoneClean) return true;
-                
-                // O'zbekiston telefon formatlari
-                if (orderPhoneClean.length >= 9 && userPhoneClean.length >= 9) {
-                  const orderLast9 = orderPhoneClean.slice(-9);
-                  const userLast9 = userPhoneClean.slice(-9);
-                  if (orderLast9 === userLast9) return true;
-                }
-                
-                // 998 prefiksi bilan/siz
-                if (userPhoneClean.startsWith('998') && orderPhoneClean === userPhoneClean.substring(3)) return true;
-                if (orderPhoneClean.startsWith('998') && userPhoneClean === orderPhoneClean.substring(3)) return true;
-                
-                return false;
-              });
-            }
-            
-            // Ism bo'yicha ham qo'shish
-            if (user.name && user.name.trim().length >= 2) {
-              const userName = user.name.toLowerCase().trim();
-              const nameMatches = allOrders.filter(order => {
-                if (!order.customerName) return false;
-                const orderName = order.customerName.toLowerCase().trim();
-                
-                if (orderName === userName) return true;
-                
-                if (userName.length >= 3 && orderName.length >= 3) {
-                  if (orderName.includes(userName) || userName.includes(orderName)) {
-                    return true;
-                  }
-                }
-                
-                return false;
-              });
-              
-              // Birlashtirish va duplikatlarni olib tashlash
-              const combinedOrders = [...userOrders, ...nameMatches];
-              userOrders = combinedOrders.filter((order, index, self) => 
-                index === self.findIndex(o => o.id === order.id)
-              );
-            }
-            
-            // User ID bo'yicha ham qo'shish
-            if (user.id) {
-              const userIdMatches = allOrders.filter(order => 
+
+        // Agar customer ID mavjud bo'lsa, faqat shu ID uchun subscription qurish
+        if (user.id) {
+          console.log('🆔 Customer ID bo\'yicha real-time subscription');
+          unsubscribe = dataService.subscribeToOrders((allOrders) => {
+            if (!isActive) return;
+
+            try {
+              // Faqat foydalanuvchi buyurtmalarini filtrlash
+              const userOrders = allOrders.filter(order => 
                 order.customerId === user.id.toString()
               );
-              
-              const combinedOrders = [...userOrders, ...userIdMatches];
-              userOrders = combinedOrders.filter((order, index, self) => 
+
+              const sortedOrders = userOrders.sort((a, b) => 
+                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+              );
+
+              setUserOrders(sortedOrders);
+              console.log('✅ Real-time (ID) yangilandi:', sortedOrders.length, 'ta buyurtma');
+
+            } catch (error) {
+              console.error('❌ Real-time yangilanishda xato:', error);
+            }
+          });
+        } else {
+          // Agar customer ID yo'q bo'lsa, umumiy subscription va filtrlash
+          console.log('📡 Umumiy real-time subscription (fallback)');
+          unsubscribe = dataService.subscribeToOrders((allOrders) => {
+            if (!isActive) return;
+
+            try {
+              console.log('📡 Real-time yangilanish:', allOrders.length, 'ta buyurtma olindi');
+
+              let userOrders: Order[] = [];
+
+              // Telefon bo'yicha filtrlash
+              if (user.phone) {
+                const userPhoneClean = user.phone.replace(/\D/g, '');
+                const phoneMatches = allOrders.filter(order => {
+                  if (!order.customerPhone) return false;
+                  const orderPhoneClean = order.customerPhone.replace(/\D/g, '');
+
+                  // Telefon raqamlarini solishtirish
+                  if (orderPhoneClean === userPhoneClean) return true;
+
+                  // O'zbekiston telefon formatlari
+                  if (orderPhoneClean.length >= 9 && userPhoneClean.length >= 9) {
+                    const orderLast9 = orderPhoneClean.slice(-9);
+                    const userLast9 = userPhoneClean.slice(-9);
+                    if (orderLast9 === userLast9) return true;
+                  }
+
+                  return false;
+                });
+
+                userOrders = [...userOrders, ...phoneMatches];
+              }
+
+              // Ism bo'yicha filtrlash
+              if (user.name && user.name.trim().length >= 2) {
+                const userName = user.name.toLowerCase().trim();
+                const nameMatches = allOrders.filter(order => {
+                  if (!order.customerName) return false;
+                  const orderName = order.customerName.toLowerCase().trim();
+
+                  if (orderName === userName) return true;
+
+                  if (userName.length >= 3 && orderName.length >= 3) {
+                    if (orderName.includes(userName) || userName.includes(orderName)) {
+                      return true;
+                    }
+                  }
+
+                  return false;
+                });
+
+                userOrders = [...userOrders, ...nameMatches];
+              }
+
+              // Duplikatlarni olib tashlash va saralash
+              const uniqueOrders = userOrders.filter((order, index, self) => 
                 index === self.findIndex(o => o.id === order.id)
               );
+
+              const sortedOrders = uniqueOrders.sort((a, b) => 
+                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+              );
+
+              setUserOrders(sortedOrders);
+              console.log('✅ Real-time (fallback) yangilandi:', sortedOrders.length, 'ta buyurtma');
+
+            } catch (error) {
+              console.error('❌ Real-time yangilanishda xato:', error);
             }
-            
-            // Sanaga qarab saralash
-            const sortedOrders = userOrders.sort((a, b) => 
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-            );
-            
-            setUserOrders(sortedOrders);
-            console.log('✅ Real-time yangilandi:', sortedOrders.length, 'ta buyurtma');
-            
-          } catch (error) {
-            console.error('❌ Real-time yangilanishda xato:', error);
-          }
-        });
-        
+          });
+        }
+
       } catch (error) {
         console.error('❌ Real-time subscription xatosi:', error);
         // Fallback - oddiy yuklash
@@ -330,10 +343,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     try {
       setCancellingOrderId(orderToCancel.id!);
       console.log('🚫 Buyurtma bekor qilinmoqda:', orderToCancel.id);
-      
+
       // Buyurtma holatini 'cancelled' qilib o'zgartirish
       await dataService.updateOrderStatus(orderToCancel.id!, 'cancelled');
-      
+
       // Local state'ni yangilash
       setUserOrders(prev => 
         prev.map(order => 
@@ -342,11 +355,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
             : order
         )
       );
-      
+
       console.log('✅ Buyurtma muvaffaqiyatli bekor qilindi');
       setShowCancelModal(false);
       setOrderToCancel(null);
-      
+
     } catch (error) {
       console.error('❌ Buyurtmani bekor qilishda xato:', error);
     } finally {
@@ -478,7 +491,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
               <p className="text-gray-400 text-xs sm:text-sm">{new Date(user.joinDate).toLocaleDateString('uz-UZ')} dan a'zo</p>
             </div>
           </div>
-          
+
           {/* Stats */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-700">
             <button 
@@ -573,7 +586,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                                   <span>{getStatusText(order.status)}</span>
                                 </div>
                               </div>
-                              
+
                               <div className="grid grid-cols-2 gap-2 text-xs">
                                 <div>
                                   <span className="text-gray-400">Narx:</span>
@@ -593,7 +606,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                                   minute: '2-digit'
                                 })}
                               </div>
-                              
+
                               {/* To'lov turi ko'rsatish */}
                               <div className="mt-2 flex items-center space-x-1">
                                 <span className="text-xs text-gray-400">To'lov:</span>
@@ -677,7 +690,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                         </div>
                       );
                     })}
-                    
+
                     {userOrders.length > 5 && (
                       <div className="text-center mt-3">
                         <p className="text-xs text-gray-500">Va yana {userOrders.length - 5} ta buyurtma...</p>
@@ -799,7 +812,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                     <p className="text-gray-400 text-xs">#{orderToCancel.id?.slice(-8).toUpperCase()}</p>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
                     <span className="text-gray-400">Narx:</span>

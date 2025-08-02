@@ -254,148 +254,170 @@ class DataService {
     return phone;
   }
 
-  // Foydalanuvchi buyurtmalarini telefon raqami bo'yicha olish (yaxshilangan)
-  async getOrdersByCustomerPhone(customerPhone: string): Promise<Order[]> {
+  // Foydalanuvchi buyurtmalarini customer ID bo'yicha olish (optimallashtirilgan)
+  async getOrdersByCustomerId(customerId: string): Promise<Order[]> {
     try {
-      console.log('📱 Buyurtmalar yuklanmoqda telefon:', customerPhone);
+      console.log('🆔 Buyurtmalar yuklanmoqda customer ID:', customerId);
 
-      if (!customerPhone || customerPhone.trim() === '') {
-        console.log('⚠️ Bo\'sh telefon raqami');
+      if (!customerId || customerId.trim() === '') {
+        console.log('⚠️ Bo\'sh customer ID');
         return [];
       }
 
-      // Step 1: Barcha buyurtmalarni olish (eng samarali yondashuv)
-      console.log('📊 Barcha buyurtmalar yuklanmoqda...');
-      const allOrdersQuery = query(
-        collection(db, 'orders'), 
+      // Customer ID bo'yicha to'g'ridan-to'g'ri Firebase query
+      const customerIdQuery = query(
+        collection(db, 'orders'),
+        where('customerId', '==', customerId.trim()),
         orderBy('createdAt', 'desc')
       );
-      const allOrdersSnapshot = await getDocs(allOrdersQuery);
-      console.log('📋 Jami buyurtmalar:', allOrdersSnapshot.size, 'ta');
 
-      if (allOrdersSnapshot.empty) {
-        console.log('📭 Bazada buyurtma yo\'q');
+      console.log('🔍 Customer ID bo\'yicha qidiruv...');
+      const querySnapshot = await getDocs(customerIdQuery);
+      
+      if (querySnapshot.empty) {
+        console.log('📭 Customer ID bo\'yicha buyurtma topilmadi');
         return [];
       }
 
-      // Step 2: Telefon raqamini normalize qilish
+      const orders: Order[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        try {
+          const data = doc.data();
+          const order: Order = {
+            id: doc.id,
+            customerId: data.customerId || 'unknown',
+            customerName: data.customerName || 'Noma\'lum',
+            customerPhone: data.customerPhone || '',
+            cakeId: data.cakeId || '',
+            cakeName: data.cakeName || '',
+            quantity: data.quantity || 1,
+            amount: data.amount,
+            totalPrice: data.totalPrice || 0,
+            status: data.status || 'pending',
+            deliveryAddress: data.deliveryAddress || '',
+            coordinates: data.coordinates,
+            paymentMethod: data.paymentMethod,
+            paymentType: data.paymentType,
+            notes: data.notes,
+            createdAt: data.createdAt?.toDate() || new Date(),
+            updatedAt: data.updatedAt?.toDate() || new Date(),
+            deliveryTime: data.deliveryTime?.toDate()
+          };
+
+          orders.push(order);
+        } catch (parseError) {
+          console.warn('⚠️ Buyurtma parse qilishda xato:', doc.id, parseError);
+        }
+      });
+
+      console.log('✅ Customer ID bo\'yicha topildi:', orders.length, 'ta buyurtma');
+      
+      if (orders.length > 0) {
+        console.log('📋 Topilgan buyurtmalar:', orders.slice(0, 5).map(order => ({
+          id: order.id?.slice(-8),
+          cake: order.cakeName,
+          status: order.status,
+          date: order.createdAt.toDateString()
+        })));
+      }
+      
+      return orders;
+    } catch (error) {
+      console.error('❌ Customer ID bo\'yicha buyurtmalarni yuklashda xato:', error);
+      return [];
+    }
+  }
+
+  // Telefon raqami bo'yicha fallback qidirish (agar customer ID bo'lmasa)
+  async getOrdersByCustomerPhone(customerPhone: string): Promise<Order[]> {
+    try {
+      console.log('📱 Telefon bo\'yicha fallback qidirish:', customerPhone);
+
+      if (!customerPhone || customerPhone.trim() === '') {
+        return [];
+      }
+
+      // Telefon raqamini normalize qilish
       const cleanPhone = customerPhone.replace(/\D/g, '');
-      console.log('🔍 Tozalangan telefon:', cleanPhone);
-
       if (cleanPhone.length < 7) {
-        console.log('⚠️ Telefon raqami juda qisqa:', cleanPhone.length, 'belgi');
         return [];
       }
 
-      // Step 3: Telefon variantlarini yaratish
-      const phoneVariants = new Set([
+      // Telefon variantlarini yaratish
+      const phoneVariants = [
         cleanPhone,
         `+998${cleanPhone.length === 9 ? cleanPhone : cleanPhone.slice(-9)}`,
         `998${cleanPhone.length === 9 ? cleanPhone : cleanPhone.slice(-9)}`,
         cleanPhone.startsWith('998') ? cleanPhone.substring(3) : cleanPhone,
         customerPhone.trim()
-      ]);
+      ];
 
-      console.log('📱 Qidirilayotgan variantlar:', Array.from(phoneVariants));
+      console.log('📱 Qidirilayotgan telefon variantlari:', phoneVariants);
 
-      // Step 4: Buyurtmalarni filtrlash
-      const matchedOrders: Order[] = [];
+      // Har bir variant uchun alohida query (Firebase limitation tufayli)
+      const allOrders: Order[] = [];
+      
+      for (const phoneVariant of phoneVariants) {
+        try {
+          const phoneQuery = query(
+            collection(db, 'orders'),
+            where('customerPhone', '==', phoneVariant),
+            orderBy('createdAt', 'desc')
+          );
 
-      allOrdersSnapshot.forEach((doc) => {
-        const data = doc.data();
-        
-        if (!data.customerPhone) return;
-        
-        const orderPhoneClean = data.customerPhone.replace(/\D/g, '');
-        const orderPhoneOriginal = data.customerPhone.trim();
-        
-        // Turli xil formatlarni tekshirish
-        let isMatch = false;
-        
-        // 1. To'liq mos kelish
-        if (phoneVariants.has(orderPhoneClean) || phoneVariants.has(orderPhoneOriginal)) {
-          isMatch = true;
+          const querySnapshot = await getDocs(phoneQuery);
+          
+          querySnapshot.forEach((doc) => {
+            try {
+              const data = doc.data();
+              
+              // Duplikatlarni oldini olish
+              if (allOrders.some(order => order.id === doc.id)) {
+                return;
+              }
+
+              const order: Order = {
+                id: doc.id,
+                customerId: data.customerId || 'unknown',
+                customerName: data.customerName || 'Noma\'lum',
+                customerPhone: data.customerPhone || '',
+                cakeId: data.cakeId || '',
+                cakeName: data.cakeName || '',
+                quantity: data.quantity || 1,
+                amount: data.amount,
+                totalPrice: data.totalPrice || 0,
+                status: data.status || 'pending',
+                deliveryAddress: data.deliveryAddress || '',
+                coordinates: data.coordinates,
+                paymentMethod: data.paymentMethod,
+                paymentType: data.paymentType,
+                notes: data.notes,
+                createdAt: data.createdAt?.toDate() || new Date(),
+                updatedAt: data.updatedAt?.toDate() || new Date(),
+                deliveryTime: data.deliveryTime?.toDate()
+              };
+
+              allOrders.push(order);
+            } catch (parseError) {
+              console.warn('⚠️ Buyurtma parse qilishda xato:', doc.id, parseError);
+            }
+          });
+        } catch (queryError) {
+          console.warn('⚠️ Telefon variant bo\'yicha query xatosi:', phoneVariant, queryError);
         }
-        
-        // 2. Oxirgi 9 raqamni solishtirish (O'zbekiston uchun)
-        if (!isMatch && orderPhoneClean.length >= 9 && cleanPhone.length >= 9) {
-          const orderLast9 = orderPhoneClean.slice(-9);
-          const userLast9 = cleanPhone.slice(-9);
-          if (orderLast9 === userLast9) {
-            isMatch = true;
-          }
-        }
-        
-        // 3. 998 prefiksi bilan/siz
-        if (!isMatch) {
-          if (cleanPhone.startsWith('998') && orderPhoneClean === cleanPhone.substring(3)) {
-            isMatch = true;
-          }
-          if (orderPhoneClean.startsWith('998') && cleanPhone === orderPhoneClean.substring(3)) {
-            isMatch = true;
-          }
-        }
+      }
 
-        if (isMatch) {
-          try {
-            const order: Order = {
-              id: doc.id,
-              customerId: data.customerId || 'unknown',
-              customerName: data.customerName || 'Noma\'lum',
-              customerPhone: data.customerPhone || '',
-              cakeId: data.cakeId || '',
-              cakeName: data.cakeName || '',
-              quantity: data.quantity || 1,
-              amount: data.amount,
-              totalPrice: data.totalPrice || 0,
-              status: data.status || 'pending',
-              deliveryAddress: data.deliveryAddress || '',
-              coordinates: data.coordinates,
-              paymentMethod: data.paymentMethod,
-              paymentType: data.paymentType,
-              notes: data.notes,
-              createdAt: data.createdAt?.toDate() || new Date(),
-              updatedAt: data.updatedAt?.toDate() || new Date(),
-              deliveryTime: data.deliveryTime?.toDate()
-            };
-
-            matchedOrders.push(order);
-          } catch (parseError) {
-            console.warn('⚠️ Buyurtma parse qilishda xato:', doc.id, parseError);
-          }
-        }
-      });
-
-      // Step 5: Duplikatlarni olib tashlash va saralash
-      const uniqueOrders = matchedOrders.filter((order, index, self) => 
-        index === self.findIndex(o => o.id === order.id)
-      );
-
-      const sortedOrders = uniqueOrders.sort((a, b) => 
+      // Sanaga qarab saralash
+      const sortedOrders = allOrders.sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
-      console.log('✅ Telefon bo\'yicha topildi:', sortedOrders.length, 'ta buyurtma');
-      
-      if (sortedOrders.length > 0) {
-        console.log('📋 Topilgan buyurtmalar:', sortedOrders.slice(0, 5).map(order => ({
-          id: order.id?.slice(-8),
-          cake: order.cakeName,
-          status: order.status,
-          phone: order.customerPhone,
-          date: order.createdAt.toDateString()
-        })));
-      } else {
-        console.log('🔍 Telefon bo\'yicha buyurtma topilmadi. Bazadagi birinchi 3 ta buyurtma:');
-        allOrdersSnapshot.docs.slice(0, 3).forEach(doc => {
-          const data = doc.data();
-          console.log(`  - ${doc.id.slice(-8)}: ${data.customerPhone} (${data.customerName})`);
-        });
-      }
+      console.log('✅ Telefon bo\'yicha fallback topildi:', sortedOrders.length, 'ta buyurtma');
       
       return sortedOrders;
     } catch (error) {
-      console.error('❌ Buyurtmalarni yuklashda xato:', error);
+      console.error('❌ Telefon bo\'yicha fallback qidirishda xato:', error);
       return [];
     }
   }
