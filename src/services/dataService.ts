@@ -105,17 +105,23 @@ export interface SupportResponse {
 }
 
 class DataService {
-  // 8 xonali noyob buyurtma ID yaratish
+  // 8 belgilik noyob buyurtma ID yaratish (harf va raqamlar kombinatsiyasi)
   private async generateUniqueOrderId(): Promise<string> {
     let isUnique = false;
     let uniqueId = '';
     let attempts = 0;
     const maxAttempts = 10;
 
+    // Harf va raqamlar kombinatsiyasi uchun belgilar
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
     while (!isUnique && attempts < maxAttempts) {
-      // 8 xonali random raqam yaratish (10000000 - 99999999)
-      const randomId = Math.floor(Math.random() * 90000000) + 10000000;
-      uniqueId = randomId.toString();
+      // 8 belgilik random kod yaratish (masalan: D9OAHZ7Z)
+      uniqueId = '';
+      for (let i = 0; i < 8; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        uniqueId += characters[randomIndex];
+      }
 
       try {
         // Firebase'da bunday ID mavjudligini tekshirish
@@ -129,7 +135,7 @@ class DataService {
         
         if (querySnapshot.empty) {
           isUnique = true;
-          console.log(`✅ 8 xonali noyob ID topildi: ${uniqueId}`);
+          console.log(`✅ 8 belgilik noyob ID topildi: ${uniqueId}`);
         } else {
           console.log(`⚠️ ID ${uniqueId} allaqachon mavjud, qayta urinish...`);
           attempts++;
@@ -141,9 +147,10 @@ class DataService {
     }
 
     if (!isUnique) {
-      // Fallback: timestamp asosidagi ID
+      // Fallback: timestamp va random harflar kombinatsiyasi
       const timestamp = Date.now().toString();
-      uniqueId = timestamp.slice(-8);
+      const randomChars = Math.random().toString(36).toUpperCase().substr(2, 4);
+      uniqueId = (timestamp.slice(-4) + randomChars).substr(0, 8);
       console.log(`⚠️ Fallback ID ishlatildi: ${uniqueId}`);
     }
 
@@ -261,16 +268,16 @@ class DataService {
   // Yangi buyurtma yaratish
   async createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     try {
-      // 8 xonali noyob buyurtma ID yaratish
+      // 8 belgilik alphanumeric noyob buyurtma ID yaratish
       const uniqueOrderId = await this.generateUniqueOrderId();
       
-      console.log('🆔 8 xonali noyob buyurtma ID yaratildi:', uniqueOrderId);
+      console.log('🆔 8 belgilik noyob buyurtma ID yaratildi:', uniqueOrderId);
       console.log('🍰 Mahsulot ID:', order.cakeId);
       console.log('👤 Customer ID (User ID):', order.customerId);
       
       const orderData = {
         ...order,
-        orderUniqueId: uniqueOrderId, // 8 xonali noyob ID
+        orderUniqueId: uniqueOrderId, // 8 belgilik alphanumeric noyob ID
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       };
