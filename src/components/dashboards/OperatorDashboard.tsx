@@ -477,7 +477,7 @@ const OperatorDashboard = () => {
   };
 
   // Foydalanuvchi ID bo'yicha buyurtmalarni qidirish
-  const handleSearchByCustomerId = async () => {
+  const handleSearchByUserId = async () => {
     if (!searchPhone.trim()) {
       alert('Foydalanuvchi ID ni kiriting');
       return;
@@ -487,7 +487,7 @@ const OperatorDashboard = () => {
       setIsSearching(true);
       console.log('🔍 Foydalanuvchi ID bo\'yicha qidiruv:', searchPhone);
 
-      const foundOrders = await dataService.getOrdersByCustomerId(searchPhone.trim());
+      const foundOrders = await dataService.getOrdersByUserId(searchPhone.trim());
 
       if (foundOrders.length > 0) {
         console.log(`✅ ${foundOrders.length} ta buyurtma topildi`);
@@ -1269,13 +1269,13 @@ const OperatorDashboard = () => {
                         </label>
                         <input
                           type="text"
-                          value={editingCustomerInfo.customerId || ''}
+                          value={editingCustomerInfo.userId || ''}
                           onChange={(e) => setEditingCustomerInfo(prev => ({
                             ...prev,
-                            customerId: e.target.value
+                            userId: e.target.value
                           }))}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                          placeholder="customer-12345"
+                          placeholder="user-12345"
                         />
                       </div>
 

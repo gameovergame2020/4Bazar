@@ -222,17 +222,17 @@ class DataService {
       const randomSuffix = Math.random().toString(36).substr(2, 9); // 9 ta random belgi
       const uniqueOrderId = `ORD_${timestamp}_${randomSuffix}`;
       
-      // users collection'dagi id bilan bir xil bo'lishi kerak
-      const userIdFromUsersCollection = order.userId?.toString().trim() || '';
+      // Foydalanuvchining ID ni to'g'ri formatda saqlash
+      const cleanUserId = order.userId?.toString().trim() || '';
       
       console.log('🆔 Noyob buyurtma ID yaratildi:', uniqueOrderId);
-      console.log('👤 Users collection ID:', userIdFromUsersCollection);
+      console.log('👤 Foydalanuvchi ID:', cleanUserId);
       console.log('🍰 Mahsulot ID:', order.cakeId);
       
       const orderData = {
         ...order,
         orderUniqueId: uniqueOrderId, // Bir martalik noyob ID
-        userId: userIdFromUsersCollection, // Faqat userId ishlatiladi
+        userId: cleanUserId, // Faqat userId ishlatiladi
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       };
@@ -242,7 +242,7 @@ class DataService {
       
       console.log('✅ Firebase hujjat ID:', docRef.id);
       console.log('🆔 Noyob buyurtma ID:', uniqueOrderId);
-      console.log('👤 Users ID bilan bog\'langan:', userIdFromUsersCollection);
+      console.log('👤 Foydalanuvchi ID bilan bog\'langan:', cleanUserId);
       
       return docRef.id;
     } catch (error) {
@@ -253,8 +253,8 @@ class DataService {
 
   
 
-  // Foydalanuvchi buyurtmalarini users collection ID bo'yicha olish
-  async getOrdersByCustomerId(userId: string): Promise<Order[]> {
+  // Foydalanuvchi buyurtmalarini userId bo'yicha olish
+  async getOrdersByUserId(userId: string): Promise<Order[]> {
     try {
       // Input validation
       if (!userId || typeof userId !== 'string' || userId.trim() === '') {
@@ -263,9 +263,9 @@ class DataService {
       }
 
       const cleanUserId = userId.trim();
-      console.log('🔍 Users collection ID bo\'yicha qidirish:', cleanUserId);
+      console.log('🔍 Foydalanuvchi ID bo\'yicha qidirish:', cleanUserId);
 
-      // Firebase query - users collection ID bo'yicha filter
+      // Firebase query - userId bo'yicha filter
       const userIdQuery = query(
         collection(db, 'orders'),
         where('userId', '==', cleanUserId),
@@ -276,7 +276,7 @@ class DataService {
       const querySnapshot = await getDocs(userIdQuery);
 
       if (querySnapshot.empty) {
-        console.log('📭 Users buyurtmalari topilmadi:', cleanUserId);
+        console.log('📭 Foydalanuvchi buyurtmalari topilmadi:', cleanUserId);
         return [];
       }
 
@@ -288,9 +288,9 @@ class DataService {
         try {
           const data = doc.data();
           
-          // Strict users ID checking
+          // Strict userId checking
           if (data.userId !== cleanUserId) {
-            console.warn('⚠️ Users ID noto\'g\'ri:', data.userId, '!=', cleanUserId);
+            console.warn('⚠️ User ID noto\'g\'ri:', data.userId, '!=', cleanUserId);
             return;
           }
 
@@ -328,18 +328,18 @@ class DataService {
         }
       });
 
-      console.log(`✅ Users (${cleanUserId}): ${orders.length} ta buyurtma yuklandi`);
+      console.log(`✅ Foydalanuvchi (${cleanUserId}): ${orders.length} ta buyurtma yuklandi`);
       
       // Verify all orders belong to correct user
       const invalidOrders = orders.filter(order => order.userId !== cleanUserId);
       if (invalidOrders.length > 0) {
-        console.error('❌ Noto\'g\'ri users ID li buyurtmalar topildi:', invalidOrders.length);
+        console.error('❌ Noto\'g\'ri user ID li buyurtmalar topildi:', invalidOrders.length);
       }
 
       return orders;
       
     } catch (error) {
-      console.error('❌ Users buyurtmalarini yuklashda xato:', error);
+      console.error('❌ Foydalanuvchi buyurtmalarini yuklashda xato:', error);
       
       // Detailed error logging
       if (error instanceof Error) {
@@ -349,6 +349,11 @@ class DataService {
       
       return [];
     }
+  }
+
+  // Backward compatibility uchun eski funksiya nomi
+  async getOrdersByCustomerId(userId: string): Promise<Order[]> {
+    return this.getOrdersByUserId(userId);
   }
 
   
@@ -1349,4 +1354,4 @@ export const dataService = new DataService();
 export const cancelOrder = (orderId: string) => dataService.cancelOrder(orderId);
 
 // Foydalanuvchi buyurtmalarini olish uchun alohida export
-export const getUserOrders = (userId: string) => dataService.getOrdersByCustomerId(userId);
+export const getUserOrders = (userId: string) => dataService.getOrdersByUserId(userId);

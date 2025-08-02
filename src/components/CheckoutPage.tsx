@@ -617,10 +617,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         console.log('🆔 Yangi customer ID yaratildi (processOrder):', userId);
       }
 
-      console.log('🛒 Customer ID dan foydalanilmoqda (processOrder):', userId);
+      console.log('🛒 Foydalanuvchi ID dan foydalanilmoqda (processOrder):', userId);
 
       const orderData = {
-        customerId: userId.toString(), // String formatida saqlash
+        userId: userId.toString(), // Faqat userId ishlatiladi
         customerName: userInfo.name,
         customerPhone: userInfo.phone,
         cakeId: cartProducts[0]?.id || '',
