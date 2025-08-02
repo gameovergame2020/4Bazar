@@ -1065,27 +1065,30 @@ class DataService {
         const newAmount = Math.max(0, (cake.amount || 0) - orderQuantity);
         updateData.amount = newAmount;
         
-        // MUHIM: Buyurtma uchun mahsulotlar rad etilganda quantity va available holatini o'zgartirmaslik
-        // Faqat "Hozir mavjud" bo'lgan mahsulotlar quantity qaytariladi
-        if (cake.available && cake.quantity !== undefined) {
+        // MUHIM: Faqat "Hozir mavjud" (available: true) mahsulotlar uchun quantity qaytariladi
+        // "Buyurtma uchun" (available: false) mahsulotlar holatida o'zgarish bo'lmaydi
+        if (cake.available === true && cake.quantity !== undefined) {
           // "Hozir mavjud" mahsulotlar uchun quantity qaytarish
           const newQuantity = (cake.quantity || 0) + orderQuantity;
           updateData.quantity = newQuantity;
-          updateData.available = newQuantity > 0;
+          // available holati true bo'lib qoladi
           
           console.log('🔄 Baker "Hozir mavjud" mahsulot yangilanmoqda:', {
             oldAmount: cake.amount || 0,
             newAmount,
             oldQuantity: cake.quantity || 0,
             newQuantity,
+            available: true,
             statusText: 'Hozir mavjud holatida qoladi'
           });
         } else {
           // "Buyurtma uchun" mahsulotlar uchun faqat amount kamaytirish
+          // quantity va available holatini o'zgartirmaslik
           console.log('🔄 Baker "Buyurtma uchun" mahsulot yangilanmoqda:', {
             oldAmount: cake.amount || 0,
             newAmount,
-            statusText: 'Buyurtma uchun holatida qoladi (quantity o\'zgartirilmaydi)'
+            available: cake.available,
+            statusText: 'Buyurtma uchun holatida qoladi (quantity va available o\'zgartirilmaydi)'
           });
         }
         
