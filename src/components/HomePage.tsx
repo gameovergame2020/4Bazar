@@ -120,7 +120,17 @@ const HomePage = () => {
         const isShopProduct = cake.productType === 'ready' || (cake.shopId && !cake.bakerId);
 
         if (isBakerProduct) {
+          // Baker mahsulotlari: available holatiga qarab filtrlash
           console.log(`🔍 Baker mahsulot: ${cake.name} - available: ${cake.available}, quantity: ${cake.quantity}`);
+          
+          // Agar quantity > 0 bo'lsa va available = true bo'lsa → "Hozir mavjud"
+          // Agar quantity = 0 bo'lsa yoki available = false bo'lsa → "Buyurtma uchun"
+          if (cake.available === true && (cake.quantity || 0) > 0) {
+            console.log(`✅ Baker mahsuloti "Hozir mavjud": ${cake.name}`);
+          } else {
+            console.log(`📋 Baker mahsuloti "Buyurtma uchun": ${cake.name}`);
+          }
+          
           return true; // Baker mahsulotlari doimo ko'rsatiladi
         }
         if (isShopProduct) {

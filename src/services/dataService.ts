@@ -1070,15 +1070,35 @@ class DataService {
         updateData.quantity = newQuantity;
         
         // MUHIM: Available holatini quantity asosida belgilash
-        // Agar quantity > 0 bo'lsa, mahsulot "Hozir mavjud" bo'lishi kerak
-        if (newQuantity > 0) {
-          updateData.available = true; // "Hozir mavjud"
-          console.log('🟢 Mahsulot "Hozir mavjud" holatiga o\'tkaziladi:', { newQuantity });
+        // Baker mahsulotlari uchun available holatini to'g'ri belgilash
+        const cake = await this.getCakeById(cakeId);
+        const isBakerProduct = cake && (cake.productType === 'baked' || (cake.bakerId && !cake.shopId));
+        
+        if (isBakerProduct) {
+          // Baker mahsulotlari: quantity > 0 bo'lsa "Hozir mavjud", aks holda "Buyurtma uchun"
+          if (newQuantity > 0) {
+            updateData.available = true; // "Hozir mavjud"
+            console.log('🟢 Baker mahsuloti "Hozir mavjud" holatiga o\'tkaziladi:', { 
+              cakeId, 
+              newQuantity, 
+              newAmount 
+            });
+          } else {
+            updateData.available = false; // "Buyurtma uchun"
+            console.log('🔵 Baker mahsuloti "Buyurtma uchun" holatida qoladi:', { 
+              cakeId, 
+              newQuantity, 
+              newAmount 
+            });
+          }
         } else {
-          // Agar quantity = 0 bo'lsa va amount > 0 bo'lsa, "Buyurtma uchun"
-          // Agar quantity = 0 va amount = 0 bo'lsa ham, "Buyurtma uchun" (dastlab shu holatda yaratilgan)
-          updateData.available = false; // "Buyurtma uchun"
-          console.log('🔵 Mahsulot "Buyurtma uchun" holatida qoladi:', { newQuantity, newAmount });
+          // Shop mahsulotlari uchun: quantity > 0 bo'lsa "Hozir mavjud"
+          updateData.available = newQuantity > 0;
+          console.log('🏪 Shop mahsuloti holati yangilandi:', { 
+            cakeId, 
+            newQuantity, 
+            available: updateData.available 
+          });
         }
         
         console.log('🔄 Baker mahsulot yangilanmoqda:', {
