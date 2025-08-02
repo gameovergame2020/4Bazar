@@ -156,7 +156,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           // Placemark harakatlanganda manzilni yangilash
           placemark.events.add('dragend', () => {
             const coords = placemark.geometry.getCoordinates();
-            
+
             // Geocoding - koordinatadan manzilni aniqlash
             window.ymaps.geocode(coords).then((result) => {
               const firstGeoObject = result.geoObjects.get(0);
@@ -175,7 +175,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           map.events.add('click', (e) => {
             const coords = e.get('coords');
             placemark.geometry.setCoordinates(coords);
-            
+
             window.ymaps.geocode(coords).then((result) => {
               const firstGeoObject = result.geoObjects.get(0);
               if (firstGeoObject) {
@@ -195,7 +195,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
             if (position) {
               const coords = position.coords;
               placemark.geometry.setCoordinates([coords[0], coords[1]]);
-              
+
               window.ymaps.geocode([coords[0], coords[1]]).then((result) => {
                 const firstGeoObject = result.geoObjects.get(0);
                 if (firstGeoObject) {
@@ -543,10 +543,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   className="w-full h-full rounded-lg"
                   style={{ minHeight: '400px' }}
                 />
-                
-                {/* Loading overlay */}
-                {(!window.ymaps || !formData.coordinates) && (
-                  <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center z-10">
+
+                {/* Loading overlay - faqat ymaps yuklanmagan vaqtda */}
+                {!window.ymaps && (
+                  <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center z-20">
                     <div className="text-center">
                       <MapPin size={48} className="text-gray-400 mx-auto mb-2" />
                       <p className="text-gray-500">Xarita yuklanmoqda...</p>
