@@ -259,57 +259,67 @@ class DataService {
     try {
       console.log('📱 Buyurtmalar yuklanmoqda telefon:', customerPhone);
 
-      // Telefon raqamini normalize qilish
-      const normalizedPhone = this.normalizePhone(customerPhone);
-      console.log('📞 Normalize qilingan telefon:', normalizedPhone);
+      if (!customerPhone || customerPhone.trim() === '') {
+        console.log('⚠️ Bo\'sh telefon raqami');
+        return [];
+      }
 
-      // Barcha buyurtmalarni olish va filter qilish (Firestore query bilan muammo bo'lsa)
+      // Barcha buyurtmalarni olish
       const allOrdersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
       const allOrdersSnapshot = await getDocs(allOrdersQuery);
       console.log('📊 Jami buyurtmalar bazada:', allOrdersSnapshot.size, 'ta');
 
       const orders: Order[] = [];
-      const phoneVariants = [
-        customerPhone,
-        normalizedPhone,
-        customerPhone.replace(/\D/g, ''),
-        customerPhone.replace(/^\+?998?/, ''),
-      ];
+      const searchPhone = customerPhone.replace(/\D/g, ''); // faqat raqamlar
 
-      console.log('🔍 Qidirilayotgan telefon variantlari:', phoneVariants);
+      console.log('🔍 Qidirilayotgan telefon (faqat raqamlar):', searchPhone);
 
       allOrdersSnapshot.forEach((doc) => {
         const data = doc.data();
-        const orderPhone = data.customerPhone || '';
+        const orderPhone = (data.customerPhone || '').replace(/\D/g, '');
         
         // Telefon raqamlarini solishtirish
-        const isPhoneMatch = phoneVariants.some(variant => {
-          const normalizedOrderPhone = this.normalizePhone(orderPhone);
-          const normalizedVariant = this.normalizePhone(variant);
-          
-          return normalizedOrderPhone === normalizedVariant ||
-                 orderPhone === variant ||
-                 orderPhone.includes(variant) ||
-                 variant.includes(orderPhone) ||
-                 normalizedOrderPhone.slice(-9) === normalizedVariant.slice(-9);
-        });
+        let isPhoneMatch = false;
+        
+        if (orderPhone && searchPhone) {
+          // To'liq mos kelish
+          if (orderPhone === searchPhone) {
+            isPhoneMatch = true;
+          }
+          // Oxirgi 9 ta raqam mos kelish (O'zbekiston raqamlari uchun)
+          else if (orderPhone.length >= 9 && searchPhone.length >= 9) {
+            const orderLast9 = orderPhone.slice(-9);
+            const searchLast9 = searchPhone.slice(-9);
+            if (orderLast9 === searchLast9) {
+              isPhoneMatch = true;
+            }
+          }
+          // Qisqa telefon raqamlari uchun (7+ raqam)
+          else if (orderPhone.length >= 7 && searchPhone.length >= 7) {
+            if (orderPhone.includes(searchPhone) || searchPhone.includes(orderPhone)) {
+              isPhoneMatch = true;
+            }
+          }
+        }
 
         if (isPhoneMatch) {
           console.log('📦 Buyurtma topildi:', {
-            id: doc.id,
-            phone: orderPhone,
+            id: doc.id?.slice(-8),
+            originalPhone: data.customerPhone,
+            cleanPhone: orderPhone,
+            customerName: data.customerName,
             cake: data.cakeName,
             status: data.status,
-            payment: data.paymentMethod
+            createdAt: data.createdAt?.toDate()
           });
 
-          orders.push({
+          const order: Order = {
             id: doc.id,
             customerId: data.customerId || 'unknown',
             customerName: data.customerName || 'Noma\'lum',
-            customerPhone: data.customerPhone,
-            cakeId: data.cakeId,
-            cakeName: data.cakeName,
+            customerPhone: data.customerPhone || '',
+            cakeId: data.cakeId || '',
+            cakeName: data.cakeName || '',
             quantity: data.quantity || 1,
             amount: data.amount,
             totalPrice: data.totalPrice || 0,
@@ -321,7 +331,14 @@ class DataService {
             notes: data.notes,
             createdAt: data.createdAt?.toDate() || new Date(),
             updatedAt: data.updatedAt?.toDate() || new Date()
-          });
+          };
+
+          // Yetkazib berish vaqti
+          if (data.deliveryTime) {
+            order.deliveryTime = data.deliveryTime.toDate();
+          }
+
+          orders.push(order);
         }
       });
 
@@ -330,25 +347,37 @@ class DataService {
         index === self.findIndex(o => o.id === order.id)
       );
 
-      // Sana bo'yicha saralash
+      // Sana bo'yicha saralash (eng yangi birinchi)
       const sortedOrders = uniqueOrders.sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
       console.log('✅ Foydalanuvchi buyurtmalari yuklandi:', sortedOrders.length, 'ta');
       
-      // Barcha holatdagi buyurtmalarni qaytarish (pending, confirmed, va boshqalar)
-      const allStatuses = sortedOrders.map(o => o.status);
-      console.log('📋 Buyurtma holatlari:', [...new Set(allStatuses)]);
+      if (sortedOrders.length > 0) {
+        const allStatuses = [...new Set(sortedOrders.map(o => o.status))];
+        console.log('📋 Buyurtma holatlari:', allStatuses);
+      } else {
+        console.log('⚠️ Hech qanday buyurtma topilmadi');
+        
+        // Debug uchun dastlabki 5 ta buyurtmani ko'rsatish
+        const sampleOrders = Array.from({ length: Math.min(5, allOrdersSnapshot.size) }, (_, i) => {
+          const doc = allOrdersSnapshot.docs[i];
+          const data = doc.data();
+          return {
+            customerPhone: data.customerPhone,
+            cleanPhone: (data.customerPhone || '').replace(/\D/g, ''),
+            customerName: data.customerName,
+            cakeName: data.cakeName
+          };
+        });
+        
+        console.log('🔍 Namuna buyurtmalar (debug):', sampleOrders);
+      }
       
       return sortedOrders;
     } catch (error) {
       console.error('❌ Buyurtmalarni yuklashda xato:', error);
-      console.error('❌ Xato tafsilotlari:', {
-        message: error.message,
-        code: error.code,
-        phone: customerPhone
-      });
       
       // Xato holatida bo'sh array qaytarish
       return [];

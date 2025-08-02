@@ -79,49 +79,102 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
   // Firebase dan foydalanuvchi buyurtmalarini yuklash
   useEffect(() => {
     const loadUserOrders = async () => {
-      if (!user.phone) {
-        console.log('❌ Foydalanuvchi telefon raqami yo\'q');
+      if (!user.phone && !user.name) {
+        console.log('❌ Foydalanuvchi telefon raqami va ismi yo\'q');
         setUserOrders([]);
         return;
       }
       
       try {
         setIsLoadingOrders(true);
-        console.log('📱 Foydalanuvchi buyurtmalari yuklanmoqda:', user.phone);
+        console.log('📱 Foydalanuvchi buyurtmalari yuklanmoqda:', { phone: user.phone, name: user.name });
         
-        // Telefon raqamini turli formatlarda sinab ko'rish
-        const phoneVariants = [
-          user.phone,
-          user.phone.startsWith('+') ? user.phone : `+${user.phone}`,
-          user.phone.startsWith('+998') ? user.phone : `+998${user.phone.replace(/^\+?998?/, '')}`,
-          user.phone.replace(/\D/g, ''), // faqat raqamlar
-        ];
+        // Barcha buyurtmalarni olish
+        const allOrdersInDb = await dataService.getOrders();
+        console.log('📋 Bazadagi barcha buyurtmalar:', allOrdersInDb.length);
         
-        console.log('🔍 Telefon raqami variantlari:', phoneVariants);
+        let matchedOrders: any[] = [];
         
-        let allOrders: any[] = [];
+        // Telefon raqami bo'yicha qidirish
+        if (user.phone) {
+          const phoneVariants = [
+            user.phone,
+            user.phone.replace(/\D/g, ''), // faqat raqamlar
+            user.phone.replace(/^\+?998?/, ''), // +998 siz
+            user.phone.startsWith('+') ? user.phone : `+${user.phone}`,
+            user.phone.startsWith('+998') ? user.phone : `+998${user.phone.replace(/^\+?998?/, '')}`,
+          ];
+          
+          console.log('🔍 Telefon raqami variantlari:', phoneVariants);
+          
+          const phoneMatches = allOrdersInDb.filter(order => {
+            if (!order.customerPhone) return false;
+            
+            const orderPhone = order.customerPhone.replace(/\D/g, '');
+            
+            return phoneVariants.some(variant => {
+              const variantClean = variant.replace(/\D/g, '');
+              
+              // To'liq mos kelish
+              if (orderPhone === variantClean) return true;
+              
+              // Oxirgi 9 ta raqam mos kelish (O'zbekiston telefon raqamlari uchun)
+              if (orderPhone.length >= 9 && variantClean.length >= 9) {
+                return orderPhone.slice(-9) === variantClean.slice(-9);
+              }
+              
+              // Qisqa mos kelish
+              if (orderPhone.includes(variantClean) || variantClean.includes(orderPhone)) {
+                return orderPhone.length >= 7 && variantClean.length >= 7;
+              }
+              
+              return false;
+            });
+          });
+          
+          console.log('📞 Telefon bo\'yicha topilgan buyurtmalar:', phoneMatches.length);
+          matchedOrders = [...matchedOrders, ...phoneMatches];
+        }
         
-        // Har bir variant uchun buyurtmalarni qidirish
-        for (const phoneVariant of phoneVariants) {
-          try {
-            const orders = await dataService.getOrdersByCustomerPhone(phoneVariant);
-            console.log(`📞 ${phoneVariant} uchun topilgan buyurtmalar:`, orders.length);
-            if (orders.length > 0) {
-              allOrders = [...allOrders, ...orders];
+        // Ism bo'yicha qidirish
+        if (user.name) {
+          const nameMatches = allOrdersInDb.filter(order => {
+            if (!order.customerName) return false;
+            
+            const orderName = order.customerName.toLowerCase().trim();
+            const userName = user.name.toLowerCase().trim();
+            
+            // To'liq mos kelish
+            if (orderName === userName) return true;
+            
+            // Qisman mos kelish
+            if (orderName.includes(userName) || userName.includes(orderName)) {
+              return orderName.length >= 3 && userName.length >= 3;
             }
-          } catch (variantError) {
-            console.log(`⚠️ ${phoneVariant} uchun xato:`, variantError);
-          }
+            
+            // So'zlar bo'yicha mos kelish
+            const orderWords = orderName.split(/\s+/);
+            const userWords = userName.split(/\s+/);
+            
+            return orderWords.some(orderWord => 
+              userWords.some(userWord => 
+                orderWord.includes(userWord) || userWord.includes(orderWord)
+              )
+            );
+          });
+          
+          console.log('👤 Ism bo\'yicha topilgan buyurtmalar:', nameMatches.length);
+          matchedOrders = [...matchedOrders, ...nameMatches];
         }
         
         // Duplikatlarni olib tashlash
-        const uniqueOrders = allOrders.filter((order, index, self) => 
+        const uniqueOrders = matchedOrders.filter((order, index, self) => 
           index === self.findIndex(o => o.id === order.id)
         );
         
         console.log('✅ Jami noyob buyurtmalar:', uniqueOrders.length);
         
-        // Barcha buyurtmalar (shu jumladan to'lov holatida turganlar ham)
+        // Sanaga qarab saralash
         const sortedOrders = uniqueOrders.sort((a, b) => 
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
@@ -129,25 +182,28 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
         setUserOrders(sortedOrders);
         console.log('📊 Foydalanuvchi buyurtmalari o\'rnatildi:', sortedOrders.length, 'ta');
         
-        // Agar buyurtmalar topilmasa, bazadan barcha buyurtmalarni tekshirish
-        if (sortedOrders.length === 0) {
-          console.log('🔍 Barcha buyurtmalarni tekshirmoqda...');
-          const allOrdersInDb = await dataService.getOrders();
-          console.log('📋 Bazadagi barcha buyurtmalar:', allOrdersInDb.length);
-          
-          // Foydalanuvchi nomi bo'yicha ham qidirish
-          const ordersByName = allOrdersInDb.filter(order => 
-            order.customerName?.toLowerCase().includes(user.name?.toLowerCase() || '') ||
-            order.customerPhone?.includes(user.phone?.replace(/\D/g, '').slice(-7) || '')
-          );
-          
-          console.log('👤 Nom bo\'yicha topilgan buyurtmalar:', ordersByName.length);
-          
-          if (ordersByName.length > 0) {
-            setUserOrders(ordersByName.sort((a, b) => 
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-            ));
-          }
+        // Debug ma'lumotlari
+        if (sortedOrders.length > 0) {
+          console.log('🎯 Topilgan buyurtmalar:', sortedOrders.map(order => ({
+            id: order.id?.slice(-8),
+            customerName: order.customerName,
+            customerPhone: order.customerPhone,
+            cakeName: order.cakeName,
+            status: order.status,
+            createdAt: order.createdAt
+          })));
+        } else {
+          console.log('⚠️ Hech qanday buyurtma topilmadi');
+          console.log('🔍 Debug ma\'lumotlari:', {
+            userPhone: user.phone,
+            userName: user.name,
+            totalOrdersInDb: allOrdersInDb.length,
+            sampleOrders: allOrdersInDb.slice(0, 3).map(order => ({
+              customerName: order.customerName,
+              customerPhone: order.customerPhone,
+              cakeName: order.cakeName
+            }))
+          });
         }
         
       } catch (error) {
@@ -166,8 +222,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     // Dastlab yuklash
     loadUserOrders();
     
-    // Har 15 soniyada buyurtmalarni yangilash
-    const interval = setInterval(loadUserOrders, 15000);
+    // Har 30 soniyada buyurtmalarni yangilash
+    const interval = setInterval(loadUserOrders, 30000);
     
     return () => clearInterval(interval);
   }, [user.phone, user.name]);
