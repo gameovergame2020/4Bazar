@@ -478,16 +478,17 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
       // Firebase'ga buyurtma yaratish
       const { dataService } = await import('../services/dataService');
-      const orderId = await dataService.createOrder(orderData);
+      const orderResult = await dataService.createOrder(orderData);
 
-      console.log('✅ Buyurtma yaratildi, ID:', orderId);
+      console.log('✅ Buyurtma yaratildi, Firebase ID:', orderResult.docId);
+      console.log('🆔 Buyurtma raqami:', orderResult.orderUniqueId);
 
       // Operator telefon raqami
       const operatorPhone = '+998 90 123 45 67';
 
       // Buyurtma tasdiqlash modalini ko'rsatish
       setOrderDetails({ 
-        orderId: `ORD-${orderId.slice(-8).toUpperCase()}`, 
+        orderId: orderResult.orderUniqueId, // orderUniqueId ni ishlatish
         operatorPhone 
       });
       setOrderConfirmed(true);
@@ -501,14 +502,15 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           title: 'Yangi buyurtma!',
           message: `${userInfo.name} tomonidan yangi buyurtma: ${cartProducts.map(p => p.name).join(', ')}`,
           data: { 
-            orderId, 
+            orderId: orderResult.docId, 
+            orderUniqueId: orderResult.orderUniqueId,
             customerName: userInfo.name,
             customerPhone: userInfo.phone,
             totalPrice 
           },
           read: false,
           priority: 'high',
-          actionUrl: `/operator/orders/${orderId}`
+          actionUrl: `/operator/orders/${orderResult.docId}`
         });
         console.log('📢 Operator bildirishnomasi yuborildi');
       } catch (notifError) {
@@ -569,14 +571,15 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       console.log('🛒 Buyurtma Firebase ga yuborilmoqda:', orderData);
 
       const { dataService } = await import('../services/dataService');
-      const orderId = await dataService.createOrder(orderData);
+      const orderResult = await dataService.createOrder(orderData);
 
-      console.log('✅ Buyurtma yaratildi, ID:', orderId);
+      console.log('✅ Buyurtma yaratildi, Firebase ID:', orderResult.docId);
+      console.log('🆔 Buyurtma raqami:', orderResult.orderUniqueId);
 
       const operatorPhone = '+998 90 123 45 67';
 
       setOrderDetails({ 
-        orderId: `ORD-${orderId.slice(-8).toUpperCase()}`, 
+        orderId: orderResult.orderUniqueId, // orderUniqueId ni ishlatish
         operatorPhone 
       });
       setOrderConfirmed(true);
@@ -589,14 +592,15 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           title: 'Yangi buyurtma!',
           message: `${userInfo.name} tomonidan yangi buyurtma: ${cartProducts.map(p => p.name).join(', ')}`,
           data: { 
-            orderId, 
+            orderId: orderResult.docId, 
+            orderUniqueId: orderResult.orderUniqueId,
             customerName: userInfo.name,
             customerPhone: userInfo.phone,
             totalPrice 
           },
           read: false,
           priority: 'high',
-          actionUrl: `/operator/orders/${orderId}`
+          actionUrl: `/operator/orders/${orderResult.docId}`
         });
         console.log('📢 Operator bildirishnomasi yuborildi');
       } catch (notifError) {

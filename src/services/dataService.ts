@@ -289,7 +289,7 @@ class DataService {
       console.log('🆔 Noyob buyurtma ID:', uniqueOrderId);
       console.log('👤 Customer ID bilan bog\'langan:', order.customerId);
       
-      return docRef.id;
+      return { docId: docRef.id, orderUniqueId: uniqueOrderId };
     } catch (error) {
       console.error('Buyurtma yaratishda xatolik:', error);
       throw error;
