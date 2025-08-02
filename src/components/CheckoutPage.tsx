@@ -53,8 +53,18 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   }).filter(Boolean) : [];
 
   const cartSubtotal = cartProducts.reduce((sum, product) => sum + (product.price * product.quantity), 0);
-  const customDeliveryFee = userInfo.deliveryTime === 'custom' ? 10000 : 0;
-  const totalPrice = cartSubtotal + customDeliveryFee;
+  
+  // Yetkazib berish to'lovlari
+  const getDeliveryFee = (deliveryTime: string) => {
+    switch (deliveryTime) {
+      case 'asap': return 15000; // Tez yetkazish uchun qo'shimcha to'lov
+      case 'custom': return 10000; // O'zi muddatini tanlash uchun to'lov
+      default: return 0; // Bugun va ertaga yetkazish bepul
+    }
+  };
+  
+  const deliveryFee = getDeliveryFee(userInfo.deliveryTime);
+  const totalPrice = cartSubtotal + deliveryFee;
 
   // Component yuklanganida - bu hook
   useEffect(() => {
@@ -581,13 +591,24 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
               >
-                <option value="asap">⚡ Tez yetkazish (2-3 soat)</option>
-                <option value="today">🌅 Bugun yetkazish (09:00-22:00)</option>
-                <option value="tomorrow">📅 Ertaga yetkazish (09:00-22:00)</option>
-                <option value="custom">⏰ O'zi muddatini tanlash (+10,000 so'm)</option>
+                <option value="asap">⚡ Tez yetkazish (2-3 soat) - +15,000 so'm</option>
+                <option value="today">🌅 Bugun yetkazish (09:00-22:00) - Bepul</option>
+                <option value="tomorrow">📅 Ertaga yetkazish (09:00-22:00) - Bepul</option>
+                <option value="custom">⏰ O'zi muddatini tanlash - +10,000 so'm</option>
               </select>
 
               {/* Qo'shimcha haq eslatmasi */}
+              {userInfo.deliveryTime === 'asap' && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="text-blue-600">⚡</span>
+                    <p className="text-sm text-blue-700 font-medium">
+                      Tez yetkazish uchun qo'shimcha 15,000 so'm to'lov olinadi
+                    </p>
+                  </div>
+                </div>
+              )}
+              
               {userInfo.deliveryTime === 'custom' && (
                 <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <div className="flex items-center gap-2">
@@ -769,13 +790,13 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
               <span>{cartSubtotal.toLocaleString()} so'm</span>
             </div>
 
-            {/* Qo'shimcha haq */}
-            {customDeliveryFee > 0 && (
-              <div className="flex justify-between items-center text-sm text-gray-600">
-                <span>O'zi muddatini tanlash (+):</span>
-                <span>+{customDeliveryFee.toLocaleString()} so'm</span>
-              </div>
-            )}
+            {/* Yetkazib berish to'lovi */}
+            <div className="flex justify-between items-center text-sm text-gray-600">
+              <span>Yetkazib berish:</span>
+              <span>
+                {deliveryFee > 0 ? `+${deliveryFee.toLocaleString()} so'm` : 'Bepul'}
+              </span>
+            </div>
 
             {/* Jami summa */}
             <div className="flex justify-between items-center pt-2 border-t border-gray-200 text-xl font-bold">
