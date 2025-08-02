@@ -119,9 +119,9 @@ class DataService {
         cakeData.quantity = 0; // Shop mahsulotlari uchun default 0
       }
       
-      // Amount maydonini faqat baker mahsulotlari uchun qo'shish
-      if (cake.productType === 'baked') {
-        cakeData.amount = cake.amount || 0;
+      // Amount maydonini faqat baker mahsulotlari uchun qo'shish va agar mavjud bo'lsa
+      if (cake.productType === 'baked' && cake.amount !== undefined) {
+        cakeData.amount = cake.amount;
       }
       
       // undefined qiymatlarni olib tashlash
