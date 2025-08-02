@@ -80,6 +80,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     const loadUserOrders = async () => {
       if (!user.phone) {
         console.log('❌ Foydalanuvchi telefon raqami yo\'q');
+        setUserOrders([]);
         return;
       }
       
@@ -87,22 +88,74 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
         setIsLoadingOrders(true);
         console.log('📱 Foydalanuvchi buyurtmalari yuklanmoqda:', user.phone);
         
-        // Telefon raqamini formatlash (agar kerak bo'lsa)
-        const formattedPhone = user.phone.startsWith('+') ? user.phone : `+${user.phone}`;
+        // Telefon raqamini turli formatlarda sinab ko'rish
+        const phoneVariants = [
+          user.phone,
+          user.phone.startsWith('+') ? user.phone : `+${user.phone}`,
+          user.phone.startsWith('+998') ? user.phone : `+998${user.phone.replace(/^\+?998?/, '')}`,
+          user.phone.replace(/\D/g, ''), // faqat raqamlar
+        ];
         
-        const orders = await dataService.getOrdersByCustomerPhone(user.phone);
-        console.log('✅ Buyurtmalar yuklandi:', orders.length, 'ta buyurtma');
+        console.log('🔍 Telefon raqami variantlari:', phoneVariants);
+        
+        let allOrders: any[] = [];
+        
+        // Har bir variant uchun buyurtmalarni qidirish
+        for (const phoneVariant of phoneVariants) {
+          try {
+            const orders = await dataService.getOrdersByCustomerPhone(phoneVariant);
+            console.log(`📞 ${phoneVariant} uchun topilgan buyurtmalar:`, orders.length);
+            if (orders.length > 0) {
+              allOrders = [...allOrders, ...orders];
+            }
+          } catch (variantError) {
+            console.log(`⚠️ ${phoneVariant} uchun xato:`, variantError);
+          }
+        }
+        
+        // Duplikatlarni olib tashlash
+        const uniqueOrders = allOrders.filter((order, index, self) => 
+          index === self.findIndex(o => o.id === order.id)
+        );
+        
+        console.log('✅ Jami noyob buyurtmalar:', uniqueOrders.length);
         
         // Barcha buyurtmalar (shu jumladan to'lov holatida turganlar ham)
-        const sortedOrders = orders.sort((a, b) => 
+        const sortedOrders = uniqueOrders.sort((a, b) => 
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
         
         setUserOrders(sortedOrders);
         console.log('📊 Foydalanuvchi buyurtmalari o\'rnatildi:', sortedOrders.length, 'ta');
+        
+        // Agar buyurtmalar topilmasa, bazadan barcha buyurtmalarni tekshirish
+        if (sortedOrders.length === 0) {
+          console.log('🔍 Barcha buyurtmalarni tekshirmoqda...');
+          const allOrdersInDb = await dataService.getOrders();
+          console.log('📋 Bazadagi barcha buyurtmalar:', allOrdersInDb.length);
+          
+          // Foydalanuvchi nomi bo'yicha ham qidirish
+          const ordersByName = allOrdersInDb.filter(order => 
+            order.customerName?.toLowerCase().includes(user.name?.toLowerCase() || '') ||
+            order.customerPhone?.includes(user.phone?.replace(/\D/g, '').slice(-7) || '')
+          );
+          
+          console.log('👤 Nom bo\'yicha topilgan buyurtmalar:', ordersByName.length);
+          
+          if (ordersByName.length > 0) {
+            setUserOrders(ordersByName.sort((a, b) => 
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            ));
+          }
+        }
+        
       } catch (error) {
         console.error('❌ Buyurtmalarni yuklashda xato:', error);
-        // Xato holatida ham foydalanuvchiga xabar berish
+        console.error('❌ Xato tafsilotlari:', {
+          message: error.message,
+          phone: user.phone,
+          name: user.name
+        });
         setUserOrders([]);
       } finally {
         setIsLoadingOrders(false);
@@ -112,11 +165,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     // Dastlab yuklash
     loadUserOrders();
     
-    // Har 10 soniyada buyurtmalarni yangilash (tezroq yangilanish)
-    const interval = setInterval(loadUserOrders, 10000);
+    // Har 15 soniyada buyurtmalarni yangilash
+    const interval = setInterval(loadUserOrders, 15000);
     
     return () => clearInterval(interval);
-  }, [user.phone]);
+  }, [user.phone, user.name]);
 
   const favoriteCakes = [
     {

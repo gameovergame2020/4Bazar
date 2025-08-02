@@ -230,63 +230,118 @@ class DataService {
     }
   }
 
+  // Telefon raqamini normalize qilish funksiyasi
+  private normalizePhone(phone: string): string {
+    // Barcha harflar va maxsus belgilarni olib tashlash
+    const numbersOnly = phone.replace(/\D/g, '');
+    
+    // Agar +998 bilan boshlansa
+    if (numbersOnly.startsWith('998')) {
+      return `+${numbersOnly}`;
+    }
+    
+    // Agar 998 siz boshlansa
+    if (numbersOnly.length === 9) {
+      return `+998${numbersOnly}`;
+    }
+    
+    // Agar uzun bo'lsa va oxirgi 9 ta raqamni olish
+    if (numbersOnly.length > 9) {
+      const last9 = numbersOnly.slice(-9);
+      return `+998${last9}`;
+    }
+    
+    return phone;
+  }
+
   // Foydalanuvchi buyurtmalarini telefon raqami bo'yicha olish
   async getOrdersByCustomerPhone(customerPhone: string): Promise<Order[]> {
     try {
       console.log('📱 Buyurtmalar yuklanmoqda telefon:', customerPhone);
 
-      // Avval umumiy buyurtmalar sonini tekshirish
-      const allOrdersQuery = query(collection(db, 'orders'));
+      // Telefon raqamini normalize qilish
+      const normalizedPhone = this.normalizePhone(customerPhone);
+      console.log('📞 Normalize qilingan telefon:', normalizedPhone);
+
+      // Barcha buyurtmalarni olish va filter qilish (Firestore query bilan muammo bo'lsa)
+      const allOrdersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
       const allOrdersSnapshot = await getDocs(allOrdersQuery);
       console.log('📊 Jami buyurtmalar bazada:', allOrdersSnapshot.size, 'ta');
 
-      // Foydalanuvchi buyurtmalarini izlash
-      const q = query(
-        collection(db, 'orders'),
-        where('customerPhone', '==', customerPhone),
-        orderBy('createdAt', 'desc')
-      );
-
-      const querySnapshot = await getDocs(q);
       const orders: Order[] = [];
+      const phoneVariants = [
+        customerPhone,
+        normalizedPhone,
+        customerPhone.replace(/\D/g, ''),
+        customerPhone.replace(/^\+?998?/, ''),
+      ];
 
-      querySnapshot.forEach((doc) => {
+      console.log('🔍 Qidirilayotgan telefon variantlari:', phoneVariants);
+
+      allOrdersSnapshot.forEach((doc) => {
         const data = doc.data();
-        console.log('📦 Buyurtma topildi:', {
-          id: doc.id,
-          phone: data.customerPhone,
-          cake: data.cakeName,
-          status: data.status,
-          payment: data.paymentMethod
+        const orderPhone = data.customerPhone || '';
+        
+        // Telefon raqamlarini solishtirish
+        const isPhoneMatch = phoneVariants.some(variant => {
+          const normalizedOrderPhone = this.normalizePhone(orderPhone);
+          const normalizedVariant = this.normalizePhone(variant);
+          
+          return normalizedOrderPhone === normalizedVariant ||
+                 orderPhone === variant ||
+                 orderPhone.includes(variant) ||
+                 variant.includes(orderPhone) ||
+                 normalizedOrderPhone.slice(-9) === normalizedVariant.slice(-9);
         });
 
-        orders.push({
-          id: doc.id,
-          customerId: data.customerId || 'unknown',
-          customerName: data.customerName || 'Noma\'lum',
-          customerPhone: data.customerPhone,
-          cakeId: data.cakeId,
-          cakeName: data.cakeName,
-          quantity: data.quantity || 1,
-          totalPrice: data.totalPrice || 0,
-          status: data.status || 'pending',
-          deliveryAddress: data.deliveryAddress || '',
-          coordinates: data.coordinates,
-          paymentMethod: data.paymentMethod,
-          paymentType: data.paymentType,
-          notes: data.notes,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          updatedAt: data.updatedAt?.toDate() || new Date()
-        });
+        if (isPhoneMatch) {
+          console.log('📦 Buyurtma topildi:', {
+            id: doc.id,
+            phone: orderPhone,
+            cake: data.cakeName,
+            status: data.status,
+            payment: data.paymentMethod
+          });
+
+          orders.push({
+            id: doc.id,
+            customerId: data.customerId || 'unknown',
+            customerName: data.customerName || 'Noma\'lum',
+            customerPhone: data.customerPhone,
+            cakeId: data.cakeId,
+            cakeName: data.cakeName,
+            quantity: data.quantity || 1,
+            amount: data.amount,
+            totalPrice: data.totalPrice || 0,
+            status: data.status || 'pending',
+            deliveryAddress: data.deliveryAddress || '',
+            coordinates: data.coordinates,
+            paymentMethod: data.paymentMethod,
+            paymentType: data.paymentType,
+            notes: data.notes,
+            createdAt: data.createdAt?.toDate() || new Date(),
+            updatedAt: data.updatedAt?.toDate() || new Date()
+          });
+        }
       });
 
-      console.log('✅ Foydalanuvchi buyurtmalari yuklandi:', orders.length, 'ta');
+      // Duplikatlarni olib tashlash
+      const uniqueOrders = orders.filter((order, index, self) => 
+        index === self.findIndex(o => o.id === order.id)
+      );
+
+      // Sana bo'yicha saralash
+      const sortedOrders = uniqueOrders.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      console.log('✅ Foydalanuvchi buyurtmalari yuklandi:', sortedOrders.length, 'ta');
       
       // Barcha holatdagi buyurtmalarni qaytarish (pending, confirmed, va boshqalar)
-      const allStatuses = orders.map(o => o.status);
+      const allStatuses = sortedOrders.map(o => o.status);
       console.log('📋 Buyurtma holatlari:', [...new Set(allStatuses)]);
       
-      return orders;
+      return sortedOrders;
     } catch (error) {
       console.error('❌ Buyurtmalarni yuklashda xato:', error);
       console.error('❌ Xato tafsilotlari:', {
