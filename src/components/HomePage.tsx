@@ -82,7 +82,7 @@ const HomePage = () => {
 
           return {
             ...cake,
-            quantity: orderedQuantity
+            orderedQuantity: orderedQuantity
           };
         }
 
@@ -134,7 +134,7 @@ const HomePage = () => {
 
           return {
             ...cake,
-            quantity: orderedQuantity
+            orderedQuantity: orderedQuantity
           };
         }
         return cake;
@@ -469,8 +469,8 @@ const addToCart = (cakeId: string) => {
                           ? cake.quantity !== undefined 
                             ? `Qoldi: ${cake.quantity} ta`
                             : 'Miqdor: cheklanmagan'
-                          : cake.quantity !== undefined 
-                            ? `Buyurtma qilingan: ${cake.quantity} ta`
+                          : (cake as any).orderedQuantity !== undefined 
+                            ? `Buyurtma qilingan: ${(cake as any).orderedQuantity} ta`
                             : 'Buyurtma yo\'q'
                         : cake.quantity !== undefined 
                           ? `Qoldi: ${cake.quantity} ta`
@@ -598,8 +598,8 @@ const addToCart = (cakeId: string) => {
                             ? cake.quantity !== undefined 
                               ? `Qoldi: ${cake.quantity} ta`
                               : 'Miqdor: cheklanmagan'
-                            : cake.quantity !== undefined 
-                              ? `Buyurtma qilingan: ${cake.quantity} ta`
+                            : (cake as any).orderedQuantity !== undefined 
+                              ? `Buyurtma qilingan: ${(cake as any).orderedQuantity} ta`
                               : 'Buyurtma yo\'q'
                           : cake.quantity !== undefined 
                             ? `Qoldi: ${cake.quantity} ta`
