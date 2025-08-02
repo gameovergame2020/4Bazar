@@ -166,7 +166,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
             window.ymaps.geocode(coords, {
               kind: 'house',
               results: 1,
-              apikey: '40496c4d-9fd2-450a-bea8-9a78d5955593'
+              apikey: import.meta.env.VITE_YANDEX_MAPS_API_KEY || '40496c4d-9fd2-450a-bea8-9a78d5955593'
             }).then((result) => {
               const firstGeoObject = result.geoObjects.get(0);
               if (firstGeoObject) {
@@ -299,7 +299,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       // Yandex Maps API scriptini yuklash
       if (!window.ymaps) {
         const script = document.createElement('script');
-        script.src = `https://api-maps.yandex.ru/2.1/?apikey=40496c4d-9fd2-450a-bea8-9a78d5955593&lang=uz_UZ`;
+        const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY || '40496c4d-9fd2-450a-bea8-9a78d5955593';
+        script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ`;
         script.type = 'text/javascript';
         script.async = true;
         script.onload = initializeYandexMap;
