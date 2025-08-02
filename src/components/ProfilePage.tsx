@@ -492,7 +492,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                       <p className="text-gray-600 text-xs mt-2">ID: {user.id.slice(-8)}</p>
                     )}
                     {user?.phone && (
-                      <p className="text-gray-600 text-xs">Tel: {user.phone}</span>
+                      <p className="text-gray-600 text-xs">Tel: {user.phone}</p>
                     )}
                   </div>
                 ) : (
