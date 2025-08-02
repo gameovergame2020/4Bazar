@@ -230,6 +230,50 @@ class DataService {
     }
   }
 
+  // Foydalanuvchi buyurtmalarini telefon raqami bo'yicha olish
+  async getOrdersByCustomerPhone(customerPhone: string): Promise<Order[]> {
+    try {
+      console.log('📱 Buyurtmalar yuklanmoqda telefon:', customerPhone);
+
+      const q = query(
+        collection(db, 'orders'),
+        where('customerPhone', '==', customerPhone),
+        orderBy('createdAt', 'desc')
+      );
+
+      const querySnapshot = await getDocs(q);
+      const orders: Order[] = [];
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        orders.push({
+          id: doc.id,
+          customerId: data.customerId,
+          customerName: data.customerName,
+          customerPhone: data.customerPhone,
+          cakeId: data.cakeId,
+          cakeName: data.cakeName,
+          quantity: data.quantity,
+          totalPrice: data.totalPrice,
+          status: data.status,
+          deliveryAddress: data.deliveryAddress,
+          coordinates: data.coordinates,
+          paymentMethod: data.paymentMethod,
+          paymentType: data.paymentType,
+          notes: data.notes,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date()
+        });
+      });
+
+      console.log('✅ Buyurtmalar yuklandi:', orders.length, 'ta');
+      return orders;
+    } catch (error) {
+      console.error('❌ Buyurtmalarni yuklashda xato:', error);
+      throw error;
+    }
+  }
+
   // Buyurtmalarni olish
   async getOrders(filters?: { customerId?: string; status?: string }): Promise<Order[]> {
     try {

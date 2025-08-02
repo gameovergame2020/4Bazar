@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, 
   Settings,
@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { UserData } from '../services/authService';
 import SettingsPage from './SettingsPage';
+import { dataService, Order } from '../services/dataService';
 
 interface ProfilePageProps {
   user: UserData;
@@ -32,6 +33,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
   const [showSettings, setShowSettings] = useState(false);
   const [showOrdersStats, setShowOrdersStats] = useState(false);
   const [showFavoritesStats, setShowFavoritesStats] = useState(false);
+  const [userOrders, setUserOrders] = useState<Order[]>([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
 
   const recentOrders = [
     {
@@ -72,6 +75,39 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     },
   ];
 
+  // Firebase dan foydalanuvchi buyurtmalarini yuklash
+  useEffect(() => {
+    const loadUserOrders = async () => {
+      if (!user.phone) return;
+      
+      try {
+        setIsLoadingOrders(true);
+        console.log('📱 Foydalanuvchi buyurtmalari yuklanmoqda:', user.phone);
+        
+        const orders = await dataService.getOrdersByCustomerPhone(user.phone);
+        console.log('✅ Buyurtmalar yuklandi:', orders);
+        
+        // Eng yangi buyurtmalarni birinchi o'ringa qo'yish
+        const sortedOrders = orders.sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        
+        setUserOrders(sortedOrders);
+      } catch (error) {
+        console.error('❌ Buyurtmalarni yuklashda xato:', error);
+      } finally {
+        setIsLoadingOrders(false);
+      }
+    };
+
+    loadUserOrders();
+    
+    // Har 30 soniyada buyurtmalarni yangilash (real-time kabi)
+    const interval = setInterval(loadUserOrders, 30000);
+    
+    return () => clearInterval(interval);
+  }, [user.phone]);
+
   const favoriteCakes = [
     {
       id: 1,
@@ -111,10 +147,18 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'delivered':
-        return 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/20';
+      case 'pending':
+        return 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/20';
+      case 'confirmed':
+        return 'text-indigo-600 bg-indigo-50 dark:text-indigo-400 dark:bg-indigo-900/20';
       case 'preparing':
         return 'text-yellow-600 bg-yellow-50 dark:text-yellow-400 dark:bg-yellow-900/20';
+      case 'ready':
+        return 'text-purple-600 bg-purple-50 dark:text-purple-400 dark:bg-purple-900/20';
+      case 'delivering':
+        return 'text-orange-600 bg-orange-50 dark:text-orange-400 dark:bg-orange-900/20';
+      case 'delivered':
+        return 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/20';
       case 'cancelled':
         return 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/20';
       default:
@@ -124,10 +168,18 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'delivered':
-        return 'Yetkazildi';
+      case 'pending':
+        return 'Kutilmoqda';
+      case 'confirmed':
+        return 'Tasdiqlandi';
       case 'preparing':
         return 'Tayyorlanmoqda';
+      case 'ready':
+        return 'Tayyor';
+      case 'delivering':
+        return 'Yetkazilmoqda';
+      case 'delivered':
+        return 'Yetkazildi';
       case 'cancelled':
         return 'Bekor qilindi';
       default:
@@ -137,10 +189,18 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'delivered':
+      case 'pending':
+        return Clock;
+      case 'confirmed':
         return Package;
       case 'preparing':
         return Clock;
+      case 'ready':
+        return Package;
+      case 'delivering':
+        return Truck;
+      case 'delivered':
+        return Package;
       case 'cancelled':
         return Package;
       default:
@@ -184,7 +244,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
               }}
               className="text-center p-2 sm:p-3 rounded-lg sm:rounded-xl hover:bg-gray-700/30 transition-all duration-300 transform hover:scale-105"
             >
-              <div className="text-xl sm:text-2xl font-bold text-orange-400">{user.totalOrders || 0}</div>
+              <div className="text-xl sm:text-2xl font-bold text-orange-400">{userOrders.length}</div>
               <div className="text-gray-400 text-xs sm:text-sm flex items-center justify-center space-x-1">
                 <span>Buyurtmalar</span>
                 <ChevronDown 
@@ -227,49 +287,66 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                 <span>Oxirgi buyurtmalar</span>
               </h4>
               <div className="space-y-2 sm:space-y-3 max-h-48 sm:max-h-64 overflow-y-auto">
-                {recentOrders.slice(0, 3).map((order) => {
-                  const StatusIcon = getStatusIcon(order.status);
-                  return (
-                    <div key={order.id} className="bg-gray-600/30 rounded-lg p-2 sm:p-3 hover:bg-gray-600/50 transition-colors">
-                      <div className="flex items-center space-x-2 sm:space-x-3">
-                        <img 
-                          src={order.image}
-                          alt={order.name}
-                          className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg object-cover"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-white text-xs sm:text-sm truncate">{order.name}</h4>
-                          <p className="text-gray-400 text-xs">{order.restaurant}</p>
-                          <div className="flex items-center justify-between mt-1">
-                            <span className="text-orange-400 text-xs sm:text-sm font-medium">{order.price} so'm</span>
-                            <div className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-xs ${getStatusColor(order.status)}`}>
-                              <StatusIcon size={8} />
-                              <span>{getStatusText(order.status)}</span>
-                            </div>
+                {isLoadingOrders ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin h-6 w-6 border-2 border-orange-500 border-t-transparent rounded-full"></div>
+                    <span className="ml-2 text-gray-400 text-sm">Buyurtmalar yuklanmoqda...</span>
+                  </div>
+                ) : userOrders.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-gray-400 text-sm">Hozircha buyurtmalar yo'q</p>
+                  </div>
+                ) : (
+                  userOrders.slice(0, 5).map((order) => {
+                    const StatusIcon = getStatusIcon(order.status);
+                    return (
+                      <div key={order.id} className="bg-gray-600/30 rounded-lg p-2 sm:p-3 hover:bg-gray-600/50 transition-colors">
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                          <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                            <Package className="w-5 h-5 text-orange-400" />
                           </div>
-                          {/* To'lov turi ko'rsatish */}
-                          {order.paymentMethod === 'card' && order.paymentType && (
-                            <div className="mt-1 flex items-center space-x-1">
-                              <span className="text-xs text-gray-400">To'lov:</span>
-                              <span className="text-xs font-medium text-blue-400">
-                                {order.paymentType === 'click' ? '🔵 Click' :
-                                 order.paymentType === 'payme' ? '🟢 Payme' :
-                                 order.paymentType === 'visa' ? '💳 Visa/MC' : 
-                                 '💳 Karta'}
-                              </span>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-white text-xs sm:text-sm truncate">{order.cakeName}</h4>
+                            <p className="text-gray-400 text-xs">#{order.id.slice(-8).toUpperCase()}</p>
+                            <div className="flex items-center justify-between mt-1">
+                              <span className="text-orange-400 text-xs sm:text-sm font-medium">{order.totalPrice.toLocaleString()} so'm</span>
+                              <div className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-xs ${getStatusColor(order.status)}`}>
+                                <StatusIcon size={8} />
+                                <span>{getStatusText(order.status)}</span>
+                              </div>
                             </div>
-                          )}
-                          {order.paymentMethod === 'cash' && (
-                            <div className="mt-1 flex items-center space-x-1">
-                              <span className="text-xs text-gray-400">To'lov:</span>
-                              <span className="text-xs font-medium text-green-400">💵 Naqd</span>
+                            <div className="text-xs text-gray-400 mt-1">
+                              {new Date(order.createdAt).toLocaleDateString('uz-UZ', { 
+                                day: 'numeric', 
+                                month: 'short',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
                             </div>
-                          )}
+                            {/* To'lov turi ko'rsatish */}
+                            {order.paymentMethod === 'card' && order.paymentType && (
+                              <div className="mt-1 flex items-center space-x-1">
+                                <span className="text-xs text-gray-400">To'lov:</span>
+                                <span className="text-xs font-medium text-blue-400">
+                                  {order.paymentType === 'click' ? '🔵 Click' :
+                                   order.paymentType === 'payme' ? '🟢 Payme' :
+                                   order.paymentType === 'visa' ? '💳 Visa/MC' : 
+                                   '💳 Karta'}
+                                </span>
+                              </div>
+                            )}
+                            {order.paymentMethod === 'cash' && (
+                              <div className="mt-1 flex items-center space-x-1">
+                                <span className="text-xs text-gray-400">To'lov:</span>
+                                <span className="text-xs font-medium text-green-400">💵 Naqd</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>
