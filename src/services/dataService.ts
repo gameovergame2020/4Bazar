@@ -254,7 +254,7 @@ class DataService {
     return phone;
   }
 
-  // Foydalanuvchi buyurtmalarini telefon raqami bo'yicha olish
+  // Foydalanuvchi buyurtmalarini telefon raqami bo'yicha olish (yaxshilangan)
   async getOrdersByCustomerPhone(customerPhone: string): Promise<Order[]> {
     try {
       console.log('📱 Buyurtmalar yuklanmoqda telefon:', customerPhone);
@@ -272,7 +272,77 @@ class DataService {
         return [];
       }
 
-      // Barcha buyurtmalarni olish
+      // Direct Firebase query - ancha tezroq
+      try {
+        // To'liq telefon raqami bo'yicha
+        let phoneQuery = query(
+          collection(db, 'orders'),
+          where('customerPhone', '==', customerPhone),
+          orderBy('createdAt', 'desc')
+        );
+        
+        let querySnapshot = await getDocs(phoneQuery);
+        console.log('📞 To\'liq telefon bo\'yicha:', querySnapshot.size, 'ta');
+        
+        // Agar topilmasa, boshqa formatda ham qidirish
+        if (querySnapshot.empty) {
+          const phoneVariants = [
+            `+998${cleanPhone}`,
+            `+998 ${cleanPhone}`,
+            `998${cleanPhone}`,
+            cleanPhone,
+            cleanPhone.replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4'),
+            cleanPhone.replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, '$1-$2-$3-$4')
+          ];
+          
+          for (const variant of phoneVariants) {
+            phoneQuery = query(
+              collection(db, 'orders'),
+              where('customerPhone', '==', variant),
+              orderBy('createdAt', 'desc')
+            );
+            
+            querySnapshot = await getDocs(phoneQuery);
+            if (!querySnapshot.empty) {
+              console.log('📱 Variant bilan topildi:', variant, '-', querySnapshot.size, 'ta');
+              break;
+            }
+          }
+        }
+        
+        if (!querySnapshot.empty) {
+          const orders = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              customerId: data.customerId || 'unknown',
+              customerName: data.customerName || 'Noma\'lum',
+              customerPhone: data.customerPhone || '',
+              cakeId: data.cakeId || '',
+              cakeName: data.cakeName || '',
+              quantity: data.quantity || 1,
+              amount: data.amount,
+              totalPrice: data.totalPrice || 0,
+              status: data.status || 'pending',
+              deliveryAddress: data.deliveryAddress || '',
+              coordinates: data.coordinates,
+              paymentMethod: data.paymentMethod,
+              paymentType: data.paymentType,
+              notes: data.notes,
+              createdAt: data.createdAt?.toDate() || new Date(),
+              updatedAt: data.updatedAt?.toDate() || new Date(),
+              deliveryTime: data.deliveryTime?.toDate()
+            } as Order;
+          });
+          
+          console.log('✅ Direct query bilan topildi:', orders.length, 'ta buyurtma');
+          return orders;
+        }
+      } catch (directQueryError) {
+        console.log('⚠️ Direct query ishlamadi, keng qidirish boshlanyapti...');
+      }
+
+      // Agar direct query ishlamasa, barcha buyurtmalarni olish va filtrlash
       const allOrdersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
       const allOrdersSnapshot = await getDocs(allOrdersQuery);
       console.log('📊 Jami buyurtmalar bazada:', allOrdersSnapshot.size, 'ta');
@@ -292,17 +362,6 @@ class DataService {
         const isPhoneMatch = this.comparePhoneNumbers(orderPhoneClean, cleanPhone, phoneVariants);
 
         if (isPhoneMatch) {
-          console.log('📦 Buyurtma topildi:', {
-            id: doc.id?.slice(-8),
-            originalPhone: data.customerPhone,
-            cleanPhone: orderPhoneClean,
-            customerName: data.customerName,
-            cake: data.cakeName,
-            status: data.status,
-            totalPrice: data.totalPrice,
-            createdAt: data.createdAt?.toDate()
-          });
-
           const order: Order = {
             id: doc.id,
             customerId: data.customerId || 'unknown',
@@ -342,13 +401,9 @@ class DataService {
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
-      console.log('✅ Foydalanuvchi buyurtmalari yuklandi:', sortedOrders.length, 'ta');
+      console.log('✅ Keng qidirish bilan topildi:', sortedOrders.length, 'ta buyurtma');
       
       if (sortedOrders.length > 0) {
-        const allStatuses = [...new Set(sortedOrders.map(o => o.status))];
-        console.log('📋 Buyurtma holatlari:', allStatuses);
-        
-        // Birinchi 3 buyurtmani log qilish
         const firstThree = sortedOrders.slice(0, 3).map(order => ({
           id: order.id?.slice(-8),
           cake: order.cakeName,
@@ -357,25 +412,6 @@ class DataService {
           date: order.createdAt.toISOString().split('T')[0]
         }));
         console.log('🎯 Birinchi 3 buyurtma:', firstThree);
-      } else {
-        console.log('⚠️ Hech qanday buyurtma topilmadi telefon bo\'yicha');
-        
-        // Debug uchun dastlabki 3 ta buyurtmani ko'rsatish
-        const sampleOrders = Array.from({ length: Math.min(3, allOrdersSnapshot.size) }, (_, i) => {
-          const doc = allOrdersSnapshot.docs[i];
-          const data = doc.data();
-          return {
-            id: doc.id?.slice(-8),
-            customerPhone: data.customerPhone,
-            cleanPhone: (data.customerPhone || '').replace(/\D/g, ''),
-            customerName: data.customerName,
-            cakeName: data.cakeName,
-            status: data.status
-          };
-        });
-        
-        console.log('🔍 Namuna buyurtmalar (debug):', sampleOrders);
-        console.log('🔍 Qidirilgan telefon:', cleanPhone, '(uzunlik:', cleanPhone.length, ')');
       }
       
       return sortedOrders;
