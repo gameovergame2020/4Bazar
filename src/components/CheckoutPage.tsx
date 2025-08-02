@@ -344,17 +344,25 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Yetkazib berish manzili *
                   </label>
-                  <textarea
-                    name="deliveryAddress"
-                    value={formData.deliveryAddress}
-                    onChange={handleInputChange}
-                    required
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer"
-                    placeholder="Manzilni tanlash uchun bosing"
-                    onClick={() => setShowLocationPicker(true)}
-                    readOnly
-                  />
+                  <div className="relative">
+                    <textarea
+                      name="deliveryAddress"
+                      value={formData.deliveryAddress}
+                      onChange={handleInputChange}
+                      required
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="Manzilni kiriting yoki xaritadan tanlash uchun tugmani bosing"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowLocationPicker(true)}
+                      className="absolute top-2 right-2 bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition-colors"
+                      title="Xaritadan tanlash"
+                    >
+                      <MapPin size={16} />
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -573,14 +581,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 <button
                   onClick={() => {
                     if (formData.deliveryAddress.trim()) {
-                      // Manzilni asosiy formga saqlash
-                      const event = {
-                        target: {
-                          name: 'deliveryAddress',
-                          value: formData.deliveryAddress
-                        }
-                      } as React.ChangeEvent<HTMLTextAreaElement>;
-                      handleInputChange(event);
                       setShowLocationPicker(false);
                     } else {
                       alert('Iltimos, xaritadan manzilni tanlang');
