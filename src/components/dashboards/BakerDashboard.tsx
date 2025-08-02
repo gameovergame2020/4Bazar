@@ -363,12 +363,31 @@ const BakerDashboard = () => {
       // Agar buyurtma rad etilsa va mahsulot mavjud bo'lsa, sonini qaytarish
       if (status === 'cancelled' && order) {
         const cake = myCakes.find(c => c.id === order.cakeId);
-        if (cake && cake.quantity !== undefined) {
-          const newQuantity = cake.quantity + order.quantity;
-          await dataService.updateCake(order.cakeId, {
-            quantity: newQuantity,
-            available: newQuantity > 0  // Miqdor 0 dan katta bo'lsa available = true
-          });
+        if (cake) {
+          // Baker mahsulotlari uchun amount va quantity ni to'g'ri boshqarish
+          const updateData: any = {};
+          
+          if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
+            // Baker mahsulotlari uchun amount kamayishi va available holatini tekshirish
+            const newAmount = Math.max(0, (cake.amount || 0) - order.quantity);
+            updateData.amount = newAmount;
+            
+            // Agar amount 0 ga teng bo'lsa, mahsulot "Buyurtma uchun" holatida qoladi
+            if (newAmount === 0) {
+              updateData.available = false;
+            }
+            // Agar quantity mavjud bo'lsa va 0 dan katta, available = true
+            else if (cake.quantity !== undefined && cake.quantity > 0) {
+              updateData.available = true;
+            }
+          } else {
+            // Shop mahsulotlari uchun quantity qaytarish
+            const newQuantity = (cake.quantity || 0) + order.quantity;
+            updateData.quantity = newQuantity;
+            updateData.available = newQuantity > 0;
+          }
+          
+          await dataService.updateCake(order.cakeId, updateData);
 
           // Local state'dagi tort ma'lumotlarini yangilash
           setMyCakes(prev => 
@@ -376,8 +395,7 @@ const BakerDashboard = () => {
               c.id === order.cakeId 
                 ? { 
                     ...c, 
-                    quantity: newQuantity,
-                    available: newQuantity > 0 
+                    ...updateData
                   }
                 : c
             )
