@@ -254,37 +254,34 @@ class DataService {
     return phone;
   }
 
-  // Foydalanuvchi buyurtmalarini customer ID bo'yicha olish (optimallashtirilgan)
+  // Foydalanuvchi buyurtmalarini customer ID bo'yicha olish (optimallashtirilgan va tezroq)
   async getOrdersByCustomerId(customerId: string): Promise<Order[]> {
     try {
-      console.log('🆔 Buyurtmalar yuklanmoqda customer ID:', customerId);
-
       if (!customerId || customerId.trim() === '') {
-        console.log('⚠️ Bo\'sh customer ID');
         return [];
       }
 
-      // Customer ID bo'yicha to'g'ridan-to'g'ri Firebase query
+      // Customer ID bo'yicha to'g'ridan-to'g'ri Firebase query (limit bilan)
       const customerIdQuery = query(
         collection(db, 'orders'),
         where('customerId', '==', customerId.trim()),
-        orderBy('createdAt', 'desc')
+        orderBy('createdAt', 'desc'),
+        limit(50) // Faqat eng oxirgi 50 ta buyurtma
       );
 
-      console.log('🔍 Customer ID bo\'yicha qidiruv...');
       const querySnapshot = await getDocs(customerIdQuery);
       
       if (querySnapshot.empty) {
-        console.log('📭 Customer ID bo\'yicha buyurtma topilmadi');
         return [];
       }
 
       const orders: Order[] = [];
       
-      querySnapshot.forEach((doc) => {
+      // Batch processing uchun promise array
+      const promises = querySnapshot.docs.map(async (doc) => {
         try {
           const data = doc.data();
-          const order: Order = {
+          return {
             id: doc.id,
             customerId: data.customerId || 'unknown',
             customerName: data.customerName || 'Noma\'lum',
@@ -303,26 +300,17 @@ class DataService {
             createdAt: data.createdAt?.toDate() || new Date(),
             updatedAt: data.updatedAt?.toDate() || new Date(),
             deliveryTime: data.deliveryTime?.toDate()
-          };
-
-          orders.push(order);
+          } as Order;
         } catch (parseError) {
-          console.warn('⚠️ Buyurtma parse qilishda xato:', doc.id, parseError);
+          console.warn('⚠️ Buyurtma parse qilishda xato:', doc.id);
+          return null;
         }
       });
 
-      console.log('✅ Customer ID bo\'yicha topildi:', orders.length, 'ta buyurtma');
+      const results = await Promise.all(promises);
+      const validOrders = results.filter(order => order !== null) as Order[];
       
-      if (orders.length > 0) {
-        console.log('📋 Topilgan buyurtmalar:', orders.slice(0, 5).map(order => ({
-          id: order.id?.slice(-8),
-          cake: order.cakeName,
-          status: order.status,
-          date: order.createdAt.toDateString()
-        })));
-      }
-      
-      return orders;
+      return validOrders;
     } catch (error) {
       console.error('❌ Customer ID bo\'yicha buyurtmalarni yuklashda xato:', error);
       return [];
@@ -1360,48 +1348,65 @@ class DataService {
     });
   }
 
-  // Buyurtmalar holatini real-time kuzatish (optimallashtirilgan)
+  // Buyurtmalar holatini real-time kuzatish (tezlashtirilgan)
   subscribeToOrders(callback: (orders: Order[]) => void, filters?: { customerId?: string }) {
-    let q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(100)); // Limit qo'shish
+    let q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(30)); // Limit kamaytirildi
 
     if (filters?.customerId) {
-      q = query(q, where('customerId', '==', filters.customerId));
+      q = query(
+        collection(db, 'orders'), 
+        where('customerId', '==', filters.customerId),
+        orderBy('createdAt', 'desc'),
+        limit(20) // Customer uchun yanada kam limit
+      );
     }
 
     return onSnapshot(q, (querySnapshot) => {
       try {
-        const orders = querySnapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            customerId: data.customerId || 'unknown',
-            customerName: data.customerName || 'Noma\'lum',
-            customerPhone: data.customerPhone || '',
-            cakeId: data.cakeId || '',
-            cakeName: data.cakeName || '',
-            quantity: data.quantity || 1,
-            amount: data.amount,
-            totalPrice: data.totalPrice || 0,
-            status: data.status || 'pending',
-            deliveryAddress: data.deliveryAddress || '',
-            coordinates: data.coordinates,
-            paymentMethod: data.paymentMethod,
-            paymentType: data.paymentType,
-            notes: data.notes,
-            createdAt: data.createdAt?.toDate() || new Date(),
-            updatedAt: data.updatedAt?.toDate() || new Date(),
-            deliveryTime: data.deliveryTime?.toDate()
-          } as Order;
+        // Batch processing bilan tezlashtirish
+        const ordersPromises = querySnapshot.docs.map(async (doc) => {
+          try {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              customerId: data.customerId || 'unknown',
+              customerName: data.customerName || 'Noma\'lum',
+              customerPhone: data.customerPhone || '',
+              cakeId: data.cakeId || '',
+              cakeName: data.cakeName || '',
+              quantity: data.quantity || 1,
+              amount: data.amount,
+              totalPrice: data.totalPrice || 0,
+              status: data.status || 'pending',
+              deliveryAddress: data.deliveryAddress || '',
+              coordinates: data.coordinates,
+              paymentMethod: data.paymentMethod,
+              paymentType: data.paymentType,
+              notes: data.notes,
+              createdAt: data.createdAt?.toDate() || new Date(),
+              updatedAt: data.updatedAt?.toDate() || new Date(),
+              deliveryTime: data.deliveryTime?.toDate()
+            } as Order;
+          } catch (parseError) {
+            return null;
+          }
         });
 
-        callback(orders);
+        Promise.all(ordersPromises).then(results => {
+          const validOrders = results.filter(order => order !== null) as Order[];
+          callback(validOrders);
+        }).catch(error => {
+          console.error('❌ Batch processing xatosi:', error);
+          callback([]);
+        });
+
       } catch (error) {
         console.error('❌ Subscription callback xatosi:', error);
-        callback([]); // Empty array on error
+        callback([]);
       }
     }, (error) => {
       console.error('❌ Subscription xatosi:', error);
-      callback([]); // Empty array on error
+      callback([]);
     });
   }
 }
