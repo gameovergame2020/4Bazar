@@ -465,9 +465,13 @@ const addToCart = (cakeId: string) => {
                     </div>
                     <span className="text-xs text-gray-500">
                       {cake.productType === 'baked' 
-                        ? cake.amount !== undefined 
-                          ? `Buyurtma qilingan: ${cake.amount} ta`
-                          : 'Buyurtma yo\'q'
+                        ? cake.available
+                          ? cake.quantity !== undefined 
+                            ? `Qoldi: ${cake.quantity} ta`
+                            : 'Miqdor: cheklanmagan'
+                          : cake.amount !== undefined 
+                            ? `Buyurtma qilingan: ${cake.amount} ta`
+                            : 'Buyurtma yo\'q'
                         : cake.quantity !== undefined 
                           ? `Qoldi: ${cake.quantity} ta`
                           : 'Miqdor: cheklanmagan'
@@ -590,9 +594,13 @@ const addToCart = (cakeId: string) => {
                       </div>
                       <span className="text-xs text-gray-500">
                         {cake.productType === 'baked' 
-                          ? cake.amount !== undefined 
-                            ? `Buyurtma qilingan: ${cake.amount} ta`
-                            : 'Buyurtma yo\'q'
+                          ? cake.available
+                            ? cake.quantity !== undefined 
+                              ? `Qoldi: ${cake.quantity} ta`
+                              : 'Miqdor: cheklanmagan'
+                            : cake.amount !== undefined 
+                              ? `Buyurtma qilingan: ${cake.amount} ta`
+                              : 'Buyurtma yo\'q'
                           : cake.quantity !== undefined 
                             ? `Qoldi: ${cake.quantity} ta`
                             : 'Miqdor: cheklanmagan'
