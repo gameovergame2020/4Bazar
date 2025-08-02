@@ -43,13 +43,47 @@ interface UserStats {
   admins: number;
 }
 
+interface Department {
+  id?: string;
+  name: string;
+  description: string;
+  color: string;
+  managerId?: string;
+  managerName?: string;
+  memberCount: number;
+  permissions: string[];
+  budget?: number;
+  location?: string;
+  phone?: string;
+  email?: string;
+  status: 'active' | 'inactive';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 const AdminDashboard = () => {
   const { userData } = useAuth();
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
   const [cakes, setCakes] = useState<Cake[]>([]);
   const [users, setUsers] = useState<UserData[]>([]);
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'users' | 'orders' | 'system' | 'settings' | 'statistics'>('overview');
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [selectedTab, setSelectedTab] = useState<'overview' | 'users' | 'orders' | 'system' | 'settings' | 'statistics' | 'departments'>('overview');
+  
+  // Bo'limlar uchun formalar
+  const [showDepartmentForm, setShowDepartmentForm] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+  const [departmentForm, setDepartmentForm] = useState({
+    name: '',
+    description: '',
+    color: '#3B82F6',
+    managerId: '',
+    budget: '',
+    location: '',
+    phone: '',
+    email: '',
+    permissions: [] as string[]
+  });
   const [statistics, setStatistics] = useState<{
     available: any;
     orderBased: any;
@@ -88,13 +122,15 @@ const AdminDashboard = () => {
       setLoading(true);
 
       // Load all data
-      const [ordersData, cakesData] = await Promise.all([
+      const [ordersData, cakesData, departmentsData] = await Promise.all([
         dataService.getOrders(),
-        dataService.getCakes() // Barcha mahsulotlar (baker va shop)
+        dataService.getCakes(), // Barcha mahsulotlar (baker va shop)
+        dataService.getDepartments()
       ]);
 
       setOrders(ordersData);
       setCakes(cakesData);
+      setDepartments(departmentsData);
 
       // Calculate metrics
       const totalOrders = ordersData.length;
@@ -256,6 +292,61 @@ const AdminDashboard = () => {
     }
   };
 
+  // Bo'lim saqlash/yangilash
+  const handleSaveDepartment = async () => {
+    try {
+      if (!departmentForm.name.trim()) {
+        alert('Bo\'lim nomini kiriting');
+        return;
+      }
+
+      const departmentData: Omit<Department, 'id' | 'createdAt' | 'updatedAt'> = {
+        name: departmentForm.name.trim(),
+        description: departmentForm.description.trim(),
+        color: departmentForm.color,
+        managerId: departmentForm.managerId || undefined,
+        managerName: departmentForm.managerId ? 
+          users.find(u => u.id === departmentForm.managerId)?.name : undefined,
+        memberCount: 0,
+        permissions: departmentForm.permissions,
+        budget: departmentForm.budget ? parseFloat(departmentForm.budget) : undefined,
+        location: departmentForm.location.trim() || undefined,
+        phone: departmentForm.phone.trim() || undefined,
+        email: departmentForm.email.trim() || undefined,
+        status: 'active'
+      };
+
+      if (editingDepartment) {
+        await dataService.updateDepartment(editingDepartment.id!, departmentData);
+        alert('Bo\'lim muvaffaqiyatli yangilandi');
+      } else {
+        await dataService.createDepartment(departmentData);
+        alert('Bo\'lim muvaffaqiyatli yaratildi');
+      }
+
+      setShowDepartmentForm(false);
+      setEditingDepartment(null);
+      loadData();
+    } catch (error) {
+      console.error('Bo\'lim saqlashda xato:', error);
+      alert('Xatolik yuz berdi');
+    }
+  };
+
+  // Bo'limni o'chirish
+  const handleDeleteDepartment = async (departmentId: string, departmentName: string) => {
+    if (window.confirm(`"${departmentName}" bo'limini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.`)) {
+      try {
+        await dataService.deleteDepartment(departmentId);
+        alert('Bo\'lim o\'chirildi');
+        loadData();
+      } catch (error) {
+        console.error('Bo\'limni o\'chirishda xato:', error);
+        alert('Xatolik yuz berdi');
+      }
+    }
+  };
+
   if (loading && orders.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-96">
@@ -281,6 +372,7 @@ const AdminDashboard = () => {
           {[
             { id: 'overview', label: 'Umumiy ko\'rinish', icon: BarChart3 },
             { id: 'users', label: 'Foydalanuvchilar', icon: Users },
+            { id: 'departments', label: 'Bo\'limlar', icon: Globe },
             { id: 'orders', label: 'Buyurtmalar', icon: Package },
             { id: 'statistics', label: 'Statistika', icon: PieChart },
             { id: 'system', label: 'Tizim', icon: Server },
@@ -290,7 +382,7 @@ const AdminDashboard = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setSelectedTab(tab.id as 'overview' | 'users' | 'orders' | 'system' | 'settings' | 'statistics')}
+                onClick={() => setSelectedTab(tab.id as 'overview' | 'users' | 'orders' | 'system' | 'settings' | 'statistics' | 'departments')}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
                   selectedTab === tab.id
                     ? 'bg-red-500 text-white'
@@ -869,6 +961,360 @@ const AdminDashboard = () => {
                   <span className="text-gray-700">{log.message}</span>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Departments Tab */}
+      {selectedTab === 'departments' && (
+        <div className="space-y-6">
+          {/* Bo'limlar boshqaruvi */}
+          <div className="bg-white rounded-2xl p-6 border border-gray-100">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Bo'limlar boshqaruvi</h3>
+              <button 
+                onClick={() => {
+                  setEditingDepartment(null);
+                  setDepartmentForm({
+                    name: '',
+                    description: '',
+                    color: '#3B82F6',
+                    managerId: '',
+                    budget: '',
+                    location: '',
+                    phone: '',
+                    email: '',
+                    permissions: []
+                  });
+                  setShowDepartmentForm(true);
+                }}
+                className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                <Plus size={16} />
+                <span>Yangi bo'lim</span>
+              </button>
+            </div>
+
+            {/* Bo'limlar ro'yxati */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {departments.map((dept) => (
+                <div key={dept.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-shadow">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div 
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: dept.color }}
+                      ></div>
+                      <h4 className="font-medium text-gray-900">{dept.name}</h4>
+                    </div>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      dept.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {dept.status === 'active' ? 'Faol' : 'Nofaol'}
+                    </span>
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 mb-3">{dept.description}</p>
+                  
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Xodimlar:</span>
+                      <span className="font-medium">{dept.memberCount} ta</span>
+                    </div>
+                    {dept.managerName && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Menejer:</span>
+                        <span className="font-medium">{dept.managerName}</span>
+                      </div>
+                    )}
+                    {dept.budget && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Byudjet:</span>
+                        <span className="font-medium">{dept.budget.toLocaleString()} so'm</span>
+                      </div>
+                    )}
+                    {dept.location && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Joylashuv:</span>
+                        <span className="font-medium">{dept.location}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex space-x-2 mt-4 pt-3 border-t border-gray-100">
+                    <button 
+                      onClick={() => {
+                        setEditingDepartment(dept);
+                        setDepartmentForm({
+                          name: dept.name,
+                          description: dept.description,
+                          color: dept.color,
+                          managerId: dept.managerId || '',
+                          budget: dept.budget?.toString() || '',
+                          location: dept.location || '',
+                          phone: dept.phone || '',
+                          email: dept.email || '',
+                          permissions: dept.permissions
+                        });
+                        setShowDepartmentForm(true);
+                      }}
+                      className="flex-1 bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
+                    >
+                      Tahrirlash
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteDepartment(dept.id!, dept.name)}
+                      className="flex-1 bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
+                    >
+                      O'chirish
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {departments.length === 0 && (
+              <div className="text-center py-12">
+                <Globe size={48} className="mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Bo'limlar mavjud emas</h3>
+                <p className="text-gray-600 mb-4">Birinchi bo'limni yaratish uchun yuqoridagi tugmani bosing</p>
+              </div>
+            )}
+          </div>
+
+          {/* Bo'limlar statistikasi */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white rounded-xl p-4 border border-gray-100">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Globe size={20} className="text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{departments.length}</p>
+                  <p className="text-sm text-gray-600">Jami bo'limlar</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 border border-gray-100">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Activity size={20} className="text-green-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {departments.filter(d => d.status === 'active').length}
+                  </p>
+                  <p className="text-sm text-gray-600">Faol bo'limlar</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 border border-gray-100">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Users size={20} className="text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {departments.reduce((sum, d) => sum + d.memberCount, 0)}
+                  </p>
+                  <p className="text-sm text-gray-600">Jami xodimlar</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 border border-gray-100">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-orange-100 rounded-lg">
+                  <DollarSign size={20} className="text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {Math.round(departments.reduce((sum, d) => sum + (d.budget || 0), 0) / 1000000)}M
+                  </p>
+                  <p className="text-sm text-gray-600">Jami byudjet</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bo'lim qo'shish/tahrirlash modali */}
+      {showDepartmentForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl m-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {editingDepartment ? 'Bo\'limni tahrirlash' : 'Yangi bo\'lim qo\'shish'}
+              </h2>
+              <button 
+                onClick={() => setShowDepartmentForm(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Bo'lim nomi */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Bo'lim nomi *</label>
+                <input
+                  type="text"
+                  value={departmentForm.name}
+                  onChange={(e) => setDepartmentForm({...departmentForm, name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Masalan: IT bo'limi"
+                  required
+                />
+              </div>
+
+              {/* Tavsif */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tavsif</label>
+                <textarea
+                  value={departmentForm.description}
+                  onChange={(e) => setDepartmentForm({...departmentForm, description: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                  placeholder="Bo'lim haqida qisqacha ma'lumot"
+                />
+              </div>
+
+              {/* Rang */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rang</label>
+                <input
+                  type="color"
+                  value={departmentForm.color}
+                  onChange={(e) => setDepartmentForm({...departmentForm, color: e.target.value})}
+                  className="w-20 h-10 border border-gray-300 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Menejer */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Menejer</label>
+                  <select
+                    value={departmentForm.managerId}
+                    onChange={(e) => setDepartmentForm({...departmentForm, managerId: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Menejer tanlanmagan</option>
+                    {users.filter(u => u.role === 'admin' || u.role === 'operator').map((user) => (
+                      <option key={user.id} value={user.id}>{user.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Byudjet */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Byudjet (so'm)</label>
+                  <input
+                    type="number"
+                    value={departmentForm.budget}
+                    onChange={(e) => setDepartmentForm({...departmentForm, budget: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="0"
+                  />
+                </div>
+
+                {/* Joylashuv */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Joylashuv</label>
+                  <input
+                    type="text"
+                    value={departmentForm.location}
+                    onChange={(e) => setDepartmentForm({...departmentForm, location: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Masalan: 2-qavat, 201-xona"
+                  />
+                </div>
+
+                {/* Telefon */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
+                  <input
+                    type="tel"
+                    value={departmentForm.phone}
+                    onChange={(e) => setDepartmentForm({...departmentForm, phone: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="+998 99 123 45 67"
+                  />
+                </div>
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={departmentForm.email}
+                  onChange={(e) => setDepartmentForm({...departmentForm, email: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="department@company.com"
+                />
+              </div>
+
+              {/* Ruxsatlar */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Ruxsatlar</label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {[
+                    'create_orders', 'manage_users', 'view_analytics', 
+                    'manage_products', 'financial_access', 'system_settings'
+                  ].map((permission) => (
+                    <label key={permission} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={departmentForm.permissions.includes(permission)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setDepartmentForm({
+                              ...departmentForm, 
+                              permissions: [...departmentForm.permissions, permission]
+                            });
+                          } else {
+                            setDepartmentForm({
+                              ...departmentForm, 
+                              permissions: departmentForm.permissions.filter(p => p !== permission)
+                            });
+                          }
+                        }}
+                        className="rounded border-gray-300"
+                      />
+                      <span className="text-sm text-gray-600">
+                        {permission === 'create_orders' ? 'Buyurtma yaratish' :
+                         permission === 'manage_users' ? 'Foydalanuvchilar' :
+                         permission === 'view_analytics' ? 'Analitika' :
+                         permission === 'manage_products' ? 'Mahsulotlar' :
+                         permission === 'financial_access' ? 'Moliya' :
+                         'Tizim sozlamalari'}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex space-x-4 mt-6 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => setShowDepartmentForm(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Bekor qilish
+              </button>
+              <button
+                onClick={handleSaveDepartment}
+                disabled={!departmentForm.name.trim()}
+                className="flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {editingDepartment ? 'Yangilash' : 'Saqlash'}
+              </button>
             </div>
           </div>
         </div>

@@ -1575,6 +1575,160 @@ class DataService {
     }
   }
 
+  // BO'LIMLAR BILAN ISHLASH
+
+  // Yangi bo'lim yaratish
+  async createDepartment(departmentData: any): Promise<string> {
+    try {
+      const newDepartment = {
+        ...departmentData,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
+      };
+
+      const docRef = await addDoc(collection(db, 'departments'), newDepartment);
+      console.log('✅ Yangi bo\'lim yaratildi:', docRef.id);
+      return docRef.id;
+    } catch (error) {
+      console.error('❌ Bo\'lim yaratishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Barcha bo'limlarni olish
+  async getDepartments(): Promise<any[]> {
+    try {
+      const q = query(collection(db, 'departments'), orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate() || new Date(),
+        updatedAt: doc.data().updatedAt?.toDate() || new Date()
+      }));
+    } catch (error) {
+      console.error('❌ Bo\'limlarni olishda xatolik:', error);
+      // Bo'limlar mavjud bo'lmasa bo'sh array qaytarish
+      return [];
+    }
+  }
+
+  // Bo'limni yangilash
+  async updateDepartment(departmentId: string, updates: any): Promise<void> {
+    try {
+      const updateData = {
+        ...updates,
+        updatedAt: Timestamp.now()
+      };
+
+      await updateDoc(doc(db, 'departments', departmentId), updateData);
+      console.log('✅ Bo\'lim yangilandi:', departmentId);
+    } catch (error) {
+      console.error('❌ Bo\'limni yangilashda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Bo'limni o'chirish
+  async deleteDepartment(departmentId: string): Promise<void> {
+    try {
+      await deleteDoc(doc(db, 'departments', departmentId));
+      console.log('✅ Bo\'lim o\'chirildi:', departmentId);
+    } catch (error) {
+      console.error('❌ Bo\'limni o\'chirishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Bitta bo'limni olish
+  async getDepartmentById(departmentId: string): Promise<any | null> {
+    try {
+      const docRef = doc(db, 'departments', departmentId);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        return {
+          id: docSnap.id,
+          ...docSnap.data(),
+          createdAt: docSnap.data().createdAt?.toDate() || new Date(),
+          updatedAt: docSnap.data().updatedAt?.toDate() || new Date()
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('❌ Bo\'limni olishda xatolik:', error);
+      return null;
+    }
+  }
+
+  // Bo'lim xodimlarini olish
+  async getDepartmentMembers(departmentId: string): Promise<UserData[]> {
+    try {
+      const q = query(
+        collection(db, 'users'), 
+        where('departmentId', '==', departmentId),
+        orderBy('name', 'asc')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        joinDate: doc.data().createdAt?.toDate()?.toISOString() || new Date().toISOString(),
+        createdAt: doc.data().createdAt?.toDate() || new Date(),
+        updatedAt: doc.data().updatedAt?.toDate() || new Date()
+      } as UserData));
+    } catch (error) {
+      console.error('❌ Bo\'lim xodimlarini olishda xatolik:', error);
+      return [];
+    }
+  }
+
+  // Foydalanuvchini bo'limga tayinlash
+  async assignUserToDepartment(userId: string, departmentId: string): Promise<void> {
+    try {
+      await updateDoc(doc(db, 'users', userId), {
+        departmentId,
+        updatedAt: Timestamp.now()
+      });
+
+      // Bo'limdagi xodimlar sonini yangilash
+      const departmentMembers = await this.getDepartmentMembers(departmentId);
+      await updateDoc(doc(db, 'departments', departmentId), {
+        memberCount: departmentMembers.length + 1,
+        updatedAt: Timestamp.now()
+      });
+
+      console.log('✅ Foydalanuvchi bo\'limga tayinlandi');
+    } catch (error) {
+      console.error('❌ Foydalanuvchini bo\'limga tayinlashda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Foydalanuvchini bo'limdan chiqarish
+  async removeUserFromDepartment(userId: string, departmentId: string): Promise<void> {
+    try {
+      await updateDoc(doc(db, 'users', userId), {
+        departmentId: null,
+        updatedAt: Timestamp.now()
+      });
+
+      // Bo'limdagi xodimlar sonini yangilash
+      const departmentMembers = await this.getDepartmentMembers(departmentId);
+      await updateDoc(doc(db, 'departments', departmentId), {
+        memberCount: Math.max(0, departmentMembers.length - 1),
+        updatedAt: Timestamp.now()
+      });
+
+      console.log('✅ Foydalanuvchi bo\'limdan chiqarildi');
+    } catch (error) {
+      console.error('❌ Foydalanuvchini bo\'limdan chiqarishda xatolik:', error);
+      throw error;
+    }
+  }
+
   // REAL-TIME YANGILANISHLAR
 
   // Tortlarni real-time kuzatish
