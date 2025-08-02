@@ -112,16 +112,16 @@ class DataService {
         updatedAt: Timestamp.now()
       };
       
-      // Baker mahsulotlari uchun amount = 0 bilan boshlash
-      if (cake.productType === 'baked') {
-        cakeData.amount = cake.amount || 0;
-      }
-      
       // Quantity maydonini faqat qiymat mavjud bo'lsa qo'shish
       if (cake.quantity !== undefined && cake.quantity !== null) {
         cakeData.quantity = cake.quantity;
       } else if (cake.productType === 'ready') {
         cakeData.quantity = 0; // Shop mahsulotlari uchun default 0
+      }
+      
+      // Amount maydonini faqat baker mahsulotlari uchun qo'shish
+      if (cake.productType === 'baked') {
+        cakeData.amount = cake.amount || 0;
       }
       
       // undefined qiymatlarni olib tashlash
