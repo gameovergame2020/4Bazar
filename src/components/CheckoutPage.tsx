@@ -67,7 +67,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, products, onBack
 
       console.log('🗺️ Yandex Maps yuklanmoqda, API kalit:', apiKey);
 
-      script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&coordorder=lonlat&load=package.full`;
+      script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&load=package.full`;
       script.type = 'text/javascript';
       script.async = true;
 
@@ -113,7 +113,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, products, onBack
       if (mapRef.current && !mapInstanceRef.current) {
         try {
           mapInstanceRef.current = new window.ymaps.Map(mapRef.current, {
-            center: [69.240562, 41.311158], // Toshkent markazi (lon, lat)
+            center: [41.311158, 69.240562], // Toshkent markazi (lat, lon)
             zoom: 12,
             controls: ['zoomControl', 'fullscreenControl', 'geolocationControl']
           });
@@ -143,7 +143,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, products, onBack
       const coords = e.get('coords');
       console.log('📍 Xaritada bosilgan koordinata:', coords);
 
-      setSelectedCoordinates([coords[0], coords[1]]);
+      setSelectedCoordinates([coords[1], coords[0]]); // [lat, lon] formatida saqlash
 
       // Eski belgilarni olib tashlash
       if (placemarkRef.current && mapInstanceRef.current) {
@@ -185,11 +185,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, products, onBack
       const result = await window.ymaps.geocode(coords, {
         kind: 'house',
         results: 1,
-        skip: 0,
         lang: 'uz_UZ'
       });
 
-      console.log('🔍 Geocoding result:', result);
+      console.log('🔍 Geocoding natijasi:', result);
 
       const firstGeoObject = result.geoObjects.get(0);
       if (firstGeoObject) {
@@ -231,12 +230,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, products, onBack
         return;
       }
 
-      const result = await window.ymaps.geocode(query, {
+      const result = await window.ymaps.geocode(`Uzbekistan, Tashkent, ${query}`, {
         kind: 'house',
         results: 5,
-        skip: 0,
         lang: 'uz_UZ',
-        boundedBy: [[67.0, 40.0], [71.0, 42.0]] // O'zbekiston chegaralari
+        boundedBy: [[40.0, 67.0], [42.0, 71.0]] // O'zbekiston chegaralari
       });
 
       const suggestions: string[] = [];
@@ -276,7 +274,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, products, onBack
       const result = await window.ymaps.geocode(address, {
         kind: 'house',
         results: 1,
-        skip: 0,
         lang: 'uz_UZ'
       });
 
@@ -502,7 +499,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, products, onBack
 
               {selectedCoordinates && !geocodingError && (
                 <p className="text-sm text-green-600">
-                  ✅ Manzil tanlandi: {selectedCoordinates[1].toFixed(6)}, {selectedCoordinates[0].toFixed(6)}
+                  ✅ Manzil tanlandi: {selectedCoordinates[0].toFixed(6)}, {selectedCoordinates[1].toFixed(6)}
                 </p>
               )}
             </div>
