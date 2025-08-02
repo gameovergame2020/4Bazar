@@ -331,7 +331,7 @@ const ShopDashboard = () => {
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Mahsulot</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Kategoriya</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Narx</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-900">Zaxira</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Qoldi</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Holat</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Amallar</th>
               </tr>

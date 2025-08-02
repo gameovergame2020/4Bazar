@@ -454,11 +454,9 @@ const CustomerDashboard = () => {
 
                 <p className="text-xs text-gray-500 mb-2">
                   {cake.productType === 'baked' 
-                    ? cake.available 
-                      ? cake.quantity !== undefined 
-                        ? `Qoldiq: ${cake.quantity} ta`
-                        : 'Miqdor: cheklanmagan'
-                      : `Buyurtma qilingan: ${cake.quantity || 0} ta` 
+                    ? cake.amount !== undefined 
+                      ? `Buyurtma qilingan: ${cake.amount} ta`
+                      : 'Buyurtma yo\'q'
                     : cake.quantity !== undefined 
                       ? `Qoldi: ${cake.quantity} ta`
                       : 'Miqdor: cheklanmagan'
