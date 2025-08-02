@@ -482,35 +482,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     }
 
     try {
-      // Haqiqiy foydalanuvchi ID sini olish va yaratish
-      let userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
-      
-      // Agar ID mavjud bo'lmasa, telefon raqami asosida yaratish
-      if (!userId) {
-        // Telefon raqamini normalize qilish
-        const normalizedPhone = userInfo.phone.replace(/\D/g, ''); // Faqat raqamlar
-        userId = `customer_${normalizedPhone}_${Date.now()}`;
-        
-        // ID ni saqlash (ikkala joyga ham)
-        localStorage.setItem('userId', userId);
-        sessionStorage.setItem('userId', userId);
-        
-        console.log('🆔 Yangi customer ID yaratildi:', userId);
-      } else {
-        console.log('🆔 Mavjud customer ID dan foydalanilmoqda:', userId);
-      }
-      
-      // Customer ID ni phone bilan ham bog'lash
-      if (userInfo.phone) {
-        const phoneKey = `phone_${userInfo.phone.replace(/\D/g, '')}`;
-        localStorage.setItem(phoneKey, userId);
-      }
-
-      console.log('🛒 Customer ID dan foydalanilmoqda:', userId);
       console.log('📱 Customer telefon:', userInfo.phone);
 
       const orderData = {
-        customerId: userId.toString(), // String formatida saqlash
         customerName: userInfo.name.trim(),
         customerPhone: userInfo.phone.trim(),
         cakeId: cartProducts[0]?.id || '', // Birinchi mahsulot ID si
@@ -601,26 +575,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     const finalPaymentType = paymentType || userInfo.paymentType;
 
     try {
-      // Haqiqiy foydalanuvchi ID sini olish va yaratish
-      let userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
-      
-      // Agar ID mavjud bo'lmasa, telefon raqami asosida yaratish
-      if (!userId) {
-        // Telefon raqamini normalize qilish
-        const normalizedPhone = userInfo.phone.replace(/\D/g, ''); // Faqat raqamlar
-        userId = `customer_${normalizedPhone}_${Date.now()}`;
-        
-        // ID ni saqlash
-        localStorage.setItem('userId', userId);
-        sessionStorage.setItem('userId', userId);
-        
-        console.log('🆔 Yangi customer ID yaratildi (processOrder):', userId);
-      }
-
-      console.log('🛒 Foydalanuvchi ID dan foydalanilmoqda (processOrder):', userId);
-
       const orderData = {
-        userId: userId.toString(), // Faqat userId ishlatiladi
         customerName: userInfo.name,
         customerPhone: userInfo.phone,
         cakeId: cartProducts[0]?.id || '',

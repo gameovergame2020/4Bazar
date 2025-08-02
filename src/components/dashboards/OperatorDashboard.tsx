@@ -476,16 +476,16 @@ const OperatorDashboard = () => {
     }
   };
 
-  // Foydalanuvchi ID bo'yicha buyurtmalarni qidirish
-  const handleSearchByUserId = async () => {
+  // Customer phone bo'yicha buyurtmalarni qidirish
+  const handleSearchByPhone = async () => {
     if (!searchPhone.trim()) {
-      alert('Foydalanuvchi ID ni kiriting');
+      alert('Telefon raqamni kiriting');
       return;
     }
 
     try {
       setIsSearching(true);
-      console.log('🔍 Foydalanuvchi ID bo\'yicha qidiruv:', searchPhone);
+      console.log('🔍 Telefon raqam bo\'yicha qidiruv:', searchPhone);
 
       const foundOrders = await dataService.getOrdersByUserId(searchPhone.trim());
 
@@ -494,7 +494,7 @@ const OperatorDashboard = () => {
         // Update the main orders list with found orders
         setOrders(foundOrders);
       } else {
-        alert('Bu foydalanuvchi ID bo\'yicha buyurtma topilmadi');
+        alert('Bu telefon raqam bo\'yicha buyurtma topilmadi');
       }
     } catch (error) {
       console.error('❌ Qidirishda xato:', error);
@@ -875,12 +875,12 @@ const OperatorDashboard = () => {
                 type="text"
                 value={searchPhone}
                 onChange={(e) => setSearchPhone(e.target.value)}
-                placeholder="Foydalanuvchi ID ni kiriting..."
+                placeholder="Telefon raqamni kiriting..."
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyPress={(e) => e.key === 'Enter' && handleSearchByCustomerId()}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearchByPhone()}
               />
               <button
-                onClick={handleSearchByCustomerId}
+                onClick={handleSearchByPhone}
                 disabled={isSearching}
                 className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center space-x-2"
               >
@@ -892,7 +892,7 @@ const OperatorDashboard = () => {
                 ) : (
                   <>
                     <Search size={16} />
-                    <span>ID bo'yicha qidirish</span>
+                    <span>Telefon bo'yicha qidirish</span>
                   </>
                 )}
               </button>
