@@ -43,11 +43,12 @@ export interface Cake {
 // Buyurtmalar uchun interface
 export interface Order {
   id?: string;
-  orderUniqueId?: string; // Har bir buyurtma uchun noyob ID
+  orderUniqueId?: string; // Har bir buyurtma uchun bir martalik noyob ID
   customerId: string;
+  userId?: string; // Foydalanuvchi ID reference uchun
   customerName: string;
   customerPhone: string;
-  cakeId: string;
+  cakeId: string; // Mahsulot uchun bir martalik noyob ID
   cakeName: string;
   quantity: number;
   amount?: number; // Mahsulot amount maydonini tracking qilish uchun
@@ -217,25 +218,33 @@ class DataService {
   // Yangi buyurtma yaratish
   async createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     try {
-      // Har bir buyurtma uchun noyob order ID yaratish
-      const orderTimestamp = Date.now();
-      const orderUniqueId = `ORD_${order.customerId}_${order.cakeId}_${orderTimestamp}`;
+      // Noyob buyurtma ID yaratish - bir martalik va takrorlanmas
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substr(2, 9); // 9 ta random belgi
+      const uniqueOrderId = `ORD_${timestamp}_${randomSuffix}`;
       
-      console.log('🆔 Yangi buyurtma ID yaratildi:', orderUniqueId);
-      console.log('👤 Customer ID:', order.customerId);
-      console.log('🍰 Cake ID:', order.cakeId);
+      // Foydalanuvchi ID ni to'g'ri formatlash va saqlash
+      const cleanUserId = order.customerId?.toString().trim() || '';
+      
+      console.log('🆔 Noyob buyurtma ID yaratildi:', uniqueOrderId);
+      console.log('👤 Foydalanuvchi ID:', cleanUserId);
+      console.log('🍰 Mahsulot ID:', order.cakeId);
       
       const orderData = {
         ...order,
-        orderUniqueId, // Qo'shimcha noyob identifikator
+        orderUniqueId: uniqueOrderId, // Bir martalik noyob ID
+        customerId: cleanUserId, // Foydalanuvchi ID ni saqlash
+        userId: cleanUserId, // Qo'shimcha user reference uchun
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       };
 
+      // Firebase'ga buyurtma qo'shish
       const docRef = await addDoc(collection(db, 'orders'), orderData);
       
-      console.log('✅ Firebase document ID:', docRef.id);
-      console.log('🆔 Order unique ID:', orderUniqueId);
+      console.log('✅ Firebase hujjat ID:', docRef.id);
+      console.log('🆔 Noyob buyurtma ID:', uniqueOrderId);
+      console.log('👤 Saqlangan foydalanuvchi ID:', cleanUserId);
       
       return docRef.id;
     } catch (error) {
@@ -297,6 +306,7 @@ class DataService {
             id: doc.id,
             orderUniqueId: data.orderUniqueId || doc.id,
             customerId: data.customerId,
+            userId: data.userId || data.customerId, // userId maydonini qo'shish
             customerName: data.customerName || 'Noma\'lum mijoz',
             customerPhone: data.customerPhone || '',
             cakeId: data.cakeId,
@@ -366,6 +376,7 @@ class DataService {
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         orderUniqueId: doc.data().orderUniqueId,
+        userId: doc.data().userId || doc.data().customerId,
         ...doc.data(),
         createdAt: doc.data().createdAt.toDate(),
         updatedAt: doc.data().updatedAt.toDate(),
@@ -1289,6 +1300,7 @@ class DataService {
               id: doc.id,
               orderUniqueId: data.orderUniqueId,
               customerId: data.customerId || 'unknown',
+              userId: data.userId || data.customerId || 'unknown', // userId maydonini qo'shish
               customerName: data.customerName || 'Noma\'lum',
               customerPhone: data.customerPhone || '',
               cakeId: data.cakeId || '',
