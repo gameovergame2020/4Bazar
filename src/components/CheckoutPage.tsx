@@ -23,7 +23,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     phone: '',
     address: '',
     paymentMethod: 'cash',
-    deliveryTime: 'asap'
+    deliveryTime: ['asap'] // Array qilib o'zgartiramiz
   });
 
   const [deliveryAddress, setDeliveryAddress] = useState('');
@@ -421,10 +421,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           lng: selectedCoordinates[1] 
         } : undefined,
         notes: `To'lov usuli: ${userInfo.paymentMethod === 'cash' ? 'Naqd pul' : 'Bank kartasi'}. Yetkazib berish: ${
-          userInfo.deliveryTime === 'asap' ? 'Iloji boricha tez (2-3 soat)' :
-          userInfo.deliveryTime === 'today' ? 'Bugun kechqurun (18:00-22:00)' :
-          userInfo.deliveryTime === 'tomorrow' ? 'Ertaga (09:00-21:00)' :
-          'Muayyan vaqt'
+          userInfo.deliveryTime.map(time => 
+            time === 'asap' ? 'Tez (2-3 soat)' :
+            time === 'today' ? 'Bugun (18:00-22:00)' :
+            time === 'tomorrow' ? 'Ertaga (09:00-21:00)' : time
+          ).join(', ')
         }. Mahsulotlar: ${cartProducts.map(p => `${p.name} (${p.quantity} dona)`).join(', ')}`
       };
 
@@ -565,44 +566,97 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 <Truck className="w-5 h-5 text-orange-500" />
                 Yetkazib berish muddati
               </h3>
+              <p className="text-sm text-gray-600 mb-3">Bir nechta variantni tanlashingiz mumkin</p>
 
               <div className="space-y-2">
                 <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                   <input
-                    type="radio"
-                    name="deliveryTime"
+                    type="checkbox"
                     value="asap"
-                    checked={userInfo.deliveryTime === 'asap'}
-                    onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
-                    className="text-orange-500"
+                    checked={userInfo.deliveryTime.includes('asap')}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (e.target.checked) {
+                        setUserInfo(prev => ({ 
+                          ...prev, 
+                          deliveryTime: [...prev.deliveryTime, value] 
+                        }));
+                      } else {
+                        setUserInfo(prev => ({ 
+                          ...prev, 
+                          deliveryTime: prev.deliveryTime.filter(t => t !== value) 
+                        }));
+                      }
+                    }}
+                    className="text-orange-500 rounded"
                   />
                   <span className="font-medium">⚡ Tez (2-3 soat)</span>
                 </label>
 
                 <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                   <input
-                    type="radio"
-                    name="deliveryTime"
+                    type="checkbox"
                     value="today"
-                    checked={userInfo.deliveryTime === 'today'}
-                    onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
-                    className="text-orange-500"
+                    checked={userInfo.deliveryTime.includes('today')}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (e.target.checked) {
+                        setUserInfo(prev => ({ 
+                          ...prev, 
+                          deliveryTime: [...prev.deliveryTime, value] 
+                        }));
+                      } else {
+                        setUserInfo(prev => ({ 
+                          ...prev, 
+                          deliveryTime: prev.deliveryTime.filter(t => t !== value) 
+                        }));
+                      }
+                    }}
+                    className="text-orange-500 rounded"
                   />
                   <span className="font-medium">🌅 Bugun (18:00-22:00)</span>
                 </label>
 
                 <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                   <input
-                    type="radio"
-                    name="deliveryTime"
+                    type="checkbox"
                     value="tomorrow"
-                    checked={userInfo.deliveryTime === 'tomorrow'}
-                    onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
-                    className="text-orange-500"
+                    checked={userInfo.deliveryTime.includes('tomorrow')}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (e.target.checked) {
+                        setUserInfo(prev => ({ 
+                          ...prev, 
+                          deliveryTime: [...prev.deliveryTime, value] 
+                        }));
+                      } else {
+                        setUserInfo(prev => ({ 
+                          ...prev, 
+                          deliveryTime: prev.deliveryTime.filter(t => t !== value) 
+                        }));
+                      }
+                    }}
+                    className="text-orange-500 rounded"
                   />
                   <span className="font-medium">📅 Ertaga (09:00-21:00)</span>
                 </label>
               </div>
+
+              {/* Tanlangan variantlar ko'rsatish */}
+              {userInfo.deliveryTime.length > 0 && (
+                <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                  <p className="text-sm font-medium text-orange-800 mb-1">Tanlangan vaqtlar:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {userInfo.deliveryTime.map(time => (
+                      <span key={time} className="px-2 py-1 bg-orange-200 text-orange-800 text-xs rounded-full">
+                        {time === 'asap' ? 'Tez (2-3 soat)' :
+                         time === 'today' ? 'Bugun (18:00-22:00)' :
+                         time === 'tomorrow' ? 'Ertaga (09:00-21:00)' : time}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -758,14 +812,18 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   <span className="font-bold text-green-600">{totalPrice.toLocaleString()} so'm</span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-2">
                   <span className="text-sm text-gray-600">🚚 Yetkazib berish:</span>
-                  <span className="font-medium text-blue-600">
-                    {userInfo.deliveryTime === 'asap' ? 'Iloji boricha tez (2-3 soat)' :
-                     userInfo.deliveryTime === 'today' ? 'Bugun kechqurun (18:00-22:00)' :
-                     userInfo.deliveryTime === 'tomorrow' ? 'Ertaga (09:00-21:00)' :
-                     'Muayyan vaqt'}
-                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {userInfo.deliveryTime.map((time, index) => (
+                      <span key={time} className="font-medium text-blue-600">
+                        {time === 'asap' ? 'Tez (2-3 soat)' :
+                         time === 'today' ? 'Bugun (18:00-22:00)' :
+                         time === 'tomorrow' ? 'Ertaga (09:00-21:00)' : time}
+                        {index < userInfo.deliveryTime.length - 1 ? ', ' : ''}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
 
