@@ -1505,7 +1505,7 @@ const OperatorDashboard = () => {
                     Object.keys(orderItems).length === 0 || 
                     !editingCustomerInfo.customerName.trim() ||
                     !editingCustomerInfo.customerPhone.trim() ||
-                    !editingCustomerInfo.deliveryAddress.trim()
+                    !editingCustomermerInfo.deliveryAddress.trim()
                   }
                   className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >

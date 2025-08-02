@@ -244,29 +244,7 @@ class DataService {
     }
   }
 
-  // Telefon raqamini normalize qilish funksiyasi
-  private normalizePhone(phone: string): string {
-    // Barcha harflar va maxsus belgilarni olib tashlash
-    const numbersOnly = phone.replace(/\D/g, '');
-
-    // Agar +998 bilan boshlansa
-    if (numbersOnly.startsWith('998')) {
-      return `+${numbersOnly}`;
-    }
-
-    // Agar 998 siz boshlansa
-    if (numbersOnly.length === 9) {
-      return `+998${numbersOnly}`;
-    }
-
-    // Agar uzun bo'lsa va oxirgi 9 ta raqamni olish
-    if (numbersOnly.length > 9) {
-      const last9 = numbersOnly.slice(-9);
-      return `+998${last9}`;
-    }
-
-    return phone;
-  }
+  
 
   // Foydalanuvchi buyurtmalarini customer ID bo'yicha olish (faqat ID bo'yicha)
   async getOrdersByCustomerId(customerId: string): Promise<Order[]> {
@@ -345,152 +323,11 @@ class DataService {
     }
   }
 
-  // Telefon raqami bo'yicha fallback qidirish (agar customer ID bo'lmasa)
-  async getOrdersByCustomerPhone(customerPhone: string): Promise<Order[]> {
-    try {
-      console.log('📱 Telefon bo\'yicha fallback qidirish:', customerPhone);
+  
 
-      if (!customerPhone || customerPhone.trim() === '') {
-        return [];
-      }
+  
 
-      // Telefon raqamini normalize qilish
-      const cleanPhone = customerPhone.replace(/\D/g, '');
-      if (cleanPhone.length < 7) {
-        return [];
-      }
-
-      // Telefon variantlarini yaratish
-      const phoneVariants = [
-        cleanPhone,
-        `+998${cleanPhone.length === 9 ? cleanPhone : cleanPhone.slice(-9)}`,
-        `998${cleanPhone.length === 9 ? cleanPhone : cleanPhone.slice(-9)}`,
-        cleanPhone.startsWith('998') ? cleanPhone.substring(3) : cleanPhone,
-        customerPhone.trim()
-      ];
-
-      console.log('📱 Qidirilayotgan telefon variantlari:', phoneVariants);
-
-      // Har bir variant uchun alohida query (Firebase limitation tufayli)
-      const allOrders: Order[] = [];
-
-      for (const phoneVariant of phoneVariants) {
-        try {
-          const phoneQuery = query(
-            collection(db, 'orders'),
-            where('customerPhone', '==', phoneVariant),
-            orderBy('createdAt', 'desc')
-          );
-
-          const querySnapshot = await getDocs(phoneQuery);
-
-          querySnapshot.forEach((doc) => {
-            try {
-              const data = doc.data();
-
-              // Duplikatlarni oldini olish
-              if (allOrders.some(order => order.id === doc.id)) {
-                return;
-              }
-
-              const order: Order = {
-                id: doc.id,
-                orderUniqueId: data.orderUniqueId,
-                customerId: data.customerId || 'unknown',
-                customerName: data.customerName || 'Noma\'lum',
-                customerPhone: data.customerPhone || '',
-                cakeId: data.cakeId || '',
-                cakeName: data.cakeName || '',
-                quantity: data.quantity || 1,
-                amount: data.amount,
-                totalPrice: data.totalPrice || 0,
-                status: data.status || 'pending',
-                deliveryAddress: data.deliveryAddress || '',
-                coordinates: data.coordinates,
-                paymentMethod: data.paymentMethod,
-                paymentType: data.paymentType,
-                notes: data.notes,
-                createdAt: data.createdAt?.toDate() || new Date(),
-                updatedAt: data.updatedAt?.toDate() || new Date(),
-                deliveryTime: data.deliveryTime?.toDate()
-              };
-
-              allOrders.push(order);
-            } catch (parseError) {
-              console.warn('⚠️ Buyurtma parse qilishda xato:', doc.id, parseError);
-            }
-          });
-        } catch (queryError) {
-          console.warn('⚠️ Telefon variant bo\'yicha query xatosi:', phoneVariant, queryError);
-        }
-      }
-
-      // Sanaga qarab saralash
-      const sortedOrders = allOrders.sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-
-      console.log('✅ Telefon bo\'yicha fallback topildi:', sortedOrders.length, 'ta buyurtma');
-
-      return sortedOrders;
-    } catch (error) {
-      console.error('❌ Telefon bo\'yicha fallback qidirishda xato:', error);
-      return [];
-    }
-  }
-
-  // Telefon raqami variantlarini yaratish
-  private generatePhoneVariants(cleanPhone: string): string[] {
-    const variants = [cleanPhone];
-
-    // +998 bilan boshlash
-    if (!cleanPhone.startsWith('998')) {
-      variants.push(`998${cleanPhone}`);
-    }
-
-    // 998 siz versiya
-    if (cleanPhone.startsWith('998')) {
-      variants.push(cleanPhone.substring(3));
-    }
-
-    return variants;
-  }
-
-  // Telefon raqamlarini solishtirish
-  private comparePhoneNumbers(orderPhone: string, searchPhone: string, searchVariants: string[]): boolean {
-    if (!orderPhone || !searchPhone) return false;
-
-    // 1. To'liq mos kelish
-    if (orderPhone === searchPhone) return true;
-
-    // 2. Variantlar bilan solishtirish
-    for (const variant of searchVariants) {
-      if (orderPhone === variant) return true;
-    }
-
-    // 3. Oxirgi 9 raqam mos kelish (O'zbekiston uchun)
-    if (orderPhone.length >= 9 && searchPhone.length >= 9) {
-      const orderLast9 = orderPhone.slice(-9);
-      const searchLast9 = searchPhone.slice(-9);
-      if (orderLast9 === searchLast9) return true;
-    }
-
-    // 4. Oxirgi 7 raqam mos kelish
-    if (orderPhone.length >= 7 && searchPhone.length >= 7) {
-      const orderLast7 = orderPhone.slice(-7);
-      const searchLast7 = searchPhone.slice(-7);
-      if (orderLast7 === searchLast7) return true;
-    }
-
-    // 5. Ichida mavjudlik (ehtiyotkorlik bilan)
-    if (orderPhone.length >= 8 && searchPhone.length >= 8) {
-      if (orderPhone.includes(searchPhone) || searchPhone.includes(orderPhone)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
+  
 
   // Buyurtmalarni olish
   async getOrders(filters?: { customerId?: string; status?: string }): Promise<Order[]> {
