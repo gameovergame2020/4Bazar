@@ -591,10 +591,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
               >
-                <option value="asap">⚡ Tez yetkazish (2-3 soat) - +15,000 so'm</option>
-                <option value="today">🌅 Bugun yetkazish (09:00-22:00) - Bepul</option>
-                <option value="tomorrow">📅 Ertaga yetkazish (09:00-22:00) - Bepul</option>
-                <option value="custom">⏰ O'zi muddatini tanlash - Bepul</option>
+                <option value="asap">⚡ Tez yetkazish (2-3 soat)</option>
+                <option value="today">🌅 Bugun yetkazish (09:00-22:00)</option>
+                <option value="tomorrow">📅 Ertaga yetkazish (09:00-22:00)</option>
+                <option value="custom">⏰ O'zi muddatini tanlash</option>
               </select>
 
               {/* Qo'shimcha haq eslatmasi */}
