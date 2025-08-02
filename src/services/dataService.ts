@@ -1061,7 +1061,7 @@ class DataService {
 
       // Baker mahsulotlari uchun
       if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
-        // Baker mahsulotlari uchun amount ni kamaytirish
+        // Amount ni kamaytirish (operator rad etganda buyurtma qilingan miqdor kamayadi)
         const newAmount = Math.max(0, (cake.amount || 0) - orderQuantity);
         updateData.amount = newAmount;
         
@@ -1069,9 +1069,14 @@ class DataService {
         const newQuantity = (cake.quantity || 0) + orderQuantity;
         updateData.quantity = newQuantity;
         
-        // Available holatini to'g'ri belgilash
-        // Agar quantity > 0 bo'lsa, mahsulot "Hozir mavjud" holatiga o'tishi kerak
-        updateData.available = newQuantity > 0;
+        // MUHIM: Available holatini quantity asosida belgilash
+        // Agar quantity > 0 bo'lsa, mahsulot "Hozir mavjud" bo'lishi kerak
+        if (newQuantity > 0) {
+          updateData.available = true; // "Hozir mavjud"
+        } else {
+          // Agar quantity = 0 lekin amount > 0 bo'lsa, "Buyurtma uchun"
+          updateData.available = false; // "Buyurtma uchun"
+        }
         
         console.log('🔄 Baker mahsulot yangilanmoqda:', {
           oldAmount: cake.amount || 0,
@@ -1079,7 +1084,7 @@ class DataService {
           oldQuantity: cake.quantity || 0,
           newQuantity,
           newAvailable: updateData.available,
-          isNowAvailable: newQuantity > 0 ? 'Hozir mavjud' : 'Buyurtma uchun'
+          statusText: updateData.available ? 'Hozir mavjud' : 'Buyurtma uchun'
         });
       } else if (cake.productType === 'ready') {
         // Shop mahsulotlari uchun quantity ni oshirish
@@ -1090,7 +1095,7 @@ class DataService {
         console.log('🔄 Shop mahsulot yangilanmoqda:', {
           oldQuantity: cake.quantity || 0,
           newQuantity,
-          newAvailable: newQuantity > 0
+          newAvailable: updateData.available
         });
       }
 
@@ -1098,6 +1103,13 @@ class DataService {
       if (Object.keys(updateData).length > 0) {
         await this.updateCake(cakeId, updateData);
         console.log('✅ Mahsulot soni muvaffaqiyatli qaytarildi:', updateData);
+        
+        // Verification log
+        if (updateData.available === true) {
+          console.log('🟢 Mahsulot "Hozir mavjud" holatiga qaytarildi');
+        } else {
+          console.log('🟡 Mahsulot "Buyurtma uchun" holatida qoldi');
+        }
       } else {
         console.warn('⚠️ Yangilanishi kerak bo\'lgan ma\'lumotlar topilmadi');
       }

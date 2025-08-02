@@ -601,6 +601,37 @@ const OperatorDashboard = () => {
     );
   }
 
+  const handleUpdateOrderStatus = async (orderId: string, status: Order['status']) => {
+    try {
+      // Buyurtma ma'lumotlarini olish
+      const order = orders.find(o => o.id === orderId);
+
+      // Agar buyurtma rad etilsa, mahsulot quantity/amount ni qaytarish
+      if (status === 'cancelled' && order) {
+        console.log('🚫 Operator buyurtmani rad etdi, mahsulot sonini qaytarish:', {
+          orderId,
+          cakeId: order.cakeId,
+          quantity: order.quantity,
+          cakeName: order.cakeName
+        });
+
+        try {
+          await dataService.revertOrderQuantity(order.cakeId, order.quantity);
+          console.log('✅ Mahsulot soni muvaffaqiyatli qaytarildi');
+        } catch (revertError) {
+          console.error('❌ Mahsulot sonini qaytarishda xato:', revertError);
+          // Xatoga qaramay order status ni yangilashni davom ettiramiz
+        }
+      }
+
+      await dataService.updateOrderStatus(orderId, status);
+      await loadData();
+    } catch (error) {
+      console.error('Buyurtma holatini yangilashda xatolik:', error);
+      alert('Buyurtma holatini yangilashda xatolik yuz berdi');
+    }
+  };
+
   return (
     <div className="space-y-6 pb-6">
       {/* Welcome Banner */}
