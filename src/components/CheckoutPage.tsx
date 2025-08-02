@@ -566,7 +566,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 Yetkazib berish muddati
               </h3>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                   <input
                     type="radio"
@@ -576,13 +576,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                     onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
                     className="text-orange-500"
                   />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">⚡ Tez yetkazish</span>
-                      <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">TOP</span>
-                    </div>
-                    <p className="text-sm text-gray-600">2-3 soat ichida</p>
-                  </div>
+                  <span className="font-medium">⚡ Tez (2-3 soat)</span>
                 </label>
 
                 <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
@@ -594,10 +588,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                     onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
                     className="text-orange-500"
                   />
-                  <div className="flex-1">
-                    <span className="font-semibold">🌅 Bugun kechqurun</span>
-                    <p className="text-sm text-gray-600">18:00 - 22:00</p>
-                  </div>
+                  <span className="font-medium">🌅 Bugun (18:00-22:00)</span>
                 </label>
 
                 <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
@@ -609,67 +600,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                     onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
                     className="text-orange-500"
                   />
-                  <div className="flex-1">
-                    <span className="font-semibold">📅 Ertaga</span>
-                    <p className="text-sm text-gray-600">09:00 - 21:00</p>
-                  </div>
-                </label>
-
-                <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="deliveryTime"
-                    value="schedule"
-                    checked={userInfo.deliveryTime === 'schedule'}
-                    onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
-                    className="text-orange-500"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">🗓️ Boshqa vaqt</span>
-                      <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
-                        +5,000 so'm
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600">O'zingiz tanlagan vaqtda</p>
-                  </div>
+                  <span className="font-medium">📅 Ertaga (09:00-21:00)</span>
                 </label>
               </div>
-
-              {/* Muayyan vaqt tanlash */}
-              {userInfo.deliveryTime === 'schedule' && (
-                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="font-medium text-gray-900 mb-3">Muayyan vaqtni tanlang</h4>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Sana
-                      </label>
-                      <input
-                        type="date"
-                        min={new Date().toISOString().split('T')[0]}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Vaqt
-                      </label>
-                      <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                        <option value="09:00-12:00">Ertalab (09:00 - 12:00)</option>
-                        <option value="12:00-15:00">Tushdan keyin (12:00 - 15:00)</option>
-                        <option value="15:00-18:00">Peshindan keyin (15:00 - 18:00)</option>
-                        <option value="18:00-21:00">Kechqurun (18:00 - 21:00)</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <p className="text-sm text-amber-700 mt-3">
-                    💡 Muayyan vaqt uchun 5,000 so'm qo'shimcha to'lov olinadi.
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 
