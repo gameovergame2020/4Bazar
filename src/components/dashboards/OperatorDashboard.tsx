@@ -334,10 +334,10 @@ const OperatorDashboard = () => {
     setOrderItems({ [order.cakeId]: order.quantity });
     // Mijoz ma'lumotlarini tahrirlash uchun tayyorlash
     setEditingCustomerInfo({
-      customerId: '',
-      customerName: '',
-      customerPhone: '',
-      deliveryAddress: ''
+      customerId: order.customerId || '',
+      customerName: order.customerName || '',
+      customerPhone: order.customerPhone || '',
+      deliveryAddress: order.deliveryAddress || ''
     });
     // Qidiruv maydonini tozalash
     setNewProductSearchQuery('');
@@ -812,8 +812,7 @@ const OperatorDashboard = () => {
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Mijoz</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Mavzu</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Kategoriya</th>
-                <th className="text-left py-3 px-4 font```text
--medium text-gray-900">Muhimlik</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Muhimlik</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Holat</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Yaratildi</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Manzil</th>
@@ -1515,7 +1514,8 @@ const OperatorDashboard = () => {
                     ).length === 0 && newProductSearchQuery.trim() !== '' && (
                     <div className="text-center py-4 text-gray-500">
                       <Search size={32} className="mx-auto mb-2 text-gray-400" />
-                      <p className="text-sm">"{newProductSearchQuery}" bo'yicha mahsulot topilmadi</p>                    </div>
+                      <p className="text-sm">"{newProductSearchQuery}" bo'yicha mahsulot topilmadi</p>
+                    </div>
                   )}
 
                   {/* Barcha mahsulotlar buyurtmada bo'lsa */}

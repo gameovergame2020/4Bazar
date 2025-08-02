@@ -1069,30 +1069,45 @@ class DataService {
         const newQuantity = (cake.quantity || 0) + orderQuantity;
         updateData.quantity = newQuantity;
         
-        // MUHIM: Baker mahsulotlari uchun available holatini quantity asosida belgilash
-        // Quantity > 0 bo'lsa "Hozir mavjud", aks holda "Buyurtma uchun"
-        updateData.available = newQuantity > 0;
+        // MUHIM: Available holatini quantity asosida belgilash
+        // Baker mahsulotlari uchun available holatini to'g'ri belgilash
+        const isBakerProduct = cake && (cake.productType === 'baked' || (cake.bakerId && !cake.shopId));
+        
+        if (isBakerProduct) {
+          // Baker mahsulotlari: quantity > 0 bo'lsa "Hozir mavjud", aks holda "Buyurtma uchun"
+          if (newQuantity > 0) {
+            updateData.available = true; // "Hozir mavjud"
+            console.log('🟢 Baker mahsuloti "Hozir mavjud" holatiga o\'tkaziladi:', { 
+              cakeId, 
+              newQuantity, 
+              newAmount 
+            });
+          } else {
+            updateData.available = false; // "Buyurtma uchun"
+            console.log('🔵 Baker mahsuloti "Buyurtma uchun" holatida qoladi:', { 
+              cakeId, 
+              newQuantity, 
+              newAmount 
+            });
+          }
+        } else {
+          // Shop mahsulotlari uchun: quantity > 0 bo'lsa "Hozir mavjud"
+          updateData.available = newQuantity > 0;
+          console.log('🏪 Shop mahsuloti holati yangilandi:', { 
+            cakeId, 
+            newQuantity, 
+            available: updateData.available 
+          });
+        }
         
         console.log('🔄 Baker mahsulot yangilanmoqda:', {
           oldAmount: cake.amount || 0,
           newAmount,
           oldQuantity: cake.quantity || 0,
           newQuantity,
-          oldAvailable: cake.available,
           newAvailable: updateData.available,
           statusText: updateData.available ? 'Hozir mavjud' : 'Buyurtma uchun'
         });
-        
-        if (updateData.available && !cake.available) {
-          console.log('🟢 Baker mahsuloti "Buyurtma uchun"dan "Hozir mavjud"ga o\'tkazildi');
-        } else if (!updateData.available && cake.available) {
-          console.log('🔵 Baker mahsuloti "Hozir mavjud"dan "Buyurtma uchun"ga o\'tkazildi');
-        } else if (updateData.available) {
-          console.log('🟢 Baker mahsuloti "Hozir mavjud" holatida qolmoqda');
-        } else {
-          console.log('🔵 Baker mahsuloti "Buyurtma uchun" holatida qolmoqda');
-        }
-        
       } else if (cake.productType === 'ready') {
         // Shop mahsulotlari uchun quantity ni oshirish
         const newQuantity = (cake.quantity || 0) + orderQuantity;
@@ -1102,7 +1117,6 @@ class DataService {
         console.log('🔄 Shop mahsulot yangilanmoqda:', {
           oldQuantity: cake.quantity || 0,
           newQuantity,
-          oldAvailable: cake.available,
           newAvailable: updateData.available
         });
       }
@@ -1117,7 +1131,7 @@ class DataService {
         
         // Verification log
         if (updateData.available === true) {
-          console.log('🟢 Mahsulot "Hozir mavjud" holatiga o\'tkazildi/qoldi');
+          console.log('🟢 Mahsulot "Hozir mavjud" holatiga qaytarildi');
         } else {
           console.log('🟡 Mahsulot "Buyurtma uchun" holatida qoldi');
         }
@@ -1129,24 +1143,11 @@ class DataService {
             ...updateData,
             lastModified: new Date().getTime(),
             forceUpdate: new Date().toISOString(),
-            revertedAt: Timestamp.now(),
-            // Explicit trigger yangilanish uchun
-            reverted: true
+            revertedAt: Timestamp.now()
           };
           
           await this.updateCake(cakeId, forceUpdateData);
           console.log('🔄 Force update muvaffaqiyatli amalga oshirildi');
-          
-          // Trigger flag ni tozalash uchun ikkinchi yangilanish
-          setTimeout(async () => {
-            try {
-              await this.updateCake(cakeId, { reverted: false });
-              console.log('🧹 Trigger flag tozalandi');
-            } catch (cleanupError) {
-              console.warn('⚠️ Trigger flag tozalashda xato:', cleanupError);
-            }
-          }, 500);
-          
         } catch (triggerError) {
           console.warn('⚠️ Real-time trigger da xato:', triggerError);
         }
