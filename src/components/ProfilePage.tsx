@@ -534,6 +534,37 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                                 )}
                               </div>
 
+                              {/* Refund ma'lumotlari */}
+                              {order.status === 'cancelled' && order.paymentMethod === 'card' && (order as any).refundAmount && (
+                                <div className="mt-2 p-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                                  <div className="text-xs space-y-1">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-blue-400">💰 Qaytariladi:</span>
+                                      <span className="text-blue-300 font-medium">{((order as any).refundAmount).toLocaleString()} so'm</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-gray-400">Xizmat haqi:</span>
+                                      <span className="text-red-300">{(order.totalPrice - (order as any).refundAmount).toLocaleString()} so'm</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-gray-400">Holat:</span>
+                                      <span className={`font-medium ${
+                                        (order as any).refundStatus === 'processed' ? 'text-green-400' :
+                                        (order as any).refundStatus === 'pending' ? 'text-yellow-400' : 'text-red-400'
+                                      }`}>
+                                        {(order as any).refundStatus === 'processed' ? '✅ Qaytarildi' :
+                                         (order as any).refundStatus === 'pending' ? '⏳ Kutilmoqda' : '❌ Xato'}
+                                      </span>
+                                    </div>
+                                    {(order as any).refundStatus === 'pending' && (
+                                      <p className="text-xs text-gray-400 mt-1">
+                                        💡 Pul 3-5 ish kuni ichida qaytariladi
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
                               {/* Yetkazib berish manzili */}
                               {order.deliveryAddress && (
                                 <div className="mt-1 text-xs">

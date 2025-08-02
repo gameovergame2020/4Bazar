@@ -960,6 +960,20 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   <span className="text-gray-600">Jami to'lov:</span>
                   <span className="font-bold text-orange-600 text-lg">{totalPrice.toLocaleString()} so'm</span>
                 </div>
+                
+                <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-xs text-blue-700">
+                    ℹ️ <strong>Muhim:</strong> Bank kartasi orqali to'lov qilingan buyurtmalar bekor qilinganda xizmat haqi ushlab qolinadi:
+                  </p>
+                  <ul className="text-xs text-blue-600 mt-1 ml-4 space-y-0.5">
+                    <li>• Click: 2,000 so'm</li>
+                    <li>• Payme: 1,500 so'm</li>
+                    <li>• Visa/Mastercard: 3,000 so'm</li>
+                  </ul>
+                  <p className="text-xs text-blue-700 mt-1">
+                    Qolgan mablag' 3-5 ish kuni ichida qaytariladi.
+                  </p>
+                </div>
               </div>
 
               <button

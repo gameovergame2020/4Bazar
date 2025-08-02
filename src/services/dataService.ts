@@ -503,12 +503,197 @@ class DataService {
   // Buyurtma holatini yangilash
   async updateOrderStatus(orderId: string, status: Order['status']): Promise<void> {
     try {
+      const orderDoc = await getDoc(doc(db, 'orders', orderId));
+      if (!orderDoc.exists()) {
+        throw new Error('Buyurtma topilmadi');
+      }
+
+      const orderData = orderDoc.data() as Order;
+
+      // Agar buyurtma bekor qilinayotgan bo'lsa va bank kartasi orqali to'lov qilingan bo'lsa
+      if (status === 'cancelled' && orderData.paymentMethod === 'card' && orderData.paymentType) {
+        await this.processRefund(orderId, orderData);
+      }
+
       await updateDoc(doc(db, 'orders', orderId), {
         status,
         updatedAt: Timestamp.now()
       });
     } catch (error) {
       console.error('Buyurtma holatini yangilashda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // To'lov qaytarish tizimi
+  async processRefund(orderId: string, orderData: Order): Promise<void> {
+    try {
+      console.log('💳 To\'lov qaytarish jarayoni boshlandi:', orderId);
+
+      const refundAmount = this.calculateRefundAmount(orderData.totalPrice, orderData.paymentType!);
+      
+      // Refund ma'lumotlarini yaratish
+      const refundData = {
+        orderId,
+        originalAmount: orderData.totalPrice,
+        serviceFee: orderData.totalPrice - refundAmount,
+        refundAmount,
+        paymentType: orderData.paymentType,
+        customerPhone: orderData.customerPhone,
+        customerName: orderData.customerName,
+        status: 'pending', // pending, processed, failed
+        createdAt: Timestamp.now(),
+        processedAt: null,
+        notes: `${orderData.paymentType} orqali to'lov qilingan buyurtma bekor qilindi. Xizmat haqi: ${orderData.totalPrice - refundAmount} so'm`
+      };
+
+      // Refunds collection'ga yozish
+      const refundDocRef = await addDoc(collection(db, 'refunds'), refundData);
+      
+      console.log('✅ Refund yaratildi:', refundDocRef.id);
+
+      // Buyurtmaga refund ID ni qo'shish
+      await updateDoc(doc(db, 'orders', orderId), {
+        refundId: refundDocRef.id,
+        refundAmount,
+        refundStatus: 'pending',
+        updatedAt: Timestamp.now()
+      });
+
+      // Operator uchun bildirishnoma yaratish
+      try {
+        const { notificationService } = await import('./notificationService');
+        await notificationService.createNotification({
+          userId: 'operator-refunds',
+          type: 'refund',
+          title: 'To\'lov qaytarish so\'rovi',
+          message: `${orderData.customerName} - ${refundAmount.toLocaleString()} so'm qaytarish kerak (${orderData.paymentType})`,
+          data: {
+            orderId,
+            refundId: refundDocRef.id,
+            refundAmount,
+            paymentType: orderData.paymentType,
+            customerPhone: orderData.customerPhone
+          },
+          read: false,
+          priority: 'high',
+          actionUrl: `/operator/refunds/${refundDocRef.id}`
+        });
+      } catch (notifError) {
+        console.warn('⚠️ Refund bildirishnomasi yuborishda xato:', notifError);
+      }
+
+      // Mijoz uchun SMS/bildirishnoma yuborish
+      this.sendRefundNotificationToCustomer(orderData, refundAmount);
+
+    } catch (error) {
+      console.error('❌ To\'lov qaytarishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Qaytarish miqdorini hisoblash (xizmat haqini hisobga olgan holda)
+  private calculateRefundAmount(originalAmount: number, paymentType: string): number {
+    // Har xil to'lov tipi uchun turli xizmat haqlari
+    const serviceFees = {
+      'click': 2000, // Click uchun 2000 so'm xizmat haqi
+      'payme': 1500, // Payme uchun 1500 so'm xizmat haqi
+      'visa': 3000   // Visa/Mastercard uchun 3000 so'm xizmat haqi
+    };
+
+    const fee = serviceFees[paymentType as keyof typeof serviceFees] || 2500; // Default 2500 so'm
+    const refundAmount = Math.max(0, originalAmount - fee);
+
+    console.log(`💰 Refund hisobi: Original: ${originalAmount}, Fee: ${fee}, Refund: ${refundAmount}`);
+    
+    return refundAmount;
+  }
+
+  // Mijozga refund haqida xabar yuborish
+  private async sendRefundNotificationToCustomer(orderData: Order, refundAmount: number): Promise<void> {
+    try {
+      // Bu yerda real SMS yoki email yuborish xizmati integratsiyasi bo'lishi mumkin
+      console.log(`📱 SMS yuborildi: ${orderData.customerPhone} - ${refundAmount.toLocaleString()} so'm qaytariladi`);
+      
+      // Log sifatida saqlash
+      await addDoc(collection(db, 'customerNotifications'), {
+        customerPhone: orderData.customerPhone,
+        customerName: orderData.customerName,
+        type: 'refund_notification',
+        message: `Hurmatli ${orderData.customerName}, buyurtmangiz bekor qilindi. ${refundAmount.toLocaleString()} so'm 3-5 ish kuni ichida qaytariladi. Xizmat haqi: ${orderData.totalPrice - refundAmount} so'm`,
+        sentAt: Timestamp.now(),
+        method: 'sms'
+      });
+
+    } catch (error) {
+      console.warn('⚠️ Mijozga xabar yuborishda xato:', error);
+    }
+  }
+
+  // Refund so'rovlarini olish
+  async getRefunds(filters?: { 
+    status?: string; 
+    paymentType?: string;
+    customerPhone?: string;
+  }): Promise<any[]> {
+    try {
+      let q = query(collection(db, 'refunds'), orderBy('createdAt', 'desc'));
+
+      if (filters?.status) {
+        q = query(q, where('status', '==', filters.status));
+      }
+      if (filters?.paymentType) {
+        q = query(q, where('paymentType', '==', filters.paymentType));
+      }
+      if (filters?.customerPhone) {
+        q = query(q, where('customerPhone', '==', filters.customerPhone));
+      }
+
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate(),
+        processedAt: doc.data().processedAt?.toDate()
+      }));
+    } catch (error) {
+      console.error('Refundlarni olishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Refund holatini yangilash
+  async updateRefundStatus(refundId: string, status: 'pending' | 'processed' | 'failed', notes?: string): Promise<void> {
+    try {
+      const updateData: any = {
+        status,
+        updatedAt: Timestamp.now()
+      };
+
+      if (status === 'processed') {
+        updateData.processedAt = Timestamp.now();
+      }
+
+      if (notes) {
+        updateData.notes = notes;
+      }
+
+      await updateDoc(doc(db, 'refunds', refundId), updateData);
+
+      // Agar processed bo'lsa, buyurtma holatini ham yangilash
+      if (status === 'processed') {
+        const refundDoc = await getDoc(doc(db, 'refunds', refundId));
+        if (refundDoc.exists()) {
+          const refundData = refundDoc.data();
+          await updateDoc(doc(db, 'orders', refundData.orderId), {
+            refundStatus: 'processed',
+            updatedAt: Timestamp.now()
+          });
+        }
+      }
+
+    } catch (error) {
+      console.error('Refund holatini yangilashda xatolik:', error);
       throw error;
     }
   }
