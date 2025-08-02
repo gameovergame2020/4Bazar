@@ -2,6 +2,56 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, MapPin, Phone, User, CreditCard, Truck } from 'lucide-react';
 
+// CSS animatsiyalari uchun style tag qo'shish
+const animationStyles = `
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from { 
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .animate-slideUp {
+    animation: slideUp 0.4s ease-out;
+  }
+  
+  .animate-slideDown {
+    animation: slideDown 0.3s ease-out;
+  }
+`;
+
+// Style tag ni head ga qo'shish
+if (typeof document !== 'undefined' && !document.getElementById('checkout-animations')) {
+  const styleElement = document.createElement('style');
+  styleElement.id = 'checkout-animations';
+  styleElement.textContent = animationStyles;
+  document.head.appendChild(styleElement);
+}
+
 interface CheckoutPageProps {
   cart: { [key: string]: number };
   cakes: any[];
@@ -987,77 +1037,185 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         </div>
       )}
 
-      {/* Buyurtma tasdiqlash modali */}
+      {/* Buyurtma tasdiqlash modali - yaxshilangan versiya */}
       {orderConfirmed && orderDetails && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl transform animate-slideUp">
             <div className="text-center">
-              {/* Success icon */}
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              {/* Animated Success Icon */}
+              <div className="relative w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                  <span className="text-xs">🎉</span>
+                </div>
               </div>
 
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
-                🎉 Buyurtma muvaffaqiyatli yuborildi!
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                Buyurtma muvaffaqiyatli qabul qilindi!
               </h3>
 
-              <div className="bg-gray-50 rounded-lg p-4 mb-4 text-left space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">📋 Buyurtma ID:</span>
-                  <span className="font-mono font-bold text-orange-600">{orderDetails.orderId}</span>
-                </div>
+              <p className="text-gray-600 mb-6 text-sm leading-relaxed">
+                Sizning buyurtmangiz muvaffaqiyatli rasmiylashtirildi va operatorimizga yuborildi. 
+                Tez orada siz bilan bog'lanishadi.
+              </p>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">📞 Operator telefoni:</span>
-                  <span className="font-semibold text-blue-600">{orderDetails.operatorPhone}</span>
-                </div>
+              {/* Order Summary Card */}
+              <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-5 mb-6 border border-orange-100">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                        <span className="text-orange-600 text-sm font-bold">#</span>
+                      </div>
+                      <span className="text-sm text-gray-600">Buyurtma raqami:</span>
+                    </div>
+                    <span className="font-mono font-bold text-orange-600 text-lg">{orderDetails.orderId}</span>
+                  </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">💰 Jami summa:</span>
-                  <span className="font-bold text-green-600">{totalPrice.toLocaleString()} so'm</span>
-                </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                        <span className="text-green-600 text-sm">💰</span>
+                      </div>
+                      <span className="text-sm text-gray-600">Jami summa:</span>
+                    </div>
+                    <span className="font-bold text-green-600 text-lg">{totalPrice.toLocaleString()} so'm</span>
+                  </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">🚚 Yetkazib berish:</span>
-                  <span className="font-medium text-blue-600">
-                    {userInfo.deliveryTime === 'asap' ? 'Tez yetkazish (2-3 soat)' :
-                     userInfo.deliveryTime === 'today' ? 'Bugun yetkazish (09:00-22:00)' :
-                     userInfo.deliveryTime === 'tomorrow' ? 'Ertaga yetkazish (09:00-22:00)' :
-                     userInfo.deliveryTime === 'custom' ? `O'zi tanlagan: ${userInfo.customDeliveryDate ? new Date(userInfo.customDeliveryDate).toLocaleDateString('uz-UZ') : 'Kun tanlanmagan'} soat ${userInfo.customDeliveryTime || 'tanlanmagan'}` :
-                     userInfo.deliveryTime}
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 text-sm">🚚</span>
+                      </div>
+                      <span className="text-sm text-gray-600">Yetkazib berish:</span>
+                    </div>
+                    <span className="font-medium text-blue-600 text-sm">
+                      {userInfo.deliveryTime === 'asap' ? 'Tez (2-3 soat)' :
+                       userInfo.deliveryTime === 'today' ? 'Bugun (09:00-22:00)' :
+                       userInfo.deliveryTime === 'tomorrow' ? 'Ertaga (09:00-22:00)' :
+                       userInfo.deliveryTime === 'custom' ? `${userInfo.customDeliveryDate ? new Date(userInfo.customDeliveryDate).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' }) : 'Kun tanlanmagan'} ${userInfo.customDeliveryTime || ''}` :
+                       userInfo.deliveryTime}
+                    </span>
+                  </div>
+
+                  {/* Payment Method */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                        <span className="text-purple-600 text-sm">💳</span>
+                      </div>
+                      <span className="text-sm text-gray-600">To'lov usuli:</span>
+                    </div>
+                    <span className="font-medium text-purple-600 text-sm">
+                      {userInfo.paymentMethod === 'cash' ? '💵 Naqd pul' :
+                       userInfo.paymentType === 'click' ? '🔵 Click' :
+                       userInfo.paymentType === 'payme' ? '🟢 Payme' :
+                       userInfo.paymentType === 'visa' ? '💳 Visa/MC' : 
+                       '💳 Bank kartasi'}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="text-sm text-gray-600 space-y-2 mb-6">
-                <p>👥 Operator siz bilan tez orada bog'lanadi va buyurtmani tasdiqlaydi.</p>
-                <p>⏰ Buyurtma holati haqida SMS orqali xabar beramiz.</p>
-                <p>🚚 Yetkazib berish vaqti: 2-3 soat</p>
+              {/* Contact Information */}
+              <div className="bg-blue-50 rounded-2xl p-4 mb-6 border border-blue-100">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 text-xs">📞</span>
+                  </div>
+                  <span className="text-sm font-medium text-blue-800">Operator bilan bog'lanish</span>
+                </div>
+                <a 
+                  href={`tel:${orderDetails.operatorPhone}`}
+                  className="font-bold text-blue-600 text-lg hover:text-blue-800 transition-colors"
+                >
+                  {orderDetails.operatorPhone}
+                </a>
+                <p className="text-xs text-blue-600 mt-1">Savollaringiz bo'lsa, qo'ng'iroq qiling</p>
               </div>
 
-              <div className="space-y-2">
+              {/* Status Timeline */}
+              <div className="bg-gray-50 rounded-2xl p-4 mb-6">
+                <h4 className="font-semibold text-gray-800 mb-3 text-sm">Keyingi qadamlar:</h4>
+                <div className="space-y-2 text-left">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-xs font-bold">1</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">Operator bog'lanadi</p>
+                      <p className="text-xs text-gray-600">5-10 daqiqa ichida</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-gray-600 text-xs font-bold">2</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Buyurtma tasdiqlash</p>
+                      <p className="text-xs text-gray-500">Ma'lumotlarni tekshirish</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-gray-600 text-xs font-bold">3</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Tayyorlash boshlash</p>
+                      <p className="text-xs text-gray-500">SMS xabar yuboramiz</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-3">
                 <button
                   onClick={() => {
                     setOrderConfirmed(false);
                     setOrderDetails(null);
                     onOrderComplete();
                   }}
-                  className="w-full bg-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 px-6 rounded-2xl font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
                 >
-                  Bosh sahifaga qaytish
+                  🏠 Bosh sahifaga qaytish
                 </button>
 
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(orderDetails.orderId);
-                    alert('Buyurtma ID nusxalandi!');
-                  }}
-                  className="w-full bg-gray-200 text-gray-700 py-2 px-6 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-                >
-                  📋 Buyurtma ID ni nusxalash
-                </button>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(orderDetails.orderId);
+                      // Toast notification o'rniga yanada chiroyli alert
+                      const notification = document.createElement('div');
+                      notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-slideDown';
+                      notification.textContent = '✅ ID nusxalandi!';
+                      document.body.appendChild(notification);
+                      setTimeout(() => {
+                        notification.remove();
+                      }, 2000);
+                    }}
+                    className="bg-gray-100 text-gray-700 py-3 px-4 rounded-xl font-medium hover:bg-gray-200 transition-colors text-sm"
+                  >
+                    📋 ID nusxalash
+                  </button>
+
+                  <a
+                    href={`tel:${orderDetails.operatorPhone}`}
+                    className="bg-blue-100 text-blue-700 py-3 px-4 rounded-xl font-medium hover:bg-blue-200 transition-colors text-sm text-center"
+                  >
+                    📞 Qo'ng'iroq
+                  </a>
+                </div>
+              </div>
+
+              {/* Additional Info */}
+              <div className="mt-6 pt-4 border-t border-gray-100">
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Buyurtma holatini Profile bo'limida kuzatib borishingiz mumkin. 
+                  Muammolar bo'lsa, yuqoridagi raqamga qo'ng'iroq qiling.
+                </p>
               </div>
             </div>
           </div>
