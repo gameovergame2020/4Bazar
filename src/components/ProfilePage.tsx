@@ -495,11 +495,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                     )}
                   </div>
                 ) : (
-                  <>
-                    <div className="mb-3 text-xs text-gray-400 text-center">
-                      Jami {userOrders.length} ta buyurtma (so'nggi 5 tasi ko'rsatilgan)
-                    </div>
-                    {userOrders.slice(0, 5).map((order) => {
+                  userOrders.slice(0, 5).map((order) => {
                       const StatusIcon = getStatusIcon(order.status);
                       return (
                         <div key={order.id} className="bg-gray-600/30 rounded-lg p-3 hover:bg-gray-600/50 transition-colors border border-gray-600/20">
@@ -621,14 +617,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                           </div>
                         </div>
                       );
-                    })}
-
-                    {userOrders.length > 5 && (
-                      <div className="text-center mt-3">
-                        <p className="text-xs text-gray-500">Va yana {userOrders.length - 5} ta buyurtma...</p>
-                      </div>
-                    )}
-                  </>
+                    })
                 )}
               </div>
             </div>
@@ -695,7 +684,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                   onClick={item.onClick}
                   className={`w-full flex items-center justify-between p-3 sm:p-4 rounded-lg sm:rounded-xl transition-colors ${
                     item.isLogout 
-                      ? 'hover:bg-red-500/10 text-red-400 hover:text-red-300' 
+                      ?'hover:bg-red-500/10 text-red-400 hover:text-red-300' 
                       : 'hover:bg-gray-700/50 text-gray-300 hover:text-white'
                   }`}
                 >
