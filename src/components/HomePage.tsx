@@ -173,22 +173,38 @@ const HomePage = () => {
     .sort((a, b) => b.rating - a.rating)
     .slice(0, 4);
 
-  const addToCart = (cakeId: string) => {
+const addToCart = (cakeId: string) => {
     console.log('Adding to cart:', cakeId);
     const cake = cakes.find(c => c.id === cakeId);
     if (!cake) return;
 
-    // Baker mahsulotlari uchun cheklov yo'q (available: true yoki false bo'lishidan qat'iy nazar)
+    // Baker mahsulotlari uchun
     const isBakerProduct = cake.productType === 'baked' || (cake.bakerId && !cake.shopId);
     if (isBakerProduct) {
-      setCart(prev => {
-        const newCart = {
-          ...prev,
-          [cakeId]: (prev[cakeId] || 0) + 1
-        };
-        console.log('New cart state:', newCart);
-        return newCart;
-      });
+      // Agar mavjud bo'lsa va quantity belgilangan bo'lsa, qoldiq miqdorigacha cheklash
+      if (cake.available && cake.quantity !== undefined) {
+        const currentCartQty = cart[cakeId] || 0;
+        if (currentCartQty < cake.quantity) {
+          setCart(prev => {
+            const newCart = {
+              ...prev,
+              [cakeId]: currentCartQty + 1
+            };
+            console.log('New cart state:', newCart);
+            return newCart;
+          });
+        }
+      } else {
+        // Buyurtma uchun yoki cheklanmagan miqdor
+        setCart(prev => {
+          const newCart = {
+            ...prev,
+            [cakeId]: (prev[cakeId] || 0) + 1
+          };
+          console.log('New cart state:', newCart);
+          return newCart;
+        });
+      }
       return;
     }
 
