@@ -444,7 +444,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                               <div className="flex items-start justify-between mb-2">
                                 <div className="flex-1">
                                   <h4 className="font-medium text-white text-sm truncate">{order.cakeName}</h4>
-                                  <p className="text-gray-400 text-xs">#{order.id?.slice(-8).toUpperCase()}</p>
+                                  <p className="text-gray-400 text-xs">#{order.orderUniqueId || order.id?.slice(-8).toUpperCase()}</p>
                                 </div>
                                 <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)} ml-2`}>
                                   <StatusIcon size={10} />
