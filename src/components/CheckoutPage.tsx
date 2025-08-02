@@ -588,36 +588,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 </label>
               </div>
 
-              {/* Bank kartasi uchun Click va Payme tanlovi */}
-              {userInfo.paymentMethod === 'card' && (
-                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="text-sm font-medium text-blue-800 mb-3">💳 To'lov uchun:</h4>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-3">
-                      <input
-                        type="radio"
-                        name="cardType"
-                        value="click"
-                        checked={userInfo.paymentType === 'click'}
-                        onChange={(e) => setUserInfo(prev => ({ ...prev, paymentType: e.target.value }))}
-                        className="text-blue-500"
-                      />
-                      <span>🔵 Click</span>
-                    </label>
-                    <label className="flex items-center gap-3">
-                      <input
-                        type="radio"
-                        name="cardType"
-                        value="payme"
-                        checked={userInfo.paymentType === 'payme'}
-                        onChange={(e) => setUserInfo(prev => ({ ...prev, paymentType: e.target.value }))}
-                        className="text-blue-500"
-                      />
-                      <span>🟢 Payme</span>
-                    </label>
-                  </div>
-                </div>
-              )}
+              
             </div>
 
             {/* Yetkazib berish muddati */}
