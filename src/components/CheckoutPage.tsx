@@ -27,6 +27,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     coordinates: null,
   });
 
+  const [selectedMapAddress, setSelectedMapAddress] = useState('');
+
   const mapRef = useRef<HTMLDivElement>(null);
 
   
@@ -164,19 +166,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
               const firstGeoObject = result.geoObjects.get(0);
               if (firstGeoObject) {
                 const address = firstGeoObject.getAddressLine();
-                // State'ni yangilash va komponenti majburiy qayta render qilish
-                setFormData(prev => {
-                  const newFormData = {
-                    ...prev,
-                    deliveryAddress: address,
-                    coordinates: { lat: coords[0], lng: coords[1] }
-                  };
-                  // Force re-render by creating new object reference
-                  setTimeout(() => {
-                    setFormData(currentData => ({ ...currentData }));
-                  }, 0);
-                  return newFormData;
-                });
+                setSelectedMapAddress(address);
+                setFormData(prev => ({
+                  ...prev,
+                  coordinates: { lat: coords[0], lng: coords[1] }
+                }));
                 console.log('Placemark drag - New address:', address);
               }
             });
@@ -191,19 +185,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
               const firstGeoObject = result.geoObjects.get(0);
               if (firstGeoObject) {
                 const address = firstGeoObject.getAddressLine();
-                // State'ni yangilash va komponenti majburiy qayta render qilish
-                setFormData(prev => {
-                  const newFormData = {
-                    ...prev,
-                    deliveryAddress: address,
-                    coordinates: { lat: coords[0], lng: coords[1] }
-                  };
-                  // Force re-render by creating new object reference
-                  setTimeout(() => {
-                    setFormData(currentData => ({ ...currentData }));
-                  }, 0);
-                  return newFormData;
-                });
+                setSelectedMapAddress(address);
+                setFormData(prev => ({
+                  ...prev,
+                  coordinates: { lat: coords[0], lng: coords[1] }
+                }));
                 console.log('Map click - New address:', address);
               }
             });
@@ -220,19 +206,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 const firstGeoObject = result.geoObjects.get(0);
                 if (firstGeoObject) {
                   const address = firstGeoObject.getAddressLine();
-                  // State'ni yangilash va komponenti majburiy qayta render qilish
-                  setFormData(prev => {
-                    const newFormData = {
-                      ...prev,
-                      deliveryAddress: address,
-                      coordinates: { lat: coords[0], lng: coords[1] }
-                    };
-                    // Force re-render by creating new object reference
-                    setTimeout(() => {
-                      setFormData(currentData => ({ ...currentData }));
-                    }, 0);
-                    return newFormData;
-                  });
+                  setSelectedMapAddress(address);
+                  setFormData(prev => ({
+                    ...prev,
+                    coordinates: { lat: coords[0], lng: coords[1] }
+                  }));
                   console.log('Geolocation - New address:', address);
                 }
               });
@@ -593,34 +571,42 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 )}
               </div>
 
-              {formData.deliveryAddress && (
+              {selectedMapAddress && (
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <p className="text-sm font-medium text-gray-700 mb-1">Tanlangan manzil:</p>
-                  <p className="text-sm text-gray-600">{formData.deliveryAddress}</p>
+                  <p className="text-sm text-gray-600">{selectedMapAddress}</p>
                 </div>
               )}
 
               <div className="flex space-x-3">
                 <button
-                  onClick={() => setShowLocationPicker(false)}
+                  onClick={() => {
+                    setShowLocationPicker(false);
+                    setSelectedMapAddress('');
+                  }}
                   className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
                 >
                   Bekor qilish
                 </button>
                 <button
                   onClick={() => {
-                    if (formData.deliveryAddress && formData.deliveryAddress.trim()) {
+                    if (selectedMapAddress && selectedMapAddress.trim()) {
+                      setFormData(prev => ({
+                        ...prev,
+                        deliveryAddress: selectedMapAddress
+                      }));
                       setShowLocationPicker(false);
+                      setSelectedMapAddress('');
                     } else {
                       alert('Iltimos, xaritadan manzilni tanlang');
                     }
                   }}
                   className={`flex-1 py-2 rounded-lg transition-colors ${
-                    formData.deliveryAddress && formData.deliveryAddress.trim() 
+                    selectedMapAddress && selectedMapAddress.trim() 
                       ? 'bg-orange-500 text-white hover:bg-orange-600' 
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
-                  disabled={!formData.deliveryAddress || !formData.deliveryAddress.trim()}
+                  disabled={!selectedMapAddress || !selectedMapAddress.trim()}
                 >
                   Tanlash
                 </button>
