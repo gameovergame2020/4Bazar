@@ -254,34 +254,40 @@ class DataService {
     return phone;
   }
 
-  // Foydalanuvchi buyurtmalarini customer ID bo'yicha olish (optimallashtirilgan va tezroq)
+  // Foydalanuvchi buyurtmalarini customer ID bo'yicha olish (yaxshilangan)
   async getOrdersByCustomerId(customerId: string): Promise<Order[]> {
     try {
       if (!customerId || customerId.trim() === '') {
+        console.log('⚠️ Customer ID bo\'sh');
         return [];
       }
 
-      // Customer ID bo'yicha to'g'ridan-to'g'ri Firebase query (limit bilan)
+      console.log('🔍 Customer ID bo\'yicha qidirilmoqda:', customerId.trim());
+
+      // Customer ID bo'yicha to'g'ridan-to'g'ri Firebase query (ko'proq limit)
       const customerIdQuery = query(
         collection(db, 'orders'),
         where('customerId', '==', customerId.trim()),
         orderBy('createdAt', 'desc'),
-        limit(50) // Faqat eng oxirgi 50 ta buyurtma
+        limit(200) // Ko'proq buyurtma yuklash
       );
 
       const querySnapshot = await getDocs(customerIdQuery);
 
       if (querySnapshot.empty) {
+        console.log('⚠️ Customer ID bo\'yicha buyurtma topilmadi');
         return [];
       }
 
+      console.log(`📥 Customer ID bo'yicha ${querySnapshot.docs.length} ta hujjat topildi`);
+
       const orders: Order[] = [];
 
-      // Batch processing uchun promise array
-      const promises = querySnapshot.docs.map(async (doc) => {
+      querySnapshot.docs.forEach((doc) => {
         try {
           const data = doc.data();
-          return {
+          
+          const order: Order = {
             id: doc.id,
             customerId: data.customerId || 'unknown',
             customerName: data.customerName || 'Noma\'lum',
@@ -300,17 +306,17 @@ class DataService {
             createdAt: data.createdAt?.toDate() || new Date(),
             updatedAt: data.updatedAt?.toDate() || new Date(),
             deliveryTime: data.deliveryTime?.toDate()
-          } as Order;
+          };
+
+          orders.push(order);
         } catch (parseError) {
-          console.warn('⚠️ Buyurtma parse qilishda xato:', doc.id);
-          return null;
+          console.warn('⚠️ Buyurtma parse qilishda xato:', doc.id, parseError);
         }
       });
 
-      const results = await Promise.all(promises);
-      const validOrders = results.filter(order => order !== null) as Order[];
-
-      return validOrders;
+      console.log(`✅ Customer ID bo'yicha ${orders.length} ta buyurtma qayta ishlandi`);
+      return orders;
+      
     } catch (error) {
       console.error('❌ Customer ID bo\'yicha buyurtmalarni yuklashda xato:', error);
       return [];
@@ -1358,26 +1364,38 @@ class DataService {
     });
   }
 
-  // Buyurtmalar holatini real-time kuzatish (tezlashtirilgan)
+  // Buyurtmalar holatini real-time kuzatish (yaxshilangan)
   subscribeToOrders(callback: (orders: Order[]) => void, filters?: { customerId?: string }) {
-    let q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(30)); // Limit kamaytirildi
-
+    let q;
+    
     if (filters?.customerId) {
+      // Customer uchun maxsus filter
       q = query(
         collection(db, 'orders'), 
         where('customerId', '==', filters.customerId),
         orderBy('createdAt', 'desc'),
-        limit(20) // Customer uchun yanada kam limit
+        limit(100) // Customer uchun ko'proq limit
+      );
+    } else {
+      // Umumiy buyurtmalar uchun
+      q = query(
+        collection(db, 'orders'), 
+        orderBy('createdAt', 'desc'), 
+        limit(200) // Umumiy uchun ko'proq limit
       );
     }
 
     return onSnapshot(q, (querySnapshot) => {
       try {
-        // Batch processing bilan tezlashtirish
-        const ordersPromises = querySnapshot.docs.map(async (doc) => {
+        console.log(`📥 Real-time: ${querySnapshot.docs.length} ta hujjat keldi`);
+        
+        const orders: Order[] = [];
+
+        querySnapshot.docs.forEach((doc) => {
           try {
             const data = doc.data();
-            return {
+            
+            const order: Order = {
               id: doc.id,
               customerId: data.customerId || 'unknown',
               customerName: data.customerName || 'Noma\'lum',
@@ -1396,27 +1414,32 @@ class DataService {
               createdAt: data.createdAt?.toDate() || new Date(),
               updatedAt: data.updatedAt?.toDate() || new Date(),
               deliveryTime: data.deliveryTime?.toDate()
-            } as Order;
+            };
+
+            orders.push(order);
           } catch (parseError) {
-            return null;
+            console.warn('⚠️ Hujjat parse qilishda xato:', doc.id, parseError);
           }
         });
 
-        Promise.all(ordersPromises).then(results => {
-          const validOrders = results.filter(order => order !== null) as Order[];
-          callback(validOrders);
-        }).catch(error => {
-          console.error('❌ Batch processing xatosi:', error);
-          callback([]);
-        });
+        console.log(`✅ Real-time: ${orders.length} ta buyurtma qayta ishlandi`);
+        callback(orders);
 
       } catch (error) {
-        console.error('❌ Subscription callback xatosi:', error);
+        console.error('❌ Real-time callback xatosi:', error);
         callback([]);
       }
     }, (error) => {
-      console.error('❌ Subscription xatosi:', error);
-      callback([]);
+      console.error('❌ Real-time subscription xatosi:', error);
+      // Retry logic
+      setTimeout(() => {
+        console.log('🔄 Real-time subscription qayta urinish...');
+        try {
+          callback([]); // Bo'sh array qaytarish
+        } catch (retryError) {
+          console.error('❌ Retry callback xatosi:', retryError);
+        }
+      }, 5000);
     });
   }
 }
