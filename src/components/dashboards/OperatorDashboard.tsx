@@ -242,16 +242,31 @@ const OperatorDashboard = () => {
     }
   };
 
+  // Buyurtma holatini yangilash
   const handleOrderStatusUpdate = async (orderId: string, status: Order['status']) => {
     try {
-      await dataService.updateOrderStatus(orderId, status);
-
       const order = orders.find(o => o.id === orderId);
 
-      // Agar buyurtma rad etilsa, mahsulot miqdorini qaytarish va amount kamaytirish
+      // Agar buyurtma bekor qilinayotgan bo'lsa, avval mahsulot sonini qaytarish
       if (status === 'cancelled' && order) {
-        await dataService.revertOrderQuantity(order.cakeId, order.quantity);
+        console.log('🔄 Buyurtma bekor qilinmoqda, mahsulot sonini qaytarish:', {
+          orderId,
+          cakeId: order.cakeId,
+          quantity: order.quantity
+        });
+
+        try {
+          await dataService.revertOrderQuantity(order.cakeId, order.quantity);
+          console.log('✅ Mahsulot soni muvaffaqiyatli qaytarildi');
+        } catch (revertError) {
+          console.error('❌ Mahsulot sonini qaytarishda xato:', revertError);
+          alert('Mahsulot sonini qaytarishda xato yuz berdi');
+          return; // Xato bo'lsa, buyurtma holatini o'zgartirmaslik
+        }
       }
+
+      // Buyurtma holatini yangilash
+      await dataService.updateOrderStatus(orderId, status);
 
       // Buyurtma holatini local state'da yangilash
       setOrders(prev => 
@@ -274,6 +289,7 @@ const OperatorDashboard = () => {
       loadData();
     } catch (error) {
       console.error('Buyurtma holatini yangilashda xatolik:', error);
+      alert('Buyurtma holatini o\'zgartirishda xato yuz berdi');
     }
   };
 
@@ -1479,9 +1495,7 @@ const OperatorDashboard = () => {
                     {Object.values(orderItems).reduce((sum, qty) => sum + qty, 0)} dona
                   </span>
                 </div>
-              </div>
-
-              {/* Amallar */}
+              </div>              {/* Amallar */}
               <div className="flex space-x-3 pt-4">
                 <button
                   onClick={() => {
@@ -1505,7 +1519,7 @@ const OperatorDashboard = () => {
                     Object.keys(orderItems).length === 0 || 
                     !editingCustomerInfo.customerName.trim() ||
                     !editingCustomerInfo.customerPhone.trim() ||
-                    !editingCustomermerInfo.deliveryAddress.trim()
+                    !editingCustomerInfo.deliveryAddress.trim()
                   }
                   className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
