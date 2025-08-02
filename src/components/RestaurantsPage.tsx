@@ -96,8 +96,7 @@ const RestaurantsPage: React.FC = () => {
       }
 
       const script = document.createElement('script');
-      const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY || '40496c4d-9fd2-450a-bea8-9a78d5955593';
-      script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ`;
+      script.src = `https://api-maps.yandex.ru/2.1/?apikey=40496c4d-9fd2-450a-bea8-9a78d5955593&lang=uz_UZ`;
       script.async = true;
       script.onload = (): void => {
         setYmapsReady(true);
