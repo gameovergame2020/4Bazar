@@ -28,10 +28,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   });
 
   const [selectedMapAddress, setSelectedMapAddress] = useState('');
+  const [selectedCoordinates, setSelectedCoordinates] = useState<{lat: number, lng: number} | null>(null);
 
   const mapRef = useRef<HTMLDivElement>(null);
-
-  
 
   // Savat bo'sh bo'lganda asosiy sahifaga qaytish
   React.useEffect(() => {
@@ -136,87 +135,83 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         if (!window.ymaps || !mapRef.current) return;
 
         window.ymaps.ready(() => {
+          // Eski xaritani tozalash
+          if (mapRef.current) {
+            mapRef.current.innerHTML = '';
+          }
+
           const map = new window.ymaps.Map(mapRef.current, {
-            center: [41.290748, 69.240562], // Toshkent markazi (lat, lng)
+            center: [41.290748, 69.240562], // Toshkent markazi
             zoom: 12,
-            controls: ['zoomControl', 'geolocationControl']
+            controls: ['zoomControl', 'geolocationControl', 'searchControl']
           });
 
           // Draggable placemark qo'shish
           const placemark = new window.ymaps.Placemark(
             [41.290748, 69.240562],
             {
-              hintContent: 'Manzilni tanlash uchun siljiting',
-              balloonContent: 'Sizning manzil'
+              hintContent: 'Manzilni tanlash uchun siljiting yoki xaritani bosing',
+              balloonContent: 'Sizning tanlangan manzil'
             },
             {
-              preset: 'islands#redIcon',
+              preset: 'islands#redDotIcon',
               draggable: true
             }
           );
 
           map.geoObjects.add(placemark);
 
-          // Placemark harakatlanganda manzilni yangilash
-          placemark.events.add('dragend', () => {
-            const coords = placemark.geometry.getCoordinates();
-
-            // Geocoding - koordinatadan manzilni aniqlash
+          // Manzilni olish va saqlash funksiyasi
+          const updateAddressFromCoords = (coords) => {
             window.ymaps.geocode(coords).then((result) => {
               const firstGeoObject = result.geoObjects.get(0);
               if (firstGeoObject) {
                 const address = firstGeoObject.getAddressLine();
+                console.log('Yangi manzil:', address);
+                console.log('Koordinatalar:', coords);
+                
                 setSelectedMapAddress(address);
-                setFormData(prev => ({
-                  ...prev,
-                  deliveryAddress: address,
-                  coordinates: { lat: coords[0], lng: coords[1] }
-                }));
-                console.log('Placemark drag - New address:', address);
+                setSelectedCoordinates({ lat: coords[0], lng: coords[1] });
+                
+                // Balloon mazmunini yangilash
+                placemark.properties.set('balloonContent', `📍 ${address}`);
               }
+            }).catch((error) => {
+              console.error('Geocoding xatosi:', error);
             });
+          };
+
+          // Placemark harakatlanganda
+          placemark.events.add('dragend', () => {
+            const coords = placemark.geometry.getCoordinates();
+            updateAddressFromCoords(coords);
           });
 
           // Xaritani bosish orqali manzil tanlash
           map.events.add('click', (e) => {
             const coords = e.get('coords');
             placemark.geometry.setCoordinates(coords);
-
-            window.ymaps.geocode(coords).then((result) => {
-              const firstGeoObject = result.geoObjects.get(0);
-              if (firstGeoObject) {
-                const address = firstGeoObject.getAddressLine();
-                setSelectedMapAddress(address);
-                setFormData(prev => ({
-                  ...prev,
-                  deliveryAddress: address,
-                  coordinates: { lat: coords[0], lng: coords[1] }
-                }));
-                console.log('Map click - New address:', address);
-              }
-            });
+            updateAddressFromCoords(coords);
           });
 
-          // Geolocation button bosilganda
+          // Geolocation button
           map.controls.get('geolocationControl').events.add('locationchange', (e) => {
             const position = e.get('position');
             if (position) {
-              const coords = position.coords;
-              placemark.geometry.setCoordinates([coords[0], coords[1]]);
+              const coords = [position.coords[0], position.coords[1]];
+              placemark.geometry.setCoordinates(coords);
+              updateAddressFromCoords(coords);
+            }
+          });
 
-              window.ymaps.geocode([coords[0], coords[1]]).then((result) => {
-                const firstGeoObject = result.geoObjects.get(0);
-                if (firstGeoObject) {
-                  const address = firstGeoObject.getAddressLine();
-                  setSelectedMapAddress(address);
-                  setFormData(prev => ({
-                    ...prev,
-                    deliveryAddress: address,
-                    coordinates: { lat: coords[0], lng: coords[1] }
-                  }));
-                  console.log('Geolocation - New address:', address);
-                }
-              });
+          // Qidiruv natijalarini handle qilish
+          map.controls.get('searchControl').events.add('resultselect', (e) => {
+            const results = map.controls.get('searchControl').getResultsArray();
+            const selected = results[e.get('index')];
+            if (selected) {
+              const coords = selected.geometry.getCoordinates();
+              placemark.geometry.setCoordinates(coords);
+              updateAddressFromCoords(coords);
             }
           });
         });
@@ -229,6 +224,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         script.type = 'text/javascript';
         script.async = true;
         script.onload = initializeYandexMap;
+        script.onerror = () => {
+          console.error('Yandex Maps API yuklanmadi');
+        };
         document.head.appendChild(script);
       } else {
         initializeYandexMap();
@@ -361,7 +359,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                       onChange={handleInputChange}
                       required
                       rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
+                        formData.coordinates ? 'border-green-300 bg-green-50' : 'border-gray-300'
+                      }`}
                       placeholder="Manzilni kiriting yoki xaritadan tanlash uchun tugmani bosing"
                     />
                     <button
@@ -372,6 +372,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                     >
                       <MapPin size={16} />
                     </button>
+                    {formData.coordinates && (
+                      <div className="absolute bottom-1 left-2 text-xs text-green-600">
+                        ✓ Xaritadan tanlandi
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -542,7 +547,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Yetkazib berish manzilini tanlang</h3>
               <button
-                onClick={() => setShowLocationPicker(false)}
+                onClick={() => {
+                  setShowLocationPicker(false);
+                  setSelectedMapAddress('');
+                  setSelectedCoordinates(null);
+                }}
                 className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
               >
                 ✕
@@ -575,9 +584,14 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
               </div>
 
               {selectedMapAddress && (
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-sm font-medium text-gray-700 mb-1">Tanlangan manzil:</p>
-                  <p className="text-sm text-gray-600">{selectedMapAddress}</p>
+                <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
+                  <p className="text-sm font-medium text-green-700 mb-1">✓ Tanlangan manzil:</p>
+                  <p className="text-sm text-green-600">{selectedMapAddress}</p>
+                  {selectedCoordinates && (
+                    <p className="text-xs text-green-500 mt-1">
+                      📍 {selectedCoordinates.lat.toFixed(6)}, {selectedCoordinates.lng.toFixed(6)}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -586,6 +600,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   onClick={() => {
                     setShowLocationPicker(false);
                     setSelectedMapAddress('');
+                    setSelectedCoordinates(null);
                   }}
                   className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
                 >
@@ -593,23 +608,27 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 </button>
                 <button
                   onClick={() => {
-                    if (selectedMapAddress && selectedMapAddress.trim()) {
+                    if (selectedMapAddress && selectedMapAddress.trim() && selectedCoordinates) {
                       setFormData(prev => ({
                         ...prev,
-                        deliveryAddress: selectedMapAddress
+                        deliveryAddress: selectedMapAddress,
+                        coordinates: selectedCoordinates
                       }));
                       setShowLocationPicker(false);
                       setSelectedMapAddress('');
+                      setSelectedCoordinates(null);
+                      console.log('Manzil formaga qo\'shildi:', selectedMapAddress);
+                      console.log('Koordinatalar formaga qo\'shildi:', selectedCoordinates);
                     } else {
                       alert('Iltimos, xaritadan manzilni tanlang');
                     }
                   }}
                   className={`flex-1 py-2 rounded-lg transition-colors ${
-                    selectedMapAddress && selectedMapAddress.trim() 
+                    selectedMapAddress && selectedMapAddress.trim() && selectedCoordinates
                       ? 'bg-orange-500 text-white hover:bg-orange-600' 
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
-                  disabled={!selectedMapAddress || !selectedMapAddress.trim()}
+                  disabled={!selectedMapAddress || !selectedMapAddress.trim() || !selectedCoordinates}
                 >
                   Tanlash
                 </button>
