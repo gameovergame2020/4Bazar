@@ -165,31 +165,40 @@ const CustomerDashboard = () => {
     if (!cake) return;
 
     const isBakerProduct = cake.productType === 'baked' || (cake.bakerId && !cake.shopId);
+    const currentCartQty = cart[cakeId] || 0;
 
-    if (isBakerProduct && cake.available && cake.quantity !== undefined) {
-      // Baker mahsuloti mavjud va quantity belgilangan - qoldiq miqdorigacha cheklash
-      const currentCartQty = cart[cakeId] || 0;
-      if (currentCartQty < cake.quantity) {
+    if (isBakerProduct) {
+      if (cake.available && cake.quantity !== undefined) {
+        // Baker mahsuloti mavjud va quantity belgilangan - qoldiq miqdorigacha cheklash
+        if (currentCartQty < cake.quantity) {
+          setCart(prev => ({
+            ...prev,
+            [cakeId]: currentCartQty + 1
+          }));
+        }
+      } else {
+        // Buyurtma uchun yoki cheklanmagan miqdor
         setCart(prev => ({
           ...prev,
           [cakeId]: currentCartQty + 1
         }));
       }
-    } else if (cake.productType === 'ready' && cake.quantity !== undefined) {
-      // Shop mahsuloti - miqdor cheklovi
-      const currentCartQty = cart[cakeId] || 0;
-      if (currentCartQty < cake.quantity) {
+    } else if (cake.productType === 'ready') {
+      if (cake.quantity !== undefined) {
+        // Shop mahsuloti - miqdor cheklovi
+        if (currentCartQty < cake.quantity) {
+          setCart(prev => ({
+            ...prev,
+            [cakeId]: currentCartQty + 1
+          }));
+        }
+      } else {
+        // Cheklanmagan miqdor
         setCart(prev => ({
           ...prev,
           [cakeId]: currentCartQty + 1
         }));
       }
-    } else {
-      // Cheklanmagan miqdor
-      setCart(prev => ({
-        ...prev,
-        [cakeId]: (prev[cakeId] || 0) + 1
-      }));
     }
   };
 

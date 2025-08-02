@@ -27,6 +27,10 @@ const HomePage = () => {
     loadCakes();
   }, [selectedCategory]);
 
+  useEffect(() => {
+    handleSearch(searchQuery);
+  }, [searchQuery, cakes]);
+
   const loadCakes = async () => {
     try {
       setLoading(true);
@@ -86,7 +90,9 @@ const HomePage = () => {
       });
 
       setCakes(filteredCakes);
-      setFilteredCakes(filteredCakes);
+      if (!searchQuery) {
+        setFilteredCakes(filteredCakes);
+      }
     } catch (err) {
       console.error('Tortlarni yuklashda xatolik:', err);
       setError('Tortlarni yuklashda xatolik yuz berdi');
@@ -155,17 +161,17 @@ const HomePage = () => {
   }, []);
 
   const handleSearch = (query: string) => {
-    setSearchQuery(query);
     if (query) {
         setFilteredCakes(cakes.filter(cake =>
             cake.name.toLowerCase().includes(query.toLowerCase()) ||
             cake.description.toLowerCase().includes(query.toLowerCase()) ||
-            cake.bakerName.toLowerCase().includes(query.toLowerCase())
+            cake.bakerName.toLowerCase().includes(query.toLowerCase()) ||
+            (cake.shopName && cake.shopName.toLowerCase().includes(query.toLowerCase()))
         ));
     } else {
-        loadCakes();
+        setFilteredCakes(cakes);
     }
-};
+  };
 
   const recommendedCakes = filteredCakes.slice(0, 6);
   const topRatedCakes = filteredCakes
@@ -376,7 +382,10 @@ const addToCart = (cakeId: string) => {
             type="text"
             placeholder="Tort nomi, tavsif yoki oshpaz ismini qidiring..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              handleSearch(e.target.value);
+            }}
             className="flex-1 outline-none text-gray-700 placeholder-gray-400 text-sm sm:text-base"
           />
         </div>
