@@ -615,20 +615,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                         onChange={(e) => setUserInfo(prev => ({ ...prev, customDeliveryTime: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
                       >
-                        <option value="">Vaqtni tanlang</option>
-                        <option value="09:00">09:00 - Ertalab</option>
-                        <option value="10:00">10:00 - Ertalab</option>
-                        <option value="11:00">11:00 - Ertalab</option>
-                        <option value="12:00">12:00 - Tush</option>
-                        <option value="13:00">13:00 - Tushdan keyin</option>
-                        <option value="14:00">14:00 - Tushdan keyin</option>
-                        <option value="15:00">15:00 - Tushdan keyin</option>
-                        <option value="16:00">16:00 - Tushdan keyin</option>
-                        <option value="17:00">17:00 - Kechqurun</option>
-                        <option value="18:00">18:00 - Kechqurun</option>
-                        <option value="19:00">19:00 - Kechqurun</option>
-                        <option value="20:00">20:00 - Kechqurun</option>
-                        <option value="21:00">21:00 - Kechqurun</option>
+                        <option value="">Vaqt oralig'ini tanlang</option>
+                        <option value="09:00-12:00">🌅 09:00-12:00 (Ertalab)</option>
+                        <option value="12:00-15:00">☀️ 12:00-15:00 (Tush)</option>
+                        <option value="15:00-18:00">🌤️ 15:00-18:00 (Tushdan keyin)</option>
+                        <option value="18:00-21:00">🌆 18:00-21:00 (Kechqurun)</option>
+                        <option value="21:00-22:00">🌙 21:00-22:00 (Kech)</option>
                       </select>
                     </div>
                   </div>
