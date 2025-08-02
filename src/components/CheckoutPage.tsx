@@ -164,12 +164,19 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
               const firstGeoObject = result.geoObjects.get(0);
               if (firstGeoObject) {
                 const address = firstGeoObject.getAddressLine();
-                // State'ni yangilash
-                setFormData(prev => ({
-                  ...prev,
-                  deliveryAddress: address,
-                  coordinates: { lat: coords[0], lng: coords[1] }
-                }));
+                // State'ni yangilash va komponenti majburiy qayta render qilish
+                setFormData(prev => {
+                  const newFormData = {
+                    ...prev,
+                    deliveryAddress: address,
+                    coordinates: { lat: coords[0], lng: coords[1] }
+                  };
+                  // Force re-render by creating new object reference
+                  setTimeout(() => {
+                    setFormData(currentData => ({ ...currentData }));
+                  }, 0);
+                  return newFormData;
+                });
                 console.log('Placemark drag - New address:', address);
               }
             });
@@ -184,12 +191,19 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
               const firstGeoObject = result.geoObjects.get(0);
               if (firstGeoObject) {
                 const address = firstGeoObject.getAddressLine();
-                // State'ni yangilash
-                setFormData(prev => ({
-                  ...prev,
-                  deliveryAddress: address,
-                  coordinates: { lat: coords[0], lng: coords[1] }
-                }));
+                // State'ni yangilash va komponenti majburiy qayta render qilish
+                setFormData(prev => {
+                  const newFormData = {
+                    ...prev,
+                    deliveryAddress: address,
+                    coordinates: { lat: coords[0], lng: coords[1] }
+                  };
+                  // Force re-render by creating new object reference
+                  setTimeout(() => {
+                    setFormData(currentData => ({ ...currentData }));
+                  }, 0);
+                  return newFormData;
+                });
                 console.log('Map click - New address:', address);
               }
             });
@@ -206,12 +220,19 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 const firstGeoObject = result.geoObjects.get(0);
                 if (firstGeoObject) {
                   const address = firstGeoObject.getAddressLine();
-                  // State'ni yangilash
-                  setFormData(prev => ({
-                    ...prev,
-                    deliveryAddress: address,
-                    coordinates: { lat: coords[0], lng: coords[1] }
-                  }));
+                  // State'ni yangilash va komponenti majburiy qayta render qilish
+                  setFormData(prev => {
+                    const newFormData = {
+                      ...prev,
+                      deliveryAddress: address,
+                      coordinates: { lat: coords[0], lng: coords[1] }
+                    };
+                    // Force re-render by creating new object reference
+                    setTimeout(() => {
+                      setFormData(currentData => ({ ...currentData }));
+                    }, 0);
+                    return newFormData;
+                  });
                   console.log('Geolocation - New address:', address);
                 }
               });
@@ -355,7 +376,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   <div className="relative">
                     <textarea
                       name="deliveryAddress"
-                      value={formData.deliveryAddress}
+                      value={formData.deliveryAddress || ''}
                       onChange={handleInputChange}
                       required
                       rows={3}
