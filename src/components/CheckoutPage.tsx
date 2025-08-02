@@ -58,7 +58,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const getDeliveryFee = (deliveryTime: string) => {
     switch (deliveryTime) {
       case 'asap': return 15000; // Tez yetkazish uchun qo'shimcha to'lov
-      case 'custom': return 10000; // O'zi muddatini tanlash uchun to'lov
+      case 'custom': return 0; // O'zi muddatini tanlash bepul
       default: return 0; // Bugun va ertaga yetkazish bepul
     }
   };
@@ -594,7 +594,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 <option value="asap">⚡ Tez yetkazish (2-3 soat) - +15,000 so'm</option>
                 <option value="today">🌅 Bugun yetkazish (09:00-22:00) - Bepul</option>
                 <option value="tomorrow">📅 Ertaga yetkazish (09:00-22:00) - Bepul</option>
-                <option value="custom">⏰ O'zi muddatini tanlash - +10,000 so'm</option>
+                <option value="custom">⏰ O'zi muddatini tanlash - Bepul</option>
               </select>
 
               {/* Qo'shimcha haq eslatmasi */}
@@ -609,16 +609,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 </div>
               )}
               
-              {userInfo.deliveryTime === 'custom' && (
-                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <span className="text-yellow-600">⚠️</span>
-                    <p className="text-sm text-yellow-700 font-medium">
-                      O'zi muddatini tanlash uchun qo'shimcha 10,000 so'm to'lov olinadi
-                    </p>
-                  </div>
-                </div>
-              )}
+              
 
               {/* Custom vaqt tanlash */}
               {userInfo.deliveryTime === 'custom' && (
