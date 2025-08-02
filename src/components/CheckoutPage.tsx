@@ -131,253 +131,256 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     useEffect(() => {
       if (!showLocationPicker) return;
 
-      const initializeYandexMap = () => {
-        if (!window.ymaps || !mapRef.current) {
-          console.error('window.ymaps yoki mapRef mavjud emas');
-          return;
-        }
+      let mapInstance = null;
+      let isDestroyed = false;
 
-        // ymaps ob'ekti to'liq yuklanganini tekshirish
-        if (typeof window.ymaps.Map !== 'function' || typeof window.ymaps.Placemark !== 'function') {
-          console.error('ymaps ob\'ektlari to\'liq yuklanmagan');
-          setTimeout(() => initializeYandexMap(), 500);
-          return;
-        }
+      const initializeYandexMap = async () => {
+        if (isDestroyed || !mapRef.current) return;
 
-        window.ymaps.ready(() => {
+        try {
           // Eski xaritani tozalash
           if (mapRef.current) {
             mapRef.current.innerHTML = '';
           }
 
-          const map = new window.ymaps.Map(mapRef.current, {
-            center: [41.290748, 69.240562], // Toshkent markazi
-            zoom: 12,
-            controls: ['zoomControl', 'geolocationControl', 'searchControl']
-          });
+          if (!window.ymaps) {
+            console.error('window.ymaps mavjud emas');
+            return;
+          }
 
-          // Draggable placemark qo'shish
-          const placemark = new window.ymaps.Placemark(
-            [41.290748, 69.240562],
-            {
-              hintContent: 'Manzilni tanlash uchun siljiting yoki xaritani bosing',
-              balloonContent: 'Sizning tanlangan manzil'
-            },
-            {
-              preset: 'islands#redDotIcon',
-              draggable: true
-            }
-          );
+          await new Promise((resolve) => {
+            window.ymaps.ready(() => {
+              if (isDestroyed) return;
 
-          map.geoObjects.add(placemark);
+              try {
+                // Xarita yaratish
+                mapInstance = new window.ymaps.Map(mapRef.current, {
+                  center: [41.290748, 69.240562], // Toshkent markazi
+                  zoom: 12,
+                  controls: ['zoomControl', 'geolocationControl'],
+                  behaviors: ['default', 'scrollZoom']
+                });
 
-          // Manzilni olish va saqlash funksiyasi
-          const updateAddressFromCoords = (coords) => {
-            console.log('Geocoding boshlanmoqda:', coords);
-            console.log('Ishlatiladigan API kalit:', import.meta.env.VITE_YANDEX_MAPS_API_KEY || '40496c4d-9fd2-450a-bea8-9a78d5955593');
-            
-            // Geocoding uchun yangi API va options
-            window.ymaps.geocode(coords, {
-              kind: 'house',
-              results: 1,
-              strictBounds: false,
-              boundedBy: [[40.0, 67.0], [42.0, 71.0]] // O'zbekiston chegaralari
-            }).then((result) => {
-              console.log('Geocoding natijasi:', result);
-              const firstGeoObject = result.geoObjects.get(0);
-              if (firstGeoObject) {
-                // Aniq manzil tafsilotlarini olish
-                const metaData = firstGeoObject.getMetaData();
-                const addressDetails = metaData.AddressDetails;
+                // Draggable placemark qo'shish
+                const placemark = new window.ymaps.Placemark(
+                  [41.290748, 69.240562],
+                  {
+                    hintContent: 'Manzilni tanlash uchun siljiting yoki xaritani bosing',
+                    balloonContent: 'Sizning tanlangan manzil'
+                  },
+                  {
+                    preset: 'islands#redDotIcon',
+                    draggable: true
+                  }
+                );
 
-                let detailedAddress = '';
-                let addressComponents = [];
+                mapInstance.geoObjects.add(placemark);
 
-                if (addressDetails && addressDetails.Country) {
-                  const country = addressDetails.Country;
+                // Geocoding funksiyasi - yangi va ishonchli
+                const getAddressFromCoords = async (coords) => {
+                  try {
+                    console.log('🗺️ Geocoding boshlandi:', coords);
+                    
+                    // Koordinatalarni to'g'ri formatda tayyorlash
+                    const lat = parseFloat(coords[0]);
+                    const lng = parseFloat(coords[1]);
+                    
+                    if (isNaN(lat) || isNaN(lng)) {
+                      throw new Error('Noto\'g\'ri koordinatalar');
+                    }
 
-                  // Viloyat/Region
-                  if (country.AdministrativeArea) {
-                    const region = country.AdministrativeArea.AdministrativeAreaName;
-                    if (region) addressComponents.push(`${region} viloyati`);
+                    // Geocoder so'rovi
+                    const geocodeResult = await window.ymaps.geocode([lat, lng], {
+                      kind: 'house',
+                      results: 1,
+                      strictBounds: false
+                    });
 
-                    // Shahar/Tuman
-                    if (country.AdministrativeArea.SubAdministrativeArea) {
-                      const subArea = country.AdministrativeArea.SubAdministrativeAreaName;
-                      if (subArea) addressComponents.push(`${subArea}`);
+                    console.log('🔍 Geocoding natijasi:', geocodeResult);
 
-                      // Mahalla/Locality
-                      if (country.AdministrativeArea.SubAdministrativeArea.Locality) {
-                        const locality = country.AdministrativeArea.SubAdministrativeArea.LocalityName;
-                        if (locality) addressComponents.push(`${locality}`);
+                    const geoObject = geocodeResult.geoObjects.get(0);
+                    let address = '';
 
-                        // Ko'cha
-                        if (country.AdministrativeArea.SubAdministrativeArea.Locality.Thoroughfare) {
-                          const street = country.AdministrativeArea.SubAdministrativeArea.Locality.Thoroughfare.ThoroughfareName;
-                          if (street) addressComponents.push(`${street} ko'chasi`);
-
-                          // Uy raqami
-                          if (country.AdministrativeArea.SubAdministrativeArea.Locality.Thoroughfare.Premise) {
-                            const house = country.AdministrativeArea.SubAdministrativeArea.Locality.Thoroughfare.Premise.PremiseNumber;
-                            if (house) addressComponents.push(`${house}-uy`);
-                          }
-                        }
+                    if (geoObject) {
+                      // Manzil matnini olish
+                      address = geoObject.getAddressLine();
+                      
+                      // Agar manzil bo'sh bo'lsa, properties dan olishga harakat qilamiz
+                      if (!address || address.trim() === '') {
+                        const properties = geoObject.properties.getAll();
+                        address = properties.text || properties.name || properties.description || '';
                       }
-                    } else if (country.AdministrativeArea.Locality) {
-                      // Toshkent kabi shaharlar uchun
-                      const locality = country.AdministrativeArea.Locality.LocalityName;
-                      if (locality) addressComponents.push(`${locality} shahri`);
 
-                      // Ko'cha
-                      if (country.AdministrativeArea.Locality.Thoroughfare) {
-                        const street = country.AdministrativeArea.Locality.Thoroughfare.ThoroughfareName;
-                        if (street) addressComponents.push(`${street} ko'chasi`);
-
-                        // Uy raqami
-                        if (country.AdministrativeArea.Locality.Thoroughfare.Premise) {
-                          const house = country.AdministrativeArea.Locality.Thoroughfare.Premise.PremiseNumber;
-                          if (house) addressComponents.push(`${house}-uy`);
-                        }
+                      // Manzilni tozalash va formatlash
+                      if (address && address.trim()) {
+                        // O'zbekistonga mos formatga o'zgartirish
+                        address = address
+                          .replace(/Узбекистан,?\s*/gi, 'O\'zbekiston, ')
+                          .replace(/Ташкент,?\s*/gi, 'Toshkent, ')
+                          .replace(/улица/gi, 'ko\'chasi')
+                          .replace(/дом/gi, 'uy')
+                          .replace(/,\s*,/g, ',')
+                          .trim();
                       }
                     }
+
+                    // Agar manzil olinmasa, koordinatalarni ko'rsatamiz
+                    if (!address || address.trim() === '') {
+                      address = `📍 Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+                      console.log('⚠️ Manzil topilmadi, koordinatalar ishlatilmoqda');
+                    } else {
+                      console.log('✅ Manzil topildi:', address);
+                    }
+
+                    // State larni yangilash
+                    setSelectedMapAddress(address);
+                    setSelectedCoordinates({ lat, lng });
+
+                    // Placemark ni yangilash
+                    if (placemark && !isDestroyed) {
+                      placemark.properties.set('balloonContent', `📍 ${address}`);
+                      placemark.properties.set('hintContent', address);
+                    }
+
+                    return address;
+
+                  } catch (error) {
+                    console.error('❌ Geocoding xatosi:', error);
+                    
+                    // Xato holatida koordinatalarni ko'rsatish
+                    const fallbackAddress = `📍 Lat: ${coords[0]}, Lng: ${coords[1]}`;
+                    setSelectedMapAddress(fallbackAddress);
+                    setSelectedCoordinates({ lat: coords[0], lng: coords[1] });
+                    
+                    if (placemark && !isDestroyed) {
+                      placemark.properties.set('balloonContent', `📍 ${fallbackAddress}`);
+                    }
+                    
+                    return fallbackAddress;
+                  }
+                };
+
+                // Event listener lar
+                if (!isDestroyed) {
+                  // Placemark harakatlanganda
+                  placemark.events.add('dragend', async () => {
+                    if (isDestroyed) return;
+                    const coords = placemark.geometry.getCoordinates();
+                    await getAddressFromCoords(coords);
+                  });
+
+                  // Xaritani bosish orqali manzil tanlash
+                  mapInstance.events.add('click', async (e) => {
+                    if (isDestroyed) return;
+                    const coords = e.get('coords');
+                    placemark.geometry.setCoordinates(coords);
+                    await getAddressFromCoords(coords);
+                  });
+
+                  // Geolocation tugmasi
+                  const geoControl = mapInstance.controls.get('geolocationControl');
+                  if (geoControl) {
+                    geoControl.events.add('locationchange', async (e) => {
+                      if (isDestroyed) return;
+                      const position = e.get('position');
+                      if (position && position.coords) {
+                        const coords = [position.coords[0], position.coords[1]];
+                        placemark.geometry.setCoordinates(coords);
+                        await getAddressFromCoords(coords);
+                        mapInstance.setCenter(coords, 15);
+                      }
+                    });
                   }
                 }
 
-                // Agar tafsilotli manzil olinmasa, oddiy manzilni ishlatamiz
-                if (addressComponents.length === 0) {
-                  detailedAddress = firstGeoObject.getAddressLine();
-                } else {
-                  detailedAddress = addressComponents.join(', ');
-                }
-
-                console.log('Manzil tafsilotlari:', addressDetails);
-                console.log('Tuzilgan manzil:', detailedAddress);
-                console.log('Koordinatalar:', coords);
-
-                setSelectedMapAddress(detailedAddress);
-                setSelectedCoordinates({ lat: coords[0], lng: coords[1] });
-
-                // Balloon mazmunini yangilash
-                placemark.properties.set('balloonContent', `📍 ${detailedAddress}`);
-              } else {
-                // Agar manzil topilmasa, koordinatalarni ko'rsatamiz
-                const fallbackAddress = `Koordinatalar: ${coords[0].toFixed(6)}, ${coords[1].toFixed(6)}`;
-                setSelectedMapAddress(fallbackAddress);
-                setSelectedCoordinates({ lat: coords[0], lng: coords[1] });
-                placemark.properties.set('balloonContent', `📍 ${fallbackAddress}`);
+                resolve();
+              } catch (error) {
+                console.error('❌ Xarita yaratishda xato:', error);
+                alert('Xarita ishga tushmadi. Manzilni qo\'lda kiriting.');
+                resolve();
               }
-            }).catch((error) => {
-              console.error('Geocoding xatosi:', error);
-              
-              // Script error bo'lsa, xarita ishlashini to'xtatamiz
-              if (error.message === 'scriptError' || !window.ymaps) {
-                console.error('Script yuklash xatosi aniqlandi. Xarita ishlamayapti.');
-                alert('Xarita xizmati ishlamayapti. Iltimos, manzilni qo\'lda kiriting.');
-                setShowLocationPicker(false);
-                return;
-              }
-              
-              console.error('Xato tafsilotlari:', {
-                message: error.message,
-                code: error.code,
-                type: typeof error,
-                stack: error.stack
-              });
-              
-              // Boshqa xatolar uchun fallback address
-              const fallbackAddress = `Tanlangan joylashuv: ${coords[0].toFixed(6)}, ${coords[1].toFixed(6)}`;
-              setSelectedMapAddress(fallbackAddress);
-              setSelectedCoordinates({ lat: coords[0], lng: coords[1] });
-              placemark.properties.set('balloonContent', `📍 ${fallbackAddress}`);
-              
-              console.warn('Manzil aniqlanmadi, koordinatalar ishlatilmoqda');
             });
-          };
-
-          // Placemark harakatlanganda
-          placemark.events.add('dragend', () => {
-            const coords = placemark.geometry.getCoordinates();
-            updateAddressFromCoords(coords);
           });
 
-          // Xaritani bosish orqali manzil tanlash
-          map.events.add('click', (e) => {
-            const coords = e.get('coords');
-            placemark.geometry.setCoordinates(coords);
-            updateAddressFromCoords(coords);
-          });
-
-          // Geolocation button
-          map.controls.get('geolocationControl').events.add('locationchange', (e) => {
-            const position = e.get('position');
-            if (position) {
-              const coords = [position.coords[0], position.coords[1]];
-              placemark.geometry.setCoordinates(coords);
-              updateAddressFromCoords(coords);
-            }
-          });
-
-          // Qidiruv natijalarini handle qilish
-          map.controls.get('searchControl').events.add('resultselect', (e) => {
-            const results = map.controls.get('searchControl').getResultsArray();
-            const selected = results[e.get('index')];
-            if (selected) {
-              const coords = selected.geometry.getCoordinates();
-              placemark.geometry.setCoordinates(coords);
-              updateAddressFromCoords(coords);
-            }
-          });
-        });
-      };
-
-      // Yandex Maps API scriptini yuklash
-      if (!window.ymaps) {
-        // Eski scriptlarni olib tashlash
-        const existingScripts = document.querySelectorAll('script[src*="api-maps.yandex.ru"]');
-        existingScripts.forEach(script => script.remove());
-        
-        const script = document.createElement('script');
-        // Yangi va ishlaydigan API kalit
-        const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY || 'b5b8c8d2-8f5d-4c4a-9e6b-2a1c3d4e5f6g';
-        
-        console.log('Yandex Maps yuklanmoqda, API kalit:', apiKey);
-        
-        // API kalitni tekshirish
-        if (!apiKey || apiKey === 'your_yandex_maps_api_key_here') {
-          console.error('API kalit noto\'g\'ri yoki mavjud emas');
-          alert('Xarita API kaliti noto\'g\'ri. Manzilni qo\'lda kiriting.');
-          return;
-        }
-        
-        // Script URL - API version va cache buster qo'shish
-        script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&v=2.1.79`;
-        script.type = 'text/javascript';
-        script.async = true;
-        
-        script.onload = () => {
-          console.log('Yandex Maps muvaffaqiyatli yuklandi');
-          // ymaps ready bo'lishini kutish
-          if (window.ymaps) {
-            window.ymaps.ready(() => {
-              console.log('ymaps.ready() chaqirildi');
-              initializeYandexMap();
-            });
-          } else {
-            console.error('window.ymaps mavjud emas script yuklangandan keyin');
+        } catch (error) {
+          console.error('❌ Xarita ishga tushirishda xato:', error);
+          if (!isDestroyed) {
             alert('Xarita xizmati ishlamayapti. Manzilni qo\'lda kiriting.');
           }
-        };
-        
-        script.onerror = (error) => {
-          console.error('Yandex Maps API yuklanmadi:', error);
-          console.error('Ishlatilgan URL:', script.src);
-          alert('Xarita xizmati vaqtincha ishlamayapti. Manzilni qo\'lda kiriting.');
-        };
-        
-        document.head.appendChild(script);
-      } else {
-        initializeYandexMap();
-      }
+        }
+      };
+
+      // Yandex Maps API ni yuklash
+      const loadYandexMaps = async () => {
+        if (window.ymaps) {
+          await initializeYandexMap();
+          return;
+        }
+
+        try {
+          // Eski scriptlarni olib tashlash
+          const existingScripts = document.querySelectorAll('script[src*="api-maps.yandex.ru"]');
+          existingScripts.forEach(script => {
+            if (script.parentNode) {
+              script.parentNode.removeChild(script);
+            }
+          });
+
+          // Yangi API kalit
+          const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY || 'your_new_api_key_here';
+          
+          if (!apiKey || apiKey === 'your_new_api_key_here') {
+            throw new Error('API kalit mavjud emas');
+          }
+
+          console.log('🚀 Yandex Maps yuklanmoqda...');
+
+          const script = document.createElement('script');
+          script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&load=geocode,geoObject,map,placemark`;
+          script.async = true;
+
+          const loadPromise = new Promise((resolve, reject) => {
+            script.onload = () => {
+              console.log('✅ Yandex Maps yuklandi');
+              resolve(undefined);
+            };
+            script.onerror = (error) => {
+              console.error('❌ Yandex Maps yuklanmadi:', error);
+              reject(error);
+            };
+          });
+
+          document.head.appendChild(script);
+          await loadPromise;
+
+          if (!isDestroyed) {
+            await initializeYandexMap();
+          }
+
+        } catch (error) {
+          console.error('❌ Yandex Maps yuklashda xato:', error);
+          if (!isDestroyed) {
+            alert('Xarita xizmati mavjud emas. Manzilni qo\'lda kiriting.');
+            setShowLocationPicker(false);
+          }
+        }
+      };
+
+      loadYandexMaps();
+
+      // Cleanup funksiyasi
+      return () => {
+        isDestroyed = true;
+        if (mapInstance) {
+          try {
+            mapInstance.destroy();
+          } catch (error) {
+            console.log('Xarita tozalashda xato:', error);
+          }
+        }
+        setSelectedMapAddress('');
+        setSelectedCoordinates(null);
+      };
     }, [showLocationPicker]);
 
   // Login talab qilish modali
