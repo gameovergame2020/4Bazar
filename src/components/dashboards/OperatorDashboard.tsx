@@ -70,6 +70,42 @@ const OperatorDashboard = () => {
     }
   }, [userData]);
 
+  // Buyurtma holatini o'zgartirish
+  const handleOrderStatusChange = async (orderId: string, newStatus: string) => {
+    try {
+      await dataService.updateOrderStatus(orderId, newStatus as any);
+      
+      // Ma'lumotlarni qayta yuklash
+      await loadData();
+      
+      // Modalini yopish
+      setSelectedOrderForDetails(null);
+      
+      // Muvaffaqiyat xabari
+      alert(`Buyurtma holati "${getOrderStatusText(newStatus)}" ga o'zgartirildi`);
+      
+      // Mijozga bildirishnoma yuborish
+      try {
+        const order = orders.find(o => o.id === orderId);
+        if (order) {
+          const { notificationService } = await import('../../services/notificationService');
+          await notificationService.createOrderNotification(
+            order.customerId,
+            orderId,
+            newStatus,
+            order.cakeName
+          );
+        }
+      } catch (notifError) {
+        console.warn('Mijoz bildirishnomasi yuborishda xato:', notifError);
+      }
+      
+    } catch (error) {
+      console.error('Buyurtma holatini o\'zgartirishda xato:', error);
+      alert('Xato yuz berdi. Qaytadan urinib ko\'ring.');
+    }
+  };
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -1012,7 +1048,66 @@ const OperatorDashboard = () => {
                 </div>
               )}
 
-              <div className="flex space-x-2 pt-4">
+              <div className="space-y-2 pt-4">
+                {/* Tasdiqlash tugmalari - faqat pending holatida */}
+                {selectedOrderForDetails.status === 'pending' && (
+                  <div className="flex space-x-2 mb-2">
+                    <button 
+                      onClick={() => handleOrderStatusChange(selectedOrderForDetails.id!, 'accepted')}
+                      className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-1"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Tasdiqlash</span>
+                    </button>
+                    <button 
+                      onClick={() => handleOrderStatusChange(selectedOrderForDetails.id!, 'cancelled')}
+                      className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center space-x-1"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      <span>Rad etish</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Holat o'zgartirish tugmalari - accepted dan keyin */}
+                {selectedOrderForDetails.status === 'accepted' && (
+                  <div className="flex space-x-2 mb-2">
+                    <button 
+                      onClick={() => handleOrderStatusChange(selectedOrderForDetails.id!, 'preparing')}
+                      className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      Tayyorlanishga yuborish
+                    </button>
+                  </div>
+                )}
+
+                {selectedOrderForDetails.status === 'preparing' && (
+                  <div className="flex space-x-2 mb-2">
+                    <button 
+                      onClick={() => handleOrderStatusChange(selectedOrderForDetails.id!, 'ready')}
+                      className="flex-1 bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition-colors"
+                    >
+                      Tayyor deb belgilash
+                    </button>
+                  </div>
+                )}
+
+                {selectedOrderForDetails.status === 'ready' && (
+                  <div className="flex space-x-2 mb-2">
+                    <button 
+                      onClick={() => handleOrderStatusChange(selectedOrderForDetails.id!, 'delivering')}
+                      className="flex-1 bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
+                    >
+                      Yetkazib berishga yuborish
+                    </button>
+                  </div>
+                )}
+
+                {/* Qo'ng'iroq tugmasi */}
                 <button 
                   onClick={() => window.open(`tel:${selectedOrderForDetails.customerPhone}`, '_self')}
                   className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-1"

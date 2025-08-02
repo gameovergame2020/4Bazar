@@ -390,26 +390,70 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       return;
     }
 
-    const orderData = {
-      userInfo,
-      deliveryAddress,
-      coordinates: selectedCoordinates,
-      cartProducts,
-      totalPrice,
-      orderDate: new Date().toISOString()
-    };
+    try {
+      // Buyurtma ma'lumotlarini tayyorlash
+      const orderData = {
+        customerId: 'customer-' + Date.now(), // Real holatda foydalanuvchi ID si
+        customerName: userInfo.name,
+        customerPhone: userInfo.phone,
+        cakeId: cartProducts[0]?.id || '', // Birinchi mahsulot ID si
+        cakeName: cartProducts.map(p => p.name).join(', '), // Barcha mahsulotlar nomlari
+        quantity: cartProducts.reduce((sum, p) => sum + p.quantity, 0), // Jami miqdor
+        totalPrice: totalPrice,
+        status: 'pending', // Operator tasdiqlashini kutmoqda
+        deliveryAddress: deliveryAddress,
+        coordinates: selectedCoordinates ? { 
+          lat: selectedCoordinates[0], 
+          lng: selectedCoordinates[1] 
+        } : undefined,
+        notes: `To'lov usuli: ${userInfo.paymentMethod === 'cash' ? 'Naqd pul' : 'Bank kartasi'}. Mahsulotlar: ${cartProducts.map(p => `${p.name} (${p.quantity} dona)`).join(', ')}`
+      };
 
-    console.log('🛒 Buyurtma yuborilmoqda:', orderData);
-    
-    // Buyurtma ID generatsiya qilish (real holatda Firebase'dan keladi)
-    const orderId = 'ORD-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 3).toUpperCase();
-    
-    // Operator telefon raqami
-    const operatorPhone = '+998 90 123 45 67';
-    
-    // Buyurtma tasdiqlash modalini ko'rsatish
-    setOrderDetails({ orderId, operatorPhone });
-    setOrderConfirmed(true);
+      console.log('🛒 Buyurtma Firebase ga yuborilmoqda:', orderData);
+      
+      // Firebase'ga buyurtma yaratish
+      const { dataService } = await import('../services/dataService');
+      const orderId = await dataService.createOrder(orderData);
+      
+      console.log('✅ Buyurtma yaratildi, ID:', orderId);
+
+      // Operator telefon raqami
+      const operatorPhone = '+998 90 123 45 67';
+      
+      // Buyurtma tasdiqlash modalini ko'rsatish
+      setOrderDetails({ 
+        orderId: `ORD-${orderId.slice(-8).toUpperCase()}`, 
+        operatorPhone 
+      });
+      setOrderConfirmed(true);
+
+      // Operator bildirishnomasi yuborish (optional)
+      try {
+        const { notificationService } = await import('../services/notificationService');
+        await notificationService.createNotification({
+          userId: 'operator-1', // Operator ID si
+          type: 'order',
+          title: 'Yangi buyurtma!',
+          message: `${userInfo.name} tomonidan yangi buyurtma: ${cartProducts.map(p => p.name).join(', ')}`,
+          data: { 
+            orderId, 
+            customerName: userInfo.name,
+            customerPhone: userInfo.phone,
+            totalPrice 
+          },
+          read: false,
+          priority: 'high',
+          actionUrl: `/operator/orders/${orderId}`
+        });
+        console.log('📢 Operator bildirishnomasi yuborildi');
+      } catch (notifError) {
+        console.warn('⚠️ Operator bildirishnomasi yuborishda xato:', notifError);
+      }
+
+    } catch (error) {
+      console.error('❌ Buyurtma yuborishda xato:', error);
+      alert('Buyurtma yuborishda xato yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
+    }
   };
 
   return (
