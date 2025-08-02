@@ -43,6 +43,7 @@ export interface Cake {
 // Buyurtmalar uchun interface
 export interface Order {
   id?: string;
+  orderUniqueId?: string; // Har bir buyurtma uchun noyob ID
   customerId: string;
   customerName: string;
   customerPhone: string;
@@ -216,13 +217,26 @@ class DataService {
   // Yangi buyurtma yaratish
   async createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     try {
+      // Har bir buyurtma uchun noyob order ID yaratish
+      const orderTimestamp = Date.now();
+      const orderUniqueId = `ORD_${order.customerId}_${order.cakeId}_${orderTimestamp}`;
+      
+      console.log('🆔 Yangi buyurtma ID yaratildi:', orderUniqueId);
+      console.log('👤 Customer ID:', order.customerId);
+      console.log('🍰 Cake ID:', order.cakeId);
+      
       const orderData = {
         ...order,
+        orderUniqueId, // Qo'shimcha noyob identifikator
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       };
 
       const docRef = await addDoc(collection(db, 'orders'), orderData);
+      
+      console.log('✅ Firebase document ID:', docRef.id);
+      console.log('🆔 Order unique ID:', orderUniqueId);
+      
       return docRef.id;
     } catch (error) {
       console.error('Buyurtma yaratishda xatolik:', error);
@@ -296,6 +310,7 @@ class DataService {
           
           const order: Order = {
             id: doc.id,
+            orderUniqueId: data.orderUniqueId,
             customerId: data.customerId,
             customerName: data.customerName || 'Noma\'lum',
             customerPhone: data.customerPhone || '',
@@ -380,6 +395,7 @@ class DataService {
 
               const order: Order = {
                 id: doc.id,
+                orderUniqueId: data.orderUniqueId,
                 customerId: data.customerId || 'unknown',
                 customerName: data.customerName || 'Noma\'lum',
                 customerPhone: data.customerPhone || '',
@@ -491,6 +507,7 @@ class DataService {
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
+        orderUniqueId: doc.data().orderUniqueId,
         ...doc.data(),
         createdAt: doc.data().createdAt.toDate(),
         updatedAt: doc.data().updatedAt.toDate(),
@@ -1412,6 +1429,7 @@ class DataService {
             
             const order: Order = {
               id: doc.id,
+              orderUniqueId: data.orderUniqueId,
               customerId: data.customerId || 'unknown',
               customerName: data.customerName || 'Noma\'lum',
               customerPhone: data.customerPhone || '',
