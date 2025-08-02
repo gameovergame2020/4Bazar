@@ -422,8 +422,14 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         } : undefined,
         notes: `To'lov usuli: ${userInfo.paymentMethod === 'cash' ? 'Naqd pul' : 'Bank kartasi'}. Yetkazib berish: ${
           userInfo.deliveryTime === 'asap' ? 'Tez (2-3 soat)' :
-          userInfo.deliveryTime === 'today' ? 'Bugun (18:00-22:00)' :
-          userInfo.deliveryTime === 'tomorrow' ? 'Ertaga (09:00-21:00)' : userInfo.deliveryTime
+          userInfo.deliveryTime === 'today_morning' ? 'Bugun ertalab (09:00-12:00)' :
+          userInfo.deliveryTime === 'today_afternoon' ? 'Bugun tushdan keyin (12:00-18:00)' :
+          userInfo.deliveryTime === 'today_evening' ? 'Bugun kechqurun (18:00-22:00)' :
+          userInfo.deliveryTime === 'tomorrow_morning' ? 'Ertaga ertalab (09:00-12:00)' :
+          userInfo.deliveryTime === 'tomorrow_afternoon' ? 'Ertaga tushdan keyin (12:00-18:00)' :
+          userInfo.deliveryTime === 'tomorrow_evening' ? 'Ertaga kechqurun (18:00-22:00)' :
+          userInfo.deliveryTime === 'weekend' ? 'Dam olish kunlari (Shanba-Yakshanba)' :
+          userInfo.deliveryTime === 'custom' ? 'Operator bilan kelishiladi' : userInfo.deliveryTime
         }. Mahsulotlar: ${cartProducts.map(p => `${p.name} (${p.quantity} dona)`).join(', ')}`
       };
 
@@ -571,8 +577,14 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
               >
                 <option value="asap">⚡ Tez (2-3 soat)</option>
-                <option value="today">🌅 Bugun (18:00-22:00)</option>
-                <option value="tomorrow">📅 Ertaga (09:00-21:00)</option>
+                <option value="today_morning">🌅 Bugun ertalab (09:00-12:00)</option>
+                <option value="today_afternoon">☀️ Bugun tushdan keyin (12:00-18:00)</option>
+                <option value="today_evening">🌆 Bugun kechqurun (18:00-22:00)</option>
+                <option value="tomorrow_morning">🌄 Ertaga ertalab (09:00-12:00)</option>
+                <option value="tomorrow_afternoon">☀️ Ertaga tushdan keyin (12:00-18:00)</option>
+                <option value="tomorrow_evening">🌆 Ertaga kechqurun (18:00-22:00)</option>
+                <option value="weekend">📅 Dam olish kunlari (Shanba-Yakshanba)</option>
+                <option value="custom">⏰ Boshqa vaqt (operator bilan kelishish)</option>
               </select>
             </div>
           </div>
@@ -733,8 +745,15 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   <span className="text-sm text-gray-600">🚚 Yetkazib berish:</span>
                   <span className="font-medium text-blue-600">
                     {userInfo.deliveryTime === 'asap' ? 'Tez (2-3 soat)' :
-                     userInfo.deliveryTime === 'today' ? 'Bugun (18:00-22:00)' :
-                     userInfo.deliveryTime === 'tomorrow' ? 'Ertaga (09:00-21:00)' : userInfo.deliveryTime}
+                     userInfo.deliveryTime === 'today_morning' ? 'Bugun ertalab (09:00-12:00)' :
+                     userInfo.deliveryTime === 'today_afternoon' ? 'Bugun tushdan keyin (12:00-18:00)' :
+                     userInfo.deliveryTime === 'today_evening' ? 'Bugun kechqurun (18:00-22:00)' :
+                     userInfo.deliveryTime === 'tomorrow_morning' ? 'Ertaga ertalab (09:00-12:00)' :
+                     userInfo.deliveryTime === 'tomorrow_afternoon' ? 'Ertaga tushdan keyin (12:00-18:00)' :
+                     userInfo.deliveryTime === 'tomorrow_evening' ? 'Ertaga kechqurun (18:00-22:00)' :
+                     userInfo.deliveryTime === 'weekend' ? 'Dam olish kunlari (Shanba-Yakshanba)' :
+                     userInfo.deliveryTime === 'custom' ? 'Operator bilan kelishiladi' :
+                     userInfo.deliveryTime}
                   </span>
                 </div>
               </div>
