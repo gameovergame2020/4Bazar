@@ -52,7 +52,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     return product ? { ...product, quantity } : null;
   }).filter(Boolean) : [];
 
-  const totalPrice = cartProducts.reduce((sum, product) => sum + (product.price * product.quantity), 0);
+  const cartSubtotal = cartProducts.reduce((sum, product) => sum + (product.price * product.quantity), 0);
+  const customDeliveryFee = userInfo.deliveryTime === 'custom' ? 10000 : 0;
+  const totalPrice = cartSubtotal + customDeliveryFee;
 
   // Component yuklanganida - bu hook
   useEffect(() => {
@@ -582,8 +584,20 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 <option value="asap">⚡ Tez yetkazish (2-3 soat)</option>
                 <option value="today">🌅 Bugun yetkazish (09:00-22:00)</option>
                 <option value="tomorrow">📅 Ertaga yetkazish (09:00-22:00)</option>
-                <option value="custom">⏰ O'zi muddatini tanlash</option>
+                <option value="custom">⏰ O'zi muddatini tanlash (+10,000 so'm)</option>
               </select>
+
+              {/* Qo'shimcha haq eslatmasi */}
+              {userInfo.deliveryTime === 'custom' && (
+                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="text-yellow-600">⚠️</span>
+                    <p className="text-sm text-yellow-700 font-medium">
+                      O'zi muddatini tanlash uchun qo'shimcha 10,000 so'm to'lov olinadi
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Custom vaqt tanlash */}
               {userInfo.deliveryTime === 'custom' && (
@@ -749,7 +763,22 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
               </div>
             ))}
 
-            <div className="flex justify-between items-center pt-4 text-xl font-bold">
+            {/* Oraliq summa */}
+            <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+              <span>Mahsulotlar:</span>
+              <span>{cartSubtotal.toLocaleString()} so'm</span>
+            </div>
+
+            {/* Qo'shimcha haq */}
+            {customDeliveryFee > 0 && (
+              <div className="flex justify-between items-center text-sm text-gray-600">
+                <span>O'zi muddatini tanlash (+):</span>
+                <span>+{customDeliveryFee.toLocaleString()} so'm</span>
+              </div>
+            )}
+
+            {/* Jami summa */}
+            <div className="flex justify-between items-center pt-2 border-t border-gray-200 text-xl font-bold">
               <span>Jami:</span>
               <span className="text-orange-600">{totalPrice.toLocaleString()} so'm</span>
             </div>
