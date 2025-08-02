@@ -120,7 +120,8 @@ const HomePage = () => {
         const isShopProduct = cake.productType === 'ready' || (cake.shopId && !cake.bakerId);
 
         if (isBakerProduct) {
-          return true;
+          console.log(`🔍 Baker mahsulot: ${cake.name} - available: ${cake.available}, quantity: ${cake.quantity}`);
+          return true; // Baker mahsulotlari doimo ko'rsatiladi
         }
         if (isShopProduct) {
           return cake.available === true;

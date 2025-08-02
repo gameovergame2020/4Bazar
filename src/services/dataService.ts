@@ -1073,9 +1073,12 @@ class DataService {
         // Agar quantity > 0 bo'lsa, mahsulot "Hozir mavjud" bo'lishi kerak
         if (newQuantity > 0) {
           updateData.available = true; // "Hozir mavjud"
+          console.log('🟢 Mahsulot "Hozir mavjud" holatiga o\'tkaziladi:', { newQuantity });
         } else {
-          // Agar quantity = 0 lekin amount > 0 bo'lsa, "Buyurtma uchun"
+          // Agar quantity = 0 bo'lsa va amount > 0 bo'lsa, "Buyurtma uchun"
+          // Agar quantity = 0 va amount = 0 bo'lsa ham, "Buyurtma uchun" (dastlab shu holatda yaratilgan)
           updateData.available = false; // "Buyurtma uchun"
+          console.log('🔵 Mahsulot "Buyurtma uchun" holatida qoladi:', { newQuantity, newAmount });
         }
         
         console.log('🔄 Baker mahsulot yangilanmoqda:', {
@@ -1116,10 +1119,16 @@ class DataService {
 
         // Firebase real-time yangilanishini kuchaytirilgan trigger qilish
         try {
-          await this.updateCake(cakeId, { 
+          // Force update with multiple timestamps to ensure real-time subscription triggers
+          const forceUpdateData = {
             ...updateData,
-            lastModified: new Date().getTime() 
-          });
+            lastModified: new Date().getTime(),
+            forceUpdate: new Date().toISOString(),
+            revertedAt: Timestamp.now()
+          };
+          
+          await this.updateCake(cakeId, forceUpdateData);
+          console.log('🔄 Force update muvaffaqiyatli amalga oshirildi');
         } catch (triggerError) {
           console.warn('⚠️ Real-time trigger da xato:', triggerError);
         }
