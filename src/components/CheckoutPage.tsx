@@ -22,7 +22,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     name: '',
     phone: '',
     address: '',
-    paymentMethod: 'cash'
+    paymentMethod: 'cash',
+    deliveryTime: 'asap'
   });
 
   const [deliveryAddress, setDeliveryAddress] = useState('');
@@ -419,7 +420,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           lat: selectedCoordinates[0], 
           lng: selectedCoordinates[1] 
         } : undefined,
-        notes: `To'lov usuli: ${userInfo.paymentMethod === 'cash' ? 'Naqd pul' : 'Bank kartasi'}. Mahsulotlar: ${cartProducts.map(p => `${p.name} (${p.quantity} dona)`).join(', ')}`
+        notes: `To'lov usuli: ${userInfo.paymentMethod === 'cash' ? 'Naqd pul' : 'Bank kartasi'}. Yetkazib berish: ${
+          userInfo.deliveryTime === 'asap' ? 'Iloji boricha tez (2-3 soat)' :
+          userInfo.deliveryTime === 'today' ? 'Bugun kechqurun (18:00-22:00)' :
+          userInfo.deliveryTime === 'tomorrow' ? 'Ertaga (09:00-21:00)' :
+          'Muayyan vaqt'
+        }. Mahsulotlar: ${cartProducts.map(p => `${p.name} (${p.quantity} dona)`).join(', ')}`
       };
 
       console.log('🛒 Buyurtma Firebase ga yuborilmoqda:', orderData);
@@ -551,6 +557,103 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   <span>Bank kartasi</span>
                 </label>
               </div>
+            </div>
+
+            {/* Yetkazib berish muddati */}
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <Truck className="w-5 h-5" />
+                Yetkazib berish muddati
+              </h3>
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="deliveryTime"
+                    value="asap"
+                    checked={userInfo.deliveryTime === 'asap'}
+                    onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
+                    className="text-orange-500"
+                  />
+                  <div>
+                    <span className="font-medium">Iloji boricha tez</span>
+                    <p className="text-sm text-gray-600">2-3 soat ichida</p>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="deliveryTime"
+                    value="today"
+                    checked={userInfo.deliveryTime === 'today'}
+                    onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
+                    className="text-orange-500"
+                  />
+                  <div>
+                    <span className="font-medium">Bugun kechqurun</span>
+                    <p className="text-sm text-gray-600">18:00 - 22:00</p>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="deliveryTime"
+                    value="tomorrow"
+                    checked={userInfo.deliveryTime === 'tomorrow'}
+                    onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
+                    className="text-orange-500"
+                  />
+                  <div>
+                    <span className="font-medium">Ertaga</span>
+                    <p className="text-sm text-gray-600">09:00 - 21:00</p>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="deliveryTime"
+                    value="schedule"
+                    checked={userInfo.deliveryTime === 'schedule'}
+                    onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
+                    className="text-orange-500"
+                  />
+                  <div>
+                    <span className="font-medium">Boshqa vaqt</span>
+                    <p className="text-sm text-gray-600">Muayyan sanani tanlash</p>
+                  </div>
+                </label>
+              </div>
+
+              {/* Muayyan vaqt tanlash */}
+              {userInfo.deliveryTime === 'schedule' && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Sana
+                    </label>
+                    <input
+                      type="date"
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Vaqt
+                    </label>
+                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                      <option value="09:00-12:00">09:00 - 12:00</option>
+                      <option value="12:00-15:00">12:00 - 15:00</option>
+                      <option value="15:00-18:00">15:00 - 18:00</option>
+                      <option value="18:00-21:00">18:00 - 21:00</option>
+                    </select>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -704,6 +807,16 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">💰 Jami summa:</span>
                   <span className="font-bold text-green-600">{totalPrice.toLocaleString()} so'm</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">🚚 Yetkazib berish:</span>
+                  <span className="font-medium text-blue-600">
+                    {userInfo.deliveryTime === 'asap' ? 'Iloji boricha tez (2-3 soat)' :
+                     userInfo.deliveryTime === 'today' ? 'Bugun kechqurun (18:00-22:00)' :
+                     userInfo.deliveryTime === 'tomorrow' ? 'Ertaga (09:00-21:00)' :
+                     'Muayyan vaqt'}
+                  </span>
                 </div>
               </div>
 
