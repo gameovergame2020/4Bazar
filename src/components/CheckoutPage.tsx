@@ -300,7 +300,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       if (!window.ymaps) {
         const script = document.createElement('script');
         const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY || '40496c4d-9fd2-450a-bea8-9a78d5955593';
-        script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ`;
+        const timestamp = Date.now(); // Cache'ni majburan yangilash uchun
+        script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&t=${timestamp}`;
         script.type = 'text/javascript';
         script.async = true;
         script.onload = initializeYandexMap;
