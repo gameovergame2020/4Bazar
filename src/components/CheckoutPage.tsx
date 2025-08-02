@@ -169,6 +169,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 setSelectedMapAddress(address);
                 setFormData(prev => ({
                   ...prev,
+                  deliveryAddress: address,
                   coordinates: { lat: coords[0], lng: coords[1] }
                 }));
                 console.log('Placemark drag - New address:', address);
@@ -188,6 +189,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 setSelectedMapAddress(address);
                 setFormData(prev => ({
                   ...prev,
+                  deliveryAddress: address,
                   coordinates: { lat: coords[0], lng: coords[1] }
                 }));
                 console.log('Map click - New address:', address);
@@ -209,6 +211,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   setSelectedMapAddress(address);
                   setFormData(prev => ({
                     ...prev,
+                    deliveryAddress: address,
                     coordinates: { lat: coords[0], lng: coords[1] }
                   }));
                   console.log('Geolocation - New address:', address);

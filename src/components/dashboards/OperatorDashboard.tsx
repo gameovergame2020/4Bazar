@@ -38,7 +38,7 @@ const OperatorDashboard = () => {
   const [supportTickets, setSupportTickets] = useState<SupportTicket[]>([]);
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   const [stats, setStats] = useState({
     totalOrders: 0,
     pendingOrders: 0,
@@ -70,15 +70,15 @@ const OperatorDashboard = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       // Load orders
       const allOrders = await dataService.getOrders();
       setOrders(allOrders);
-      
+
       // Load available cakes for editing
       const cakes = await dataService.getCakes({ available: true });
       setAvailableCakes(cakes);
-      
+
       // Generate mock system alerts
       const mockAlerts: SystemAlert[] = [
         {
@@ -107,14 +107,14 @@ const OperatorDashboard = () => {
         }
       ];
       setSystemAlerts(mockAlerts);
-      
+
       // Load support tickets from Firebase
       const tickets = await dataService.getSupportTickets();
       setSupportTickets(tickets);
 
       // Load all cakes to calculate customer satisfaction from reviews
       const allCakes = await dataService.getCakes({});
-      
+
       // Calculate stats
       const totalOrders = allOrders.length;
       const pendingOrders = allOrders.filter(order => 
@@ -149,7 +149,7 @@ const OperatorDashboard = () => {
       const recentOrders = allOrders.filter(order => order.createdAt >= thirtyDaysAgo);
       const uniqueCustomers = new Set(recentOrders.map(order => order.customerId));
       const activeUsers = uniqueCustomers.size;
-      
+
       setStats({
         totalOrders,
         pendingOrders,
@@ -159,7 +159,7 @@ const OperatorDashboard = () => {
         activeUsers,
         customerSatisfaction: Math.round(customerSatisfaction * 10) / 10 // 1 xona aniqlik
       });
-      
+
     } catch (error) {
       console.error('Ma\'lumotlarni yuklashda xatolik:', error);
     } finally {
@@ -178,7 +178,7 @@ const OperatorDashboard = () => {
   const handleTicketStatusUpdate = async (ticketId: string, status: SupportTicket['status']) => {
     try {
       await dataService.updateSupportTicketStatus(ticketId, status, userData?.id);
-      
+
       // Local state'ni yangilash
       setSupportTickets(prev => 
         prev.map(ticket => 
@@ -203,14 +203,14 @@ const OperatorDashboard = () => {
   const handleOrderStatusUpdate = async (orderId: string, status: Order['status']) => {
     try {
       await dataService.updateOrderStatus(orderId, status);
-      
+
       const order = orders.find(o => o.id === orderId);
-      
+
       // Agar buyurtma rad etilsa, mahsulot miqdorini qaytarish va amount kamaytirish
       if (status === 'cancelled' && order) {
         await dataService.revertOrderQuantity(order.cakeId, order.quantity);
       }
-      
+
       // Buyurtma holatini local state'da yangilash
       setOrders(prev => 
         prev.map(order => 
@@ -240,10 +240,10 @@ const OperatorDashboard = () => {
       try {
         // Buyurtmani bekor qilish holati bilan yangilash
         await handleOrderStatusUpdate(orderId, 'cancelled');
-        
+
         // Buyurtmani ro'yxatdan olib tashlash
         setOrders(prev => prev.filter(order => order.id !== orderId));
-        
+
         // Statistikani yangilash 
         loadData();
       } catch (error) {
@@ -257,7 +257,7 @@ const OperatorDashboard = () => {
     try {
       // Buyurtmaga eslatma qo'shish
       await dataService.updateOrder(orderId, { notes: note });
-      
+
       // Local state'ni yangilash
       setOrders(prev => 
         prev.map(order => 
@@ -526,7 +526,7 @@ const OperatorDashboard = () => {
           </div>
         </div>
 
-        
+
 
         <div className="bg-white rounded-xl p-4 border border-gray-100">
           <div className="flex items-center space-x-3">
@@ -565,7 +565,7 @@ const OperatorDashboard = () => {
         </div>
       </div>
 
-      
+
 
       {/* Support Tickets */}
       <div id="support-tickets-section" className="bg-white rounded-2xl p-6 border border-gray-100">
@@ -595,7 +595,7 @@ const OperatorDashboard = () => {
             </select>
           </div>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -607,6 +607,7 @@ const OperatorDashboard = () => {
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Muhimlik</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Holat</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Yaratildi</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Manzil</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Amallar</th>
               </tr>
             </thead>
@@ -643,6 +644,7 @@ const OperatorDashboard = () => {
                       {ticket.createdAt.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </td>
+                  <td className="py-3 px-4"></td>
                   <td className="py-3 px-4">
                     <div className="flex space-x-2 flex-wrap">
                       <button 
@@ -699,7 +701,7 @@ const OperatorDashboard = () => {
               ))}
             </tbody>
           </table>
-          
+
           {filteredTickets.length === 0 && (
             <div className="text-center py-8">
               <MessageCircle size={48} className="text-gray-400 mx-auto mb-4" />
@@ -742,7 +744,7 @@ const OperatorDashboard = () => {
             </button>
           </div>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -752,7 +754,9 @@ const OperatorDashboard = () => {
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Tort</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Summa</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Holat</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-900">Sana</th>
+                <th className="text-left py-3 px-4 font-medium text```python
+-gray-900">Sana</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Manzil</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Amallar</th>
               </tr>
             </thead>
@@ -788,6 +792,9 @@ const OperatorDashboard = () => {
                     </span>
                   </td>
                   <td className="py-3 px-4">
+                      {order.deliveryAddress}
+                  </td>
+                  <td className="py-3 px-4">
                     <div className="flex items-center space-x-2 flex-wrap">
                       <button
                         onClick={() => setSelectedOrderForDetails(order)}
@@ -796,7 +803,7 @@ const OperatorDashboard = () => {
                       >
                         <Eye size={16} />
                       </button>
-                      
+
                       {order.status === 'accepted' && (
                         <button
                           onClick={() => handleOrderStatusUpdate(order.id!, 'preparing')}
@@ -805,7 +812,7 @@ const OperatorDashboard = () => {
                           Tayyorlashga yuborish
                         </button>
                       )}
-                      
+
                       {order.status === 'ready' && (
                         <button
                           onClick={() => handleOrderStatusUpdate(order.id!, 'delivering')}
@@ -814,7 +821,7 @@ const OperatorDashboard = () => {
                           Yetkazishga yuborish
                         </button>
                       )}
-                      
+
                       <button
                         onClick={() => {
                           const note = prompt('Buyurtmaga eslatma qo\'shing:');
@@ -843,7 +850,7 @@ const OperatorDashboard = () => {
               ))}
             </tbody>
           </table>
-          
+
           {filteredOrders.length === 0 && (
             <div className="text-center py-8">
               <Monitor size={48} className="text-gray-400 mx-auto mb-4" />
@@ -871,7 +878,7 @@ const OperatorDashboard = () => {
                 ✕
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <h4 className="font-medium text-gray-900 mb-2">{selectedOrderForDetails.cakeName}</h4>
@@ -998,7 +1005,7 @@ const OperatorDashboard = () => {
                 ✕
               </button>
             </div>
-            
+
             <div className="space-y-6">
               {/* Buyurtma ma'lumotlari */}
               <div className="bg-gray-50 p-4 rounded-lg">
@@ -1008,7 +1015,7 @@ const OperatorDashboard = () => {
                     <span className="text-gray-600 text-sm">Buyurtma ID:</span>
                     <span className="ml-2 font-medium">#{editingOrder.id?.slice(-8)}</span>
                   </div>
-                  
+
                   {/* Mijoz ma'lumotlarini tahrirlash */}
                   <div className="space-y-3">
                     <div>
@@ -1026,7 +1033,7 @@ const OperatorDashboard = () => {
                         placeholder="Mijoz ismini kiriting"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Telefon raqami
@@ -1042,7 +1049,7 @@ const OperatorDashboard = () => {
                         placeholder="+998 XX XXX XX XX"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Yetkazib berish manzili
@@ -1113,7 +1120,7 @@ const OperatorDashboard = () => {
               {/* Yangi mahsulot qo'shish */}
               <div>
                 <h4 className="font-medium text-gray-900 mb-3">Yangi mahsulot qo'shish</h4>
-                
+
                 {/* Qidiruv maydoni */}
                 <div className="relative mb-3">
                   <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -1163,7 +1170,7 @@ const OperatorDashboard = () => {
                       );
                     })
                   }
-                  
+
                   {/* Qidiruv natijasi yo'q bo'lsa */}
                   {availableCakes
                     .filter(cake => !orderItems[cake.id!])
@@ -1178,7 +1185,7 @@ const OperatorDashboard = () => {
                       <p className="text-sm">"{newProductSearchQuery}" bo'yicha mahsulot topilmadi</p>
                     </div>
                   )}
-                  
+
                   {/* Barcha mahsulotlar buyurtmada bo'lsa */}
                   {availableCakes.filter(cake => !orderItems[cake.id!]).length === 0 && (
                     <div className="text-center py-4 text-gray-500">
