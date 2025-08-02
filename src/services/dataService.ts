@@ -1065,18 +1065,17 @@ class DataService {
         const newAmount = Math.max(0, (cake.amount || 0) - orderQuantity);
         updateData.amount = newAmount;
         
-        // Agar mahsulot "Hozir mavjud" holatida bo'lsa, quantity ni ham oshirish
-        if (cake.available && cake.quantity !== undefined) {
-          const newQuantity = (cake.quantity || 0) + orderQuantity;
-          updateData.quantity = newQuantity;
-          updateData.available = newQuantity > 0;
-        }
+        // Mahsulot quantity ga qaytarish va available holatini to'g'rilash
+        const newQuantity = (cake.quantity || 0) + orderQuantity;
+        updateData.quantity = newQuantity;
+        updateData.available = true; // Quantity qo'shilganidan keyin available true bo'lishi kerak
         
         console.log('🔄 Baker mahsulot yangilanmoqda:', {
           oldAmount: cake.amount || 0,
           newAmount,
-          oldQuantity: cake.quantity,
-          newQuantity: updateData.quantity
+          oldQuantity: cake.quantity || 0,
+          newQuantity,
+          newAvailable: true
         });
       } else if (cake.productType === 'ready') {
         // Shop mahsulotlari uchun quantity ni oshirish
@@ -1086,7 +1085,8 @@ class DataService {
         
         console.log('🔄 Shop mahsulot yangilanmoqda:', {
           oldQuantity: cake.quantity || 0,
-          newQuantity
+          newQuantity,
+          newAvailable: newQuantity > 0
         });
       }
 
