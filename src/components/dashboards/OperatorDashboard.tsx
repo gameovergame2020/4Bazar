@@ -1123,7 +1123,7 @@ const OperatorDashboard = () => {
               {selectedOrderForDetails.status === 'pending' && (
                 <div className="space-y-2 pt-2">
                   <button
-                    onClick={()={() => {
+                    onClick={() => {
                       handleEditOrder(selectedOrderForDetails);
                       setSelectedOrderForDetails(null);
                     }}
