@@ -235,6 +235,12 @@ class DataService {
     try {
       console.log('📱 Buyurtmalar yuklanmoqda telefon:', customerPhone);
 
+      // Avval umumiy buyurtmalar sonini tekshirish
+      const allOrdersQuery = query(collection(db, 'orders'));
+      const allOrdersSnapshot = await getDocs(allOrdersQuery);
+      console.log('📊 Jami buyurtmalar bazada:', allOrdersSnapshot.size, 'ta');
+
+      // Foydalanuvchi buyurtmalarini izlash
       const q = query(
         collection(db, 'orders'),
         where('customerPhone', '==', customerPhone),
@@ -246,17 +252,25 @@ class DataService {
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
+        console.log('📦 Buyurtma topildi:', {
+          id: doc.id,
+          phone: data.customerPhone,
+          cake: data.cakeName,
+          status: data.status,
+          payment: data.paymentMethod
+        });
+
         orders.push({
           id: doc.id,
-          customerId: data.customerId,
-          customerName: data.customerName,
+          customerId: data.customerId || 'unknown',
+          customerName: data.customerName || 'Noma\'lum',
           customerPhone: data.customerPhone,
           cakeId: data.cakeId,
           cakeName: data.cakeName,
-          quantity: data.quantity,
-          totalPrice: data.totalPrice,
-          status: data.status,
-          deliveryAddress: data.deliveryAddress,
+          quantity: data.quantity || 1,
+          totalPrice: data.totalPrice || 0,
+          status: data.status || 'pending',
+          deliveryAddress: data.deliveryAddress || '',
           coordinates: data.coordinates,
           paymentMethod: data.paymentMethod,
           paymentType: data.paymentType,
@@ -266,11 +280,23 @@ class DataService {
         });
       });
 
-      console.log('✅ Buyurtmalar yuklandi:', orders.length, 'ta');
+      console.log('✅ Foydalanuvchi buyurtmalari yuklandi:', orders.length, 'ta');
+      
+      // Barcha holatdagi buyurtmalarni qaytarish (pending, confirmed, va boshqalar)
+      const allStatuses = orders.map(o => o.status);
+      console.log('📋 Buyurtma holatlari:', [...new Set(allStatuses)]);
+      
       return orders;
     } catch (error) {
       console.error('❌ Buyurtmalarni yuklashda xato:', error);
-      throw error;
+      console.error('❌ Xato tafsilotlari:', {
+        message: error.message,
+        code: error.code,
+        phone: customerPhone
+      });
+      
+      // Xato holatida bo'sh array qaytarish
+      return [];
     }
   }
 

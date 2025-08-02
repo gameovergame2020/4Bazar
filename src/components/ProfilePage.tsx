@@ -78,32 +78,42 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
   // Firebase dan foydalanuvchi buyurtmalarini yuklash
   useEffect(() => {
     const loadUserOrders = async () => {
-      if (!user.phone) return;
+      if (!user.phone) {
+        console.log('❌ Foydalanuvchi telefon raqami yo\'q');
+        return;
+      }
       
       try {
         setIsLoadingOrders(true);
         console.log('📱 Foydalanuvchi buyurtmalari yuklanmoqda:', user.phone);
         
-        const orders = await dataService.getOrdersByCustomerPhone(user.phone);
-        console.log('✅ Buyurtmalar yuklandi:', orders);
+        // Telefon raqamini formatlash (agar kerak bo'lsa)
+        const formattedPhone = user.phone.startsWith('+') ? user.phone : `+${user.phone}`;
         
-        // Eng yangi buyurtmalarni birinchi o'ringa qo'yish
+        const orders = await dataService.getOrdersByCustomerPhone(user.phone);
+        console.log('✅ Buyurtmalar yuklandi:', orders.length, 'ta buyurtma');
+        
+        // Barcha buyurtmalar (shu jumladan to'lov holatida turganlar ham)
         const sortedOrders = orders.sort((a, b) => 
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
         
         setUserOrders(sortedOrders);
+        console.log('📊 Foydalanuvchi buyurtmalari o\'rnatildi:', sortedOrders.length, 'ta');
       } catch (error) {
         console.error('❌ Buyurtmalarni yuklashda xato:', error);
+        // Xato holatida ham foydalanuvchiga xabar berish
+        setUserOrders([]);
       } finally {
         setIsLoadingOrders(false);
       }
     };
 
+    // Dastlab yuklash
     loadUserOrders();
     
-    // Har 30 soniyada buyurtmalarni yangilash (real-time kabi)
-    const interval = setInterval(loadUserOrders, 30000);
+    // Har 10 soniyada buyurtmalarni yangilash (tezroq yangilanish)
+    const interval = setInterval(loadUserOrders, 10000);
     
     return () => clearInterval(interval);
   }, [user.phone]);
@@ -244,7 +254,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
               }}
               className="text-center p-2 sm:p-3 rounded-lg sm:rounded-xl hover:bg-gray-700/30 transition-all duration-300 transform hover:scale-105"
             >
-              <div className="text-xl sm:text-2xl font-bold text-orange-400">{userOrders.length}</div>
+              <div className="text-xl sm:text-2xl font-bold text-orange-400">
+                {isLoadingOrders ? '...' : userOrders.length}
+              </div>
               <div className="text-gray-400 text-xs sm:text-sm flex items-center justify-center space-x-1">
                 <span>Buyurtmalar</span>
                 <ChevronDown 
@@ -288,64 +300,99 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
               </h4>
               <div className="space-y-2 sm:space-y-3 max-h-48 sm:max-h-64 overflow-y-auto">
                 {isLoadingOrders ? (
-                  <div className="flex items-center justify-center py-4">
-                    <div className="animate-spin h-6 w-6 border-2 border-orange-500 border-t-transparent rounded-full"></div>
-                    <span className="ml-2 text-gray-400 text-sm">Buyurtmalar yuklanmoqda...</span>
+                  <div className="flex items-center justify-center py-6">
+                    <div className="animate-spin h-8 w-8 border-2 border-orange-500 border-t-transparent rounded-full"></div>
+                    <span className="ml-3 text-gray-300 text-sm">Buyurtmalar yuklanmoqda...</span>
                   </div>
                 ) : userOrders.length === 0 ? (
-                  <div className="text-center py-4">
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-600/30 rounded-full flex items-center justify-center">
+                      <ShoppingBag className="w-8 h-8 text-gray-500" />
+                    </div>
                     <p className="text-gray-400 text-sm">Hozircha buyurtmalar yo'q</p>
+                    <p className="text-gray-500 text-xs mt-1">Birinchi buyurtmangizni bering!</p>
                   </div>
                 ) : (
-                  userOrders.slice(0, 5).map((order) => {
-                    const StatusIcon = getStatusIcon(order.status);
-                    return (
-                      <div key={order.id} className="bg-gray-600/30 rounded-lg p-2 sm:p-3 hover:bg-gray-600/50 transition-colors">
-                        <div className="flex items-center space-x-2 sm:space-x-3">
-                          <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                            <Package className="w-5 h-5 text-orange-400" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-white text-xs sm:text-sm truncate">{order.cakeName}</h4>
-                            <p className="text-gray-400 text-xs">#{order.id.slice(-8).toUpperCase()}</p>
-                            <div className="flex items-center justify-between mt-1">
-                              <span className="text-orange-400 text-xs sm:text-sm font-medium">{order.totalPrice.toLocaleString()} so'm</span>
-                              <div className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-xs ${getStatusColor(order.status)}`}>
-                                <StatusIcon size={8} />
-                                <span>{getStatusText(order.status)}</span>
-                              </div>
+                  <>
+                    <div className="mb-3 text-xs text-gray-400 text-center">
+                      Jami {userOrders.length} ta buyurtma (so'nggi 5 tasi ko'rsatilgan)
+                    </div>
+                    {userOrders.slice(0, 5).map((order) => {
+                      const StatusIcon = getStatusIcon(order.status);
+                      return (
+                        <div key={order.id} className="bg-gray-600/30 rounded-lg p-3 hover:bg-gray-600/50 transition-colors border border-gray-600/20">
+                          <div className="flex items-start space-x-3">
+                            <div className="w-12 h-12 rounded-lg bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                              <Package className="w-6 h-6 text-orange-400" />
                             </div>
-                            <div className="text-xs text-gray-400 mt-1">
-                              {new Date(order.createdAt).toLocaleDateString('uz-UZ', { 
-                                day: 'numeric', 
-                                month: 'short',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-white text-sm truncate">{order.cakeName}</h4>
+                                  <p className="text-gray-400 text-xs">#{order.id?.slice(-8).toUpperCase()}</p>
+                                </div>
+                                <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)} ml-2`}>
+                                  <StatusIcon size={10} />
+                                  <span>{getStatusText(order.status)}</span>
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-2 gap-2 text-xs">
+                                <div>
+                                  <span className="text-gray-400">Narx:</span>
+                                  <span className="text-orange-400 font-medium ml-1">{order.totalPrice.toLocaleString()} so'm</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-400">Miqdor:</span>
+                                  <span className="text-white font-medium ml-1">{order.quantity} ta</span>
+                                </div>
+                              </div>
+
+                              <div className="mt-2 text-xs text-gray-400">
+                                📅 {new Date(order.createdAt).toLocaleDateString('uz-UZ', { 
+                                  day: 'numeric', 
+                                  month: 'short',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                              
+                              {/* To'lov turi ko'rsatish */}
+                              <div className="mt-2 flex items-center space-x-1">
+                                <span className="text-xs text-gray-400">To'lov:</span>
+                                {order.paymentMethod === 'card' && order.paymentType ? (
+                                  <span className="text-xs font-medium">
+                                    {order.paymentType === 'click' ? '🔵 Click' :
+                                     order.paymentType === 'payme' ? '🟢 Payme' :
+                                     order.paymentType === 'visa' ? '💳 Visa/MC' : 
+                                     '💳 Bank kartasi'}
+                                  </span>
+                                ) : order.paymentMethod === 'cash' ? (
+                                  <span className="text-xs font-medium text-green-400">💵 Naqd pul</span>
+                                ) : (
+                                  <span className="text-xs font-medium text-yellow-400">⏳ Aniqlanmagan</span>
+                                )}
+                              </div>
+
+                              {/* Yetkazib berish manzili */}
+                              {order.deliveryAddress && (
+                                <div className="mt-1 text-xs">
+                                  <span className="text-gray-400">📍 Manzil:</span>
+                                  <span className="text-gray-300 ml-1">{order.deliveryAddress}</span>
+                                </div>
+                              )}
                             </div>
-                            {/* To'lov turi ko'rsatish */}
-                            {order.paymentMethod === 'card' && order.paymentType && (
-                              <div className="mt-1 flex items-center space-x-1">
-                                <span className="text-xs text-gray-400">To'lov:</span>
-                                <span className="text-xs font-medium text-blue-400">
-                                  {order.paymentType === 'click' ? '🔵 Click' :
-                                   order.paymentType === 'payme' ? '🟢 Payme' :
-                                   order.paymentType === 'visa' ? '💳 Visa/MC' : 
-                                   '💳 Karta'}
-                                </span>
-                              </div>
-                            )}
-                            {order.paymentMethod === 'cash' && (
-                              <div className="mt-1 flex items-center space-x-1">
-                                <span className="text-xs text-gray-400">To'lov:</span>
-                                <span className="text-xs font-medium text-green-400">💵 Naqd</span>
-                              </div>
-                            )}
                           </div>
                         </div>
+                      );
+                    })}
+                    
+                    {userOrders.length > 5 && (
+                      <div className="text-center mt-3">
+                        <p className="text-xs text-gray-500">Va yana {userOrders.length - 5} ta buyurtma...</p>
                       </div>
-                    );
-                  })
+                    )}
+                  </>
                 )}
               </div>
             </div>
