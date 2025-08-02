@@ -163,18 +163,85 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
           // Manzilni olish va saqlash funksiyasi
           const updateAddressFromCoords = (coords) => {
-            window.ymaps.geocode(coords).then((result) => {
+            window.ymaps.geocode(coords, {
+              kind: 'house',
+              results: 1
+            }).then((result) => {
               const firstGeoObject = result.geoObjects.get(0);
               if (firstGeoObject) {
-                const address = firstGeoObject.getAddressLine();
-                console.log('Yangi manzil:', address);
+                // Aniq manzil tafsilotlarini olish
+                const metaData = firstGeoObject.getMetaData();
+                const addressDetails = metaData.AddressDetails;
+                
+                let detailedAddress = '';
+                let addressComponents = [];
+                
+                if (addressDetails && addressDetails.Country) {
+                  const country = addressDetails.Country;
+                  
+                  // Viloyat/Region
+                  if (country.AdministrativeArea) {
+                    const region = country.AdministrativeArea.AdministrativeAreaName;
+                    if (region) addressComponents.push(`${region} viloyati`);
+                    
+                    // Shahar/Tuman
+                    if (country.AdministrativeArea.SubAdministrativeArea) {
+                      const subArea = country.AdministrativeArea.SubAdministrativeArea.SubAdministrativeAreaName;
+                      if (subArea) addressComponents.push(`${subArea}`);
+                      
+                      // Mahalla/Locality
+                      if (country.AdministrativeArea.SubAdministrativeArea.Locality) {
+                        const locality = country.AdministrativeArea.SubAdministrativeArea.Locality.LocalityName;
+                        if (locality) addressComponents.push(`${locality}`);
+                        
+                        // Ko'cha
+                        if (country.AdministrativeArea.SubAdministrativeArea.Locality.Thoroughfare) {
+                          const street = country.AdministrativeArea.SubAdministrativeArea.Locality.Thoroughfare.ThoroughfareName;
+                          if (street) addressComponents.push(`${street} ko'chasi`);
+                          
+                          // Uy raqami
+                          if (country.AdministrativeArea.SubAdministrativeArea.Locality.Thoroughfare.Premise) {
+                            const house = country.AdministrativeArea.SubAdministrativeArea.Locality.Thoroughfare.Premise.PremiseNumber;
+                            if (house) addressComponents.push(`${house}-uy`);
+                          }
+                        }
+                      }
+                    } else if (country.AdministrativeArea.Locality) {
+                      // Toshkent kabi shaharlar uchun
+                      const locality = country.AdministrativeArea.Locality.LocalityName;
+                      if (locality) addressComponents.push(`${locality} shahri`);
+                      
+                      // Ko'cha
+                      if (country.AdministrativeArea.Locality.Thoroughfare) {
+                        const street = country.AdministrativeArea.Locality.Thoroughfare.ThoroughfareName;
+                        if (street) addressComponents.push(`${street} ko'chasi`);
+                        
+                        // Uy raqami
+                        if (country.AdministrativeArea.Locality.Thoroughfare.Premise) {
+                          const house = country.AdministrativeArea.Locality.Thoroughfare.Premise.PremiseNumber;
+                          if (house) addressComponents.push(`${house}-uy`);
+                        }
+                      }
+                    }
+                  }
+                }
+                
+                // Agar tafsilotli manzil olinmasa, oddiy manzilni ishlatamiz
+                if (addressComponents.length === 0) {
+                  detailedAddress = firstGeoObject.getAddressLine();
+                } else {
+                  detailedAddress = addressComponents.join(', ');
+                }
+                
+                console.log('Manzil tafsilotlari:', addressDetails);
+                console.log('Tuzilgan manzil:', detailedAddress);
                 console.log('Koordinatalar:', coords);
                 
-                setSelectedMapAddress(address);
+                setSelectedMapAddress(detailedAddress);
                 setSelectedCoordinates({ lat: coords[0], lng: coords[1] });
                 
                 // Balloon mazmunini yangilash
-                placemark.properties.set('balloonContent', `📍 ${address}`);
+                placemark.properties.set('balloonContent', `📍 ${detailedAddress}`);
               } else {
                 // Agar manzil topilmasa, koordinatalarni ko'rsatamiz
                 const fallbackAddress = `Koordinatalar: ${coords[0].toFixed(6)}, ${coords[1].toFixed(6)}`;
