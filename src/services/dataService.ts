@@ -254,32 +254,33 @@ class DataService {
     return phone;
   }
 
-  // Foydalanuvchi buyurtmalarini customer ID bo'yicha olish (yaxshilangan)
+  // Foydalanuvchi buyurtmalarini customer ID bo'yicha olish (faqat ID bo'yicha)
   async getOrdersByCustomerId(customerId: string): Promise<Order[]> {
     try {
       if (!customerId || customerId.trim() === '') {
-        console.log('⚠️ Customer ID bo\'sh');
+        console.log('⚠️ Customer ID bo\'sh yoki mavjud emas');
         return [];
       }
 
-      console.log('🔍 Customer ID bo\'yicha qidirilmoqda:', customerId.trim());
+      const cleanCustomerId = customerId.trim();
+      console.log('🔍 Customer ID bo\'yicha qidirilmoqda:', cleanCustomerId);
 
-      // Customer ID bo'yicha to'g'ridan-to'g'ri Firebase query (ko'proq limit)
+      // Faqat Customer ID bo'yicha to'g'ridan-to'g'ri Firebase query
       const customerIdQuery = query(
         collection(db, 'orders'),
-        where('customerId', '==', customerId.trim()),
+        where('customerId', '==', cleanCustomerId),
         orderBy('createdAt', 'desc'),
-        limit(200) // Ko'proq buyurtma yuklash
+        limit(500) // Barcha buyurtmalarni yuklash uchun katta limit
       );
 
       const querySnapshot = await getDocs(customerIdQuery);
 
       if (querySnapshot.empty) {
-        console.log('⚠️ Customer ID bo\'yicha buyurtma topilmadi');
+        console.log('⚠️ Ushbu Customer ID bo\'yicha buyurtma topilmadi:', cleanCustomerId);
         return [];
       }
 
-      console.log(`📥 Customer ID bo'yicha ${querySnapshot.docs.length} ta hujjat topildi`);
+      console.log(`📥 Customer ID bo'yicha ${querySnapshot.docs.length} ta buyurtma topildi`);
 
       const orders: Order[] = [];
 
@@ -287,9 +288,15 @@ class DataService {
         try {
           const data = doc.data();
           
+          // Customer ID ni qayta tekshirish (double check)
+          if (data.customerId !== cleanCustomerId) {
+            console.warn('⚠️ Customer ID mos kelmadi:', data.customerId, 'vs', cleanCustomerId);
+            return;
+          }
+          
           const order: Order = {
             id: doc.id,
-            customerId: data.customerId || 'unknown',
+            customerId: data.customerId,
             customerName: data.customerName || 'Noma\'lum',
             customerPhone: data.customerPhone || '',
             cakeId: data.cakeId || '',
@@ -314,7 +321,7 @@ class DataService {
         }
       });
 
-      console.log(`✅ Customer ID bo'yicha ${orders.length} ta buyurtma qayta ishlandi`);
+      console.log(`✅ Customer ID (${cleanCustomerId}) bo'yicha ${orders.length} ta buyurtma qayta ishlandi`);
       return orders;
       
     } catch (error) {
@@ -1364,36 +1371,44 @@ class DataService {
     });
   }
 
-  // Buyurtmalar holatini real-time kuzatish (yaxshilangan)
+  // Buyurtmalar holatini real-time kuzatish (Customer ID bo'yicha optimized)
   subscribeToOrders(callback: (orders: Order[]) => void, filters?: { customerId?: string }) {
     let q;
     
     if (filters?.customerId) {
-      // Customer uchun maxsus filter
+      console.log('🔄 Real-time subscription: Customer ID bo\'yicha', filters.customerId);
+      // Faqat specific customer uchun
       q = query(
         collection(db, 'orders'), 
         where('customerId', '==', filters.customerId),
         orderBy('createdAt', 'desc'),
-        limit(100) // Customer uchun ko'proq limit
+        limit(500) // Customer uchun barcha buyurtmalar
       );
     } else {
+      console.log('🔄 Real-time subscription: Umumiy buyurtmalar');
       // Umumiy buyurtmalar uchun
       q = query(
         collection(db, 'orders'), 
         orderBy('createdAt', 'desc'), 
-        limit(200) // Umumiy uchun ko'proq limit
+        limit(200) // Umumiy uchun limit
       );
     }
 
     return onSnapshot(q, (querySnapshot) => {
       try {
-        console.log(`📥 Real-time: ${querySnapshot.docs.length} ta hujjat keldi`);
+        const filterText = filters?.customerId ? `Customer ID (${filters.customerId})` : 'Umumiy';
+        console.log(`📥 Real-time (${filterText}): ${querySnapshot.docs.length} ta hujjat keldi`);
         
         const orders: Order[] = [];
 
         querySnapshot.docs.forEach((doc) => {
           try {
             const data = doc.data();
+            
+            // Customer filter bo'lsa, yana bir marta tekshirish
+            if (filters?.customerId && data.customerId !== filters.customerId) {
+              return; // Skip this order
+            }
             
             const order: Order = {
               id: doc.id,
@@ -1422,7 +1437,7 @@ class DataService {
           }
         });
 
-        console.log(`✅ Real-time: ${orders.length} ta buyurtma qayta ishlandi`);
+        console.log(`✅ Real-time (${filterText}): ${orders.length} ta buyurtma qayta ishlandi`);
         callback(orders);
 
       } catch (error) {

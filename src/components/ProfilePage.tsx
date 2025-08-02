@@ -76,14 +76,15 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     },
   ];
 
-  // Firebase dan foydalanuvchi buyurtmalarini yuklash (yaxshilangan)
+  // Firebase dan foydalanuvchi buyurtmalarini yuklash (faqat Customer ID bo'yicha)
   useEffect(() => {
     let unsubscribe: (() => void) | null = null;
     let isActive = true;
     let loadingTimeout: NodeJS.Timeout | null = null;
 
     const loadOrdersOptimized = async () => {
-      if (!user.phone && !user.name && !user.id) {
+      if (!user.id) {
+        console.log('⚠️ Foydalanuvchi ID mavjud emas');
         setUserOrders([]);
         setIsLoadingOrders(false);
         return;
@@ -91,78 +92,26 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
       try {
         setIsLoadingOrders(true);
-        console.log('🔄 Buyurtmalar yuklanmoqda...', { userId: user.id, phone: user.phone });
+        console.log('🔄 Buyurtmalar yuklanmoqda... Customer ID:', user.id);
 
-        // 15 soniya timeout - ko'proq vaqt berish
+        // 10 soniya timeout
         loadingTimeout = setTimeout(() => {
           if (isActive) {
-            console.warn('⚠️ Buyurtmalar yuklash 15 soniyadan oshdi');
+            console.warn('⚠️ Buyurtmalar yuklash 10 soniyadan oshdi');
             setIsLoadingOrders(false);
           }
-        }, 15000);
+        }, 10000);
 
-        let userOrders: Order[] = [];
+        // Faqat Customer ID bo'yicha qidirish
+        const userOrders = await dataService.getOrdersByCustomerId(user.id.toString());
 
-        // 1. Customer ID bo'yicha qidirish
-        if (user.id) {
-          try {
-            console.log('🔍 Customer ID bo\'yicha qidirilmoqda:', user.id);
-            userOrders = await dataService.getOrdersByCustomerId(user.id.toString());
-
-            if (userOrders.length > 0) {
-              console.log('✅ Customer ID bo\'yicha topildi:', userOrders.length, 'ta buyurtma');
-            } else {
-              console.log('⚠️ Customer ID bo\'yicha buyurtma topilmadi');
-            }
-          } catch (error) {
-            console.warn('⚠️ Customer ID qidirishda xato:', error);
-          }
-        }
-
-        // 2. Agar Customer ID bo'yicha topilmasa, telefon bo'yicha qidirish
-        if (userOrders.length === 0 && user.phone) {
-          try {
-            console.log('🔍 Telefon bo\'yicha fallback qidirish:', user.phone);
-            const phoneOrders = await dataService.getOrdersByCustomerPhone(user.phone);
-            
-            if (phoneOrders.length > 0) {
-              userOrders = phoneOrders;
-              console.log('✅ Telefon bo\'yicha topildi:', phoneOrders.length, 'ta buyurtma');
-            } else {
-              console.log('⚠️ Telefon bo\'yicha ham buyurtma topilmadi');
-            }
-          } catch (error) {
-            console.warn('⚠️ Telefon qidirishda xato:', error);
-          }
-        }
-
-        // 3. Agar hali ham topilmasa, isim bo'yicha qidirish
-        if (userOrders.length === 0 && user.name && user.name.trim() !== '') {
-          try {
-            console.log('🔍 Isim bo\'yicha fallback qidirish:', user.name);
-            const allOrders = await dataService.getOrders();
-            const nameOrders = allOrders.filter(order => 
-              order.customerName && 
-              order.customerName.toLowerCase().includes(user.name.toLowerCase())
-            );
-            
-            if (nameOrders.length > 0) {
-              userOrders = nameOrders;
-              console.log('✅ Isim bo\'yicha topildi:', nameOrders.length, 'ta buyurtma');
-            }
-          } catch (error) {
-            console.warn('⚠️ Isim qidirishda xato:', error);
-          }
-        }
-
-        // Final result
         if (isActive) {
           const sortedOrders = userOrders.sort((a, b) => 
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
 
           setUserOrders(sortedOrders);
-          console.log('✅ Jami yuklangan buyurtmalar:', sortedOrders.length, 'ta');
+          console.log('✅ Customer ID bo\'yicha yuklandi:', sortedOrders.length, 'ta buyurtma');
         }
 
       } catch (error) {
@@ -178,60 +127,37 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
       }
     };
 
-    // Real-time subscription (yaxshilangan)
+    // Real-time subscription (faqat Customer ID bo'yicha)
     const setupRealTimeSubscription = () => {
       try {
-        console.log('🔄 Real-time subscription boshlanmoqda...');
+        console.log('🔄 Real-time subscription boshlanmoqda... Customer ID:', user.id);
         
-        // Universal subscription - barcha buyurtmalarni kuzatish
+        if (!user.id) {
+          console.log('⚠️ Customer ID yo\'q, real-time subscription o\'rnatilmadi');
+          return;
+        }
+        
+        // Faqat customer ID bo'yicha subscription
         unsubscribe = dataService.subscribeToOrders((allOrders) => {
           if (!isActive) return;
 
           try {
-            // Foydalanuvchi buyurtmalarini filtirlash
-            const userOrders = allOrders.filter(order => {
-              // 1. Customer ID bo'yicha
-              if (user.id && order.customerId === user.id.toString()) {
-                return true;
-              }
-              
-              // 2. Telefon bo'yicha
-              if (user.phone && order.customerPhone) {
-                const normalizePhone = (phone: string) => phone.replace(/\D/g, '');
-                const userPhoneClean = normalizePhone(user.phone);
-                const orderPhoneClean = normalizePhone(order.customerPhone);
-                
-                if (userPhoneClean.length >= 7 && orderPhoneClean.length >= 7) {
-                  const userLast7 = userPhoneClean.slice(-7);
-                  const orderLast7 = orderPhoneClean.slice(-7);
-                  if (userLast7 === orderLast7) return true;
-                }
-              }
-              
-              // 3. Isim bo'yicha
-              if (user.name && order.customerName) {
-                const userName = user.name.toLowerCase().trim();
-                const orderName = order.customerName.toLowerCase().trim();
-                if (userName && orderName && orderName.includes(userName)) {
-                  return true;
-                }
-              }
-              
-              return false;
-            });
+            // Faqat Customer ID bo'yicha filtirlash
+            const userOrders = allOrders.filter(order => 
+              order.customerId === user.id.toString()
+            );
 
-            if (userOrders.length > 0) {
-              const sortedOrders = userOrders.sort((a, b) => 
-                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-              );
-              
-              setUserOrders(sortedOrders);
-              console.log('🔄 Real-time yangilandi:', sortedOrders.length, 'ta buyurtma');
-            }
+            const sortedOrders = userOrders.sort((a, b) => 
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+            
+            setUserOrders(sortedOrders);
+            console.log('🔄 Real-time yangilandi:', sortedOrders.length, 'ta buyurtma');
+
           } catch (error) {
             console.error('❌ Real-time filtirlashda xato:', error);
           }
-        });
+        }, { customerId: user.id.toString() }); // Customer ID filter qo'shish
 
       } catch (error) {
         console.error('❌ Real-time subscription xatosi:', error);
@@ -262,7 +188,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
         }
       }
     };
-  }, [user.id, user.phone, user.name]); // user.name ham qo'shildi
+  }, [user.id]); // Faqat user.id dependency
 
   // Buyurtmani bekor qilish uchun modal holatini boshqarish
   const [showCancelModal, setShowCancelModal] = useState(false);
