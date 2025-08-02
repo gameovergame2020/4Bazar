@@ -430,9 +430,18 @@ const CustomerDashboard = () => {
                   )}
                   <div className="absolute bottom-2 left-2">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      cake.productType === 'ready' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
+                      cake.productType === 'ready' 
+                        ? 'bg-green-100 text-green-600' 
+                        : cake.available && cake.quantity !== undefined && cake.quantity > 0
+                          ? 'bg-green-100 text-green-600'
+                          : 'bg-blue-100 text-blue-600'
                     }`}>
-                      {cake.productType === 'ready' ? 'Mavjud' : 'Buyurtma uchun'}
+                      {cake.productType === 'ready' 
+                        ? 'Mavjud' 
+                        : cake.available && cake.quantity !== undefined && cake.quantity > 0
+                          ? 'Hozir mavjud'
+                          : 'Buyurtma uchun'
+                      }
                     </span>
                   </div>
                 </div>
@@ -463,13 +472,11 @@ const CustomerDashboard = () => {
 
                 <p className="text-xs text-gray-500 mb-2">
                   {cake.productType === 'baked' 
-                    ? cake.available
-                      ? cake.quantity !== undefined 
-                        ? `Qoldi: ${cake.quantity} ta`
-                        : 'Miqdor: cheklanmagan'
-                      : cake.quantity !== undefined 
+                    ? cake.available && cake.quantity !== undefined && cake.quantity > 0
+                      ? `Qoldi: ${cake.quantity} ta`
+                      : cake.quantity !== undefined && cake.quantity > 0
                         ? `Buyurtma qilingan: ${cake.quantity} ta`
-                        : 'Buyurtma yo\'q'
+                        : 'Buyurtma uchun'
                     : cake.quantity !== undefined 
                       ? `Qoldi: ${cake.quantity} ta`
                       : 'Miqdor: cheklanmagan'
@@ -513,14 +520,16 @@ const CustomerDashboard = () => {
                           }
                       className={`flex-1 py-2 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                         cake.productType === 'baked'
-                          ? cake.available 
+                          ? cake.available && cake.quantity !== undefined && cake.quantity > 0
                             ? 'bg-orange-500 text-white hover:bg-orange-600'
                             : 'bg-blue-500 text-white hover:bg-blue-600'
                           : 'bg-orange-500 text-white hover:bg-orange-600'
                       }`}
                     >
                       {cake.productType === 'baked' 
-                        ? cake.available ? 'Savatga qo\'shish' : 'Buyurtma berish'
+                        ? cake.available && cake.quantity !== undefined && cake.quantity > 0
+                          ? 'Savatga qo\'shish' 
+                          : 'Buyurtma berish'
                         : cake.productType === 'ready' && cake.quantity !== undefined && cake.quantity <= 0 
                           ? 'Tugadi' 
                           : 'Savatga'
