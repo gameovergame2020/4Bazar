@@ -153,6 +153,7 @@ const ShopDashboard = () => {
         available: true,
         ingredients: [],
         quantity: parseInt(productForm.quantity),
+        amount: undefined, // Shop mahsulotlari uchun amount kerak emas
         discount: parseFloat(productForm.discount) || 0
       };
       

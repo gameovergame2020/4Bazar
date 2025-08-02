@@ -108,6 +108,10 @@ class DataService {
     try {
       const cakeData = {
         ...cake,
+        // Baker mahsulotlari uchun amount = 0 bilan boshlash
+        amount: cake.productType === 'baked' ? (cake.amount || 0) : undefined,
+        // Shop mahsulotlari uchun quantity mavjud bo'lishi kerak
+        quantity: cake.productType === 'ready' ? (cake.quantity || 0) : (cake.quantity || undefined),
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       };

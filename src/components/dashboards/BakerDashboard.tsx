@@ -125,7 +125,7 @@ const BakerDashboard = () => {
         bakerId: userData.id,
         productType: 'baked'
       });
-      
+
       setMyCakes(cakes || []);
 
       // Buyurtmalarni yuklash
@@ -227,7 +227,8 @@ const BakerDashboard = () => {
         available: quantity > 0 ? cakeForm.available : false, // Quantity 0 bo'lsa available = false  
         ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
         quantity: quantity,
-        discount: parseFloat(cakeForm.discount) || 0
+        discount: parseFloat(cakeForm.discount) || 0,
+        amount: 0
       };
 
       // Agar quantity 0 bo'lsa, ogohlantirishni ko'rsatish
@@ -464,7 +465,7 @@ const BakerDashboard = () => {
     }
   };
 
-  
+
 
   if (loading && orders.length === 0 && myCakes.length === 0) {
     return (
