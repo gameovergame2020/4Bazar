@@ -566,76 +566,89 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 Yetkazib berish muddati
               </h3>
 
-              <div className="grid grid-cols-1 gap-3">
+              {/* Tez variant kartalar */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 {/* Tez yetkazish */}
                 <div 
-                  className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                  className={`relative p-5 border-2 rounded-2xl cursor-pointer transition-all duration-300 transform hover:scale-102 ${
                     userInfo.deliveryTime === 'asap' 
-                      ? 'border-orange-500 bg-orange-50 shadow-md' 
-                      : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
+                      ? 'border-orange-500 bg-gradient-to-br from-orange-50 to-red-50 shadow-lg ring-2 ring-orange-200' 
+                      : 'border-gray-200 hover:border-orange-300 hover:shadow-md bg-white'
                   }`}
                   onClick={() => setUserInfo(prev => ({ ...prev, deliveryTime: 'asap' }))}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                  {/* Mashhur badge */}
+                  <div className="absolute -top-2 -right-2">
+                    <div className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
+                      🔥 TOP
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center text-center space-y-3">
+                    <div className="text-3xl">⚡</div>
+                    <div>
+                      <h4 className="font-bold text-lg text-gray-900">Tez yetkazish</h4>
+                      <p className="text-sm text-gray-600 mt-1">2-3 soat ichida</p>
+                    </div>
+                    
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
                       userInfo.deliveryTime === 'asap' 
-                        ? 'border-orange-500 bg-orange-500' 
+                        ? 'border-orange-500 bg-orange-500 shadow-md' 
                         : 'border-gray-300'
                     }`}>
                       {userInfo.deliveryTime === 'asap' && (
-                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
                       )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">⚡ Iloji boricha tez</span>
-                        <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-                          Mashhur
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">2-3 soat ichida yetkazamiz</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Bugun kechqurun */}
                 <div 
-                  className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                  className={`relative p-5 border-2 rounded-2xl cursor-pointer transition-all duration-300 transform hover:scale-102 ${
                     userInfo.deliveryTime === 'today' 
-                      ? 'border-orange-500 bg-orange-50 shadow-md' 
-                      : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
+                      ? 'border-orange-500 bg-gradient-to-br from-orange-50 to-yellow-50 shadow-lg ring-2 ring-orange-200' 
+                      : 'border-gray-200 hover:border-orange-300 hover:shadow-md bg-white'
                   }`}
                   onClick={() => setUserInfo(prev => ({ ...prev, deliveryTime: 'today' }))}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                  <div className="flex flex-col items-center text-center space-y-3">
+                    <div className="text-3xl">🌅</div>
+                    <div>
+                      <h4 className="font-bold text-lg text-gray-900">Bugun kechqurun</h4>
+                      <p className="text-sm text-gray-600 mt-1">18:00 - 22:00</p>
+                    </div>
+                    
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
                       userInfo.deliveryTime === 'today' 
-                        ? 'border-orange-500 bg-orange-500' 
+                        ? 'border-orange-500 bg-orange-500 shadow-md' 
                         : 'border-gray-300'
                     }`}>
                       {userInfo.deliveryTime === 'today' && (
-                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
                       )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">🌅 Bugun kechqurun</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">18:00 - 22:00 oralig'ida</p>
                     </div>
                   </div>
                 </div>
+              </div>
 
+              {/* Boshqa variantlar */}
+              <div className="space-y-3">
                 {/* Ertaga */}
                 <div 
-                  className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                  className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                     userInfo.deliveryTime === 'tomorrow' 
                       ? 'border-orange-500 bg-orange-50 shadow-md' 
-                      : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
+                      : 'border-gray-200 hover:border-orange-300 hover:bg-gray-50'
                   }`}
                   onClick={() => setUserInfo(prev => ({ ...prev, deliveryTime: 'tomorrow' }))}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
+                    <div className="text-2xl">📅</div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-900">Ertaga</h4>
+                      <p className="text-sm text-gray-600">09:00 - 21:00 oralig'ida</p>
+                    </div>
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                       userInfo.deliveryTime === 'tomorrow' 
                         ? 'border-orange-500 bg-orange-500' 
@@ -645,25 +658,29 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                         <div className="w-2 h-2 rounded-full bg-white"></div>
                       )}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">📅 Ertaga</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">09:00 - 21:00 oralig'ida</p>
-                    </div>
                   </div>
                 </div>
 
                 {/* Muayyan vaqt */}
                 <div 
-                  className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                  className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
                     userInfo.deliveryTime === 'schedule' 
                       ? 'border-orange-500 bg-orange-50 shadow-md' 
-                      : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
+                      : 'border-gray-200 hover:border-orange-300 hover:bg-gray-50'
                   }`}
                   onClick={() => setUserInfo(prev => ({ ...prev, deliveryTime: 'schedule' }))}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
+                    <div className="text-2xl">🗓️</div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold text-gray-900">Boshqa vaqt</h4>
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                          +5,000 so'm
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600">O'zingiz tanlagan vaqtda</p>
+                    </div>
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                       userInfo.deliveryTime === 'schedule' 
                         ? 'border-orange-500 bg-orange-500' 
@@ -673,40 +690,41 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                         <div className="w-2 h-2 rounded-full bg-white"></div>
                       )}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">🗓️ Boshqa vaqt</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">O'zingiz tanlagan vaqtda</p>
-                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Muayyan vaqt tanlash */}
               {userInfo.deliveryTime === 'schedule' && (
-                <div className="mt-4 p-5 bg-gradient-to-br from-orange-50 to-yellow-50 border border-orange-200 rounded-xl space-y-4">
-                  <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                    <span>📋</span>
-                    Muayyan vaqtni tanlang
-                  </h4>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-2 border-blue-200 rounded-2xl space-y-5 animate-slideDown">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-xl">📋</span>
+                    </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        📅 Sana
+                      <h4 className="font-bold text-gray-900 text-lg">Muayyan vaqtni tanlang</h4>
+                      <p className="text-sm text-gray-600">Sizga qulay vaqtni belgilang</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <span className="text-lg">📅</span>
+                        Sanani tanlang
                       </label>
                       <input
                         type="date"
                         min={new Date().toISOString().split('T')[0]}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all duration-200"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        ⏰ Vaqt oralig'i
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <span className="text-lg">⏰</span>
+                        Vaqt oralig'ini tanlang
                       </label>
-                      <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white">
+                      <select className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all duration-200">
                         <option value="09:00-12:00">🌅 Ertalab (09:00 - 12:00)</option>
                         <option value="12:00-15:00">☀️ Tushdan keyin (12:00 - 15:00)</option>
                         <option value="15:00-18:00">🌤️ Peshindan keyin (15:00 - 18:00)</option>
@@ -715,11 +733,15 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                     </div>
                   </div>
                   
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-700 flex items-center gap-2">
-                      <span>💡</span>
-                      <span>Muayyan vaqtni tanlaganingiz uchun 5,000 so'm qo'shimcha haq olinadi.</span>
-                    </p>
+                  <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                    <div className="text-xl">💡</div>
+                    <div>
+                      <p className="text-sm font-medium text-amber-800">Qo'shimcha ma'lumot</p>
+                      <p className="text-sm text-amber-700 mt-1">
+                        Muayyan vaqtni tanlaganingiz uchun <span className="font-bold">5,000 so'm</span> qo'shimcha xizmat haqi olinadi.
+                        Bu sizning qulay vaqtingizda yetkazib berish uchun.
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
