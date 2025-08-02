@@ -1192,65 +1192,87 @@ const OperatorDashboard = () => {
               )}
 
               <div className="space-y-2 pt-4">
-                {/* Tasdiqlash tugmalari - faqat pending holatida */}
+                {/* Pending holatidagi buyurtmalar uchun */}
                 {selectedOrderForDetails.status === 'pending' && (
-                  <div className="flex space-x-2 mb-2">
-                    <button 
-                      onClick={() => handleOrderStatusChange(selectedOrderForDetails.id!, 'accepted')}
-                      className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-1"
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => {
+                        handleEditOrder(selectedOrderForDetails);
+                        setSelectedOrderForDetails(null);
+                      }}
+                      className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span>Tasdiqlash</span>
+                      ✎ Buyurtmani tahrirlash
                     </button>
-                    <button 
-                      onClick={() => handleOrderStatusChange(selectedOrderForDetails.id!, 'cancelled')}
-                      className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center space-x-1"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                      <span>Rad etish</span>
-                    </button>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => {
+                          handleOrderStatusUpdate(selectedOrderForDetails.id!, 'accepted');
+                          setSelectedOrderForDetails(null);
+                        }}
+                        className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Tasdiqlash</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleOrderStatusUpdate(selectedOrderForDetails.id!, 'cancelled');
+                          setSelectedOrderForDetails(null);
+                        }}
+                        className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center space-x-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        <span>Rad etish</span>
+                      </button>
+                    </div>
                   </div>
                 )}
 
-                {/* Holat o'zgartirish tugmalari - accepted dan keyin */}
+                {/* Accepted holatidagi buyurtmalar uchun */}
                 {selectedOrderForDetails.status === 'accepted' && (
-                  <div className="flex space-x-2 mb-2">
-                    <button 
-                      onClick={() => handleOrderStatusChange(selectedOrderForDetails.id!, 'preparing')}
-                      className="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                    >
-                      Tayyorlanishga yuborish
-                    </button>
-                  </div>
+                  <button 
+                    onClick={() => {
+                      handleOrderStatusUpdate(selectedOrderForDetails.id!, 'preparing');
+                      setSelectedOrderForDetails(null);
+                    }}
+                    className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    Tayyorlanishga yuborish
+                  </button>
                 )}
 
+                {/* Preparing holatidagi buyurtmalar uchun */}
                 {selectedOrderForDetails.status === 'preparing' && (
-                  <div className="flex space-x-2 mb-2">
-                    <button 
-                      onClick={() => handleOrderStatusChange(selectedOrderForDetails.id!, 'ready')}
-                      className="flex-1 bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition-colors"
-                    >
-                      Tayyor deb belgilash
-                    </button>
-                  </div>
+                  <button 
+                    onClick={() => {
+                      handleOrderStatusUpdate(selectedOrderForDetails.id!, 'ready');
+                      setSelectedOrderForDetails(null);
+                    }}
+                    className="w-full bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition-colors"
+                  >
+                    Tayyor deb belgilash
+                  </button>
                 )}
 
+                {/* Ready holatidagi buyurtmalar uchun */}
                 {selectedOrderForDetails.status === 'ready' && (
-                  <div className="flex space-x-2 mb-2">
-                    <button 
-                      onClick={() => handleOrderStatusChange(selectedOrderForDetails.id!, 'delivering')}
-                      className="flex-1 bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
-                    >
-                      Yetkazib berishga yuborish
-                    </button>
-                  </div>
+                  <button 
+                    onClick={() => {
+                      handleOrderStatusUpdate(selectedOrderForDetails.id!, 'delivering');
+                      setSelectedOrderForDetails(null);
+                    }}
+                    className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
+                  >
+                    Yetkazib berishga yuborish
+                  </button>
                 )}
 
-                {/* Qo'ng'iroq tugmasi */}
+                {/* Qo'ng'iroq tugmasi - barcha holatlar uchun */}
                 <button 
                   onClick={() => window.open(`tel:${selectedOrderForDetails.customerPhone}`, '_self')}
                   className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-1"
@@ -1259,41 +1281,6 @@ const OperatorDashboard = () => {
                   <span>Qo'ng'iroq</span>
                 </button>
               </div>
-
-              {/* Quick Status Update Buttons */}
-              {selectedOrderForDetails.status === 'pending' && (
-                <div className="space-y-2 pt-2">
-                  <button
-                    onClick={() => {
-                      handleEditOrder(selectedOrderForDetails);
-                      setSelectedOrderForDetails(null);
-                    }}
-                    className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                  >
-                    ✎ Buyurtmani tahrirlash
-                  </button>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => {
-                        handleOrderStatusUpdate(selectedOrderForDetails.id!, 'accepted');
-                        setSelectedOrderForDetails(null);
-                      }}
-                      className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors"
-                    >
-                      ✓ Tasdiqlash
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleOrderStatusUpdate(selectedOrderForDetails.id!, 'cancelled');
-                        setSelectedOrderForDetails(null);
-                      }}
-                      className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors"
-                    >
-                      ✗ Rad etish
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
