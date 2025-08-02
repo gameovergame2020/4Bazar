@@ -695,20 +695,28 @@ const addToCart = (cakeId: string) => {
         </div>
       )}
 
-      {/* Cart Icon */}
-      <button 
-        onClick={handleCheckout}
-        className="fixed bottom-6 right-6 bg-orange-500 text-white p-4 rounded-full shadow-lg hover:bg-orange-600 transition-colors z-50"
+      {/* Cart Icon - Always Visible */}
+      <div 
+        className="fixed bottom-6 right-6 z-[9999]"
+        style={{ zIndex: 9999 }}
       >
-        <div className="relative">
-          <ShoppingCart size={24} />
-          {Object.keys(cart).length > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
-              {Object.values(cart).reduce((sum, qty) => sum + qty, 0)}
-            </span>
-          )}
-        </div>
-      </button>
+        <button 
+          onClick={handleCheckout}
+          className="bg-orange-500 text-white p-4 rounded-full shadow-2xl hover:bg-orange-600 transition-all duration-200 hover:scale-110 border-2 border-white"
+          style={{ 
+            boxShadow: '0 10px 30px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1)' 
+          }}
+        >
+          <div className="relative">
+            <ShoppingCart size={24} />
+            {Object.keys(cart).length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold animate-pulse">
+                {Object.values(cart).reduce((sum, qty) => sum + qty, 0)}
+              </span>
+            )}
+          </div>
+        </button>
+      </div>
     </div>
   );
 };
