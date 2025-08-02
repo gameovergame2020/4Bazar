@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   ArrowLeft, 
   MapPin, 
@@ -12,14 +12,9 @@ import {
   Star, 
   Heart, 
   Package,
-  Calendar,
   Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Loader
+  CheckCircle
 } from 'lucide-react';
-import { getUserOrders, cancelOrder } from '../services/dataService';
 
 interface User {
   id: number;
@@ -30,19 +25,6 @@ interface User {
   joinDate: string;
   totalOrders: number;
   favoriteCount: number;
-}
-
-interface Order {
-  id: string;
-  cakeName: string;
-  restaurant: string;
-  totalPrice: number;
-  status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
-  orderDate: string;
-  deliveryAddress: string;
-  paymentMethod: 'card' | 'cash';
-  paymentType?: 'click' | 'payme' | 'visa';
-  phone: string;
 }
 
 interface ProfilePageProps {
@@ -64,11 +46,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
   onNavigateToAdvancedSettings, 
   onLogout 
 }) => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
-  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
 
   const menuItems = [
     {
@@ -135,111 +112,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
     }
   ];
 
-  useEffect(() => {
-    let isActive = true;
-    let loadingTimeout: NodeJS.Timeout;
-
-    const loadOrders = async () => {
-      try {
-        setLoading(true);
-
-        loadingTimeout = setTimeout(() => {
-          if (isActive) {
-            setLoading(false);
-          }
-        }, 2000);
-
-        const userOrders = await getUserOrders(user.id.toString());
-
-        if (isActive) {
-          clearTimeout(loadingTimeout);
-          setOrders(userOrders);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Buyurtmalarni yuklashda xato:', error);
-        if (isActive) {
-          clearTimeout(loadingTimeout);
-          setOrders([]);
-          setLoading(false);
-        }
-      }
-    };
-
-    loadOrders();
-
-    return () => {
-      isActive = false;
-      if (loadingTimeout) clearTimeout(loadingTimeout);
-    };
-  }, [user.id]);
-
-  const getStatusColor = (status: Order['status']) => {
-    switch (status) {
-      case 'pending': return 'text-yellow-400 bg-yellow-400/10';
-      case 'confirmed': return 'text-blue-400 bg-blue-400/10';
-      case 'preparing': return 'text-orange-400 bg-orange-400/10';
-      case 'ready': return 'text-green-400 bg-green-400/10';
-      case 'delivered': return 'text-green-400 bg-green-400/10';
-      case 'cancelled': return 'text-red-400 bg-red-400/10';
-      default: return 'text-gray-400 bg-gray-400/10';
-    }
-  };
-
-  const getStatusText = (status: Order['status']) => {
-    switch (status) {
-      case 'pending': return 'Kutilmoqda';
-      case 'confirmed': return 'Tasdiqlangan';
-      case 'preparing': return 'Tayyorlanmoqda';
-      case 'ready': return 'Tayyor';
-      case 'delivered': return 'Yetkazilgan';
-      case 'cancelled': return 'Bekor qilingan';
-      default: return 'Noma\'lum';
-    }
-  };
-
-  const getStatusIcon = (status: Order['status']) => {
-    switch (status) {
-      case 'pending': return <Clock className="w-3 h-3" />;
-      case 'confirmed': return <CheckCircle className="w-3 h-3" />;
-      case 'preparing': return <Loader className="w-3 h-3 animate-spin" />;
-      case 'ready': return <Package className="w-3 h-3" />;
-      case 'delivered': return <CheckCircle className="w-3 h-3" />;
-      case 'cancelled': return <XCircle className="w-3 h-3" />;
-      default: return <AlertCircle className="w-3 h-3" />;
-    }
-  };
-
-  const canCancelOrder = (status: Order['status']) => {
-    return ['pending', 'confirmed'].includes(status);
-  };
-
-  const handleCancelClick = (order: Order) => {
-    setOrderToCancel(order);
-    setShowCancelModal(true);
-  };
-
-  const handleCancelOrder = async () => {
-    if (!orderToCancel) return;
-
-    try {
-      setCancellingOrderId(orderToCancel.id);
-      await cancelOrder(orderToCancel.id);
-
-      setOrders(prev => prev.map(order => 
-        order.id === orderToCancel.id 
-          ? { ...order, status: 'cancelled' as const }
-          : order
-      ));
-
-      setShowCancelModal(false);
-      setOrderToCancel(null);
-    } catch (error) {
-      console.error('Buyurtmani bekor qilishda xato:', error);
-    } finally {
-      setCancellingOrderId(null);
-    }
-  };
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4">
@@ -284,49 +157,58 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
         {/* Recent Orders */}
         <div className="backdrop-blur-sm rounded-xl sm:rounded-2xl lg:rounded-3xl p-3 sm:p-4 lg:p-6 shadow-sm border transition-colors duration-300 bg-gray-800/90 border-gray-700">
           <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">So'nggi buyurtmalar</h2>
-
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-8">
-              <div className="animate-spin h-8 w-8 border-4 border-orange-500 border-t-transparent rounded-full mb-4"></div>
-              <p className="text-gray-400 text-sm">Buyurtmalar yuklanmoqda...</p>
-            </div>
-          ) : orders.length === 0 ? (
-            <div className="text-center py-6 sm:py-8">
-              <Package className="w-12 h-12 sm:w-16 sm:h-16 text-gray-500 mx-auto mb-3 sm:mb-4" />
-              <p className="text-gray-400 text-sm">Hozircha buyurtmalar yo'q</p>
-            </div>
-          ) : (
-            <div className="space-y-2 sm:space-y-3">
-              {orders.slice(0, 3).map((order) => (
-                <div key={order.id} className="p-3 sm:p-4 rounded-lg bg-gray-700/50 border border-gray-600">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <h3 className="font-medium text-white text-sm sm:text-base">{order.cakeName}</h3>
-                      <p className="text-gray-400 text-xs sm:text-sm">{order.restaurant}</p>
-                    </div>
-                    <div className={`px-2 py-1 rounded-full text-xs flex items-center space-x-1 ${getStatusColor(order.status)}`}>
-                      {getStatusIcon(order.status)}
-                      <span>{getStatusText(order.status)}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs sm:text-sm">
-                    <span className="text-orange-400 font-medium">{order.totalPrice.toLocaleString()} so'm</span>
-                    <span className="text-gray-400">{new Date(order.orderDate).toLocaleDateString('uz-UZ')}</span>
-                  </div>
-
-                  {canCancelOrder(order.status) && (
-                    <button
-                      onClick={() => handleCancelClick(order)}
-                      className="mt-2 w-full py-2 px-3 bg-red-500/10 text-red-400 rounded-lg text-xs hover:bg-red-500/20 transition-colors border border-red-500/30"
-                    >
-                      Buyurtmani bekor qilish
-                    </button>
-                  )}
+          <div className="space-y-2 sm:space-y-3">
+            <div className="p-3 sm:p-4 rounded-lg bg-gray-700/50 border border-gray-600">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <h3 className="font-medium text-white text-sm sm:text-base">Shokoladli tort</h3>
+                  <p className="text-gray-400 text-xs sm:text-sm">Sweet Dreams</p>
                 </div>
-              ))}
+                <div className="px-2 py-1 rounded-full text-xs flex items-center space-x-1 text-green-400 bg-green-400/10">
+                  <CheckCircle className="w-3 h-3" />
+                  <span>Yetkazilgan</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="text-orange-400 font-medium">45,000 so'm</span>
+                <span className="text-gray-400">12.01.2024</span>
+              </div>
             </div>
-          )}
+
+            <div className="p-3 sm:p-4 rounded-lg bg-gray-700/50 border border-gray-600">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <h3 className="font-medium text-white text-sm sm:text-base">Vanilla krem tort</h3>
+                  <p className="text-gray-400 text-xs sm:text-sm">Cake Paradise</p>
+                </div>
+                <div className="px-2 py-1 rounded-full text-xs flex items-center space-x-1 text-blue-400 bg-blue-400/10">
+                  <CheckCircle className="w-3 h-3" />
+                  <span>Tasdiqlangan</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="text-orange-400 font-medium">38,000 so'm</span>
+                <span className="text-gray-400">10.01.2024</span>
+              </div>
+            </div>
+
+            <div className="p-3 sm:p-4 rounded-lg bg-gray-700/50 border border-gray-600">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <h3 className="font-medium text-white text-sm sm:text-base">Mevali tort</h3>
+                  <p className="text-gray-400 text-xs sm:text-sm">Fresh Bakery</p>
+                </div>
+                <div className="px-2 py-1 rounded-full text-xs flex items-center space-x-1 text-yellow-400 bg-yellow-400/10">
+                  <Clock className="w-3 h-3" />
+                  <span>Kutilmoqda</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-xs sm:text-sm">
+                <span className="text-orange-400 font-medium">52,000 so'm</span>
+                <span className="text-gray-400">08.01.2024</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Favorite Items */}
@@ -390,63 +272,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
           </div>
         </div>
 
-        {/* Cancel Order Modal */}
-        {showCancelModal && orderToCancel && (
-          <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-            <div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700 shadow-2xl">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Buyurtmani bekor qilish</h3>
-                <button
-                  onClick={() => {
-                    setShowCancelModal(false);
-                    setOrderToCancel(null);
-                  }}
-                  className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="bg-gray-700/50 rounded-xl p-4 mb-6 border border-gray-600">
-                <h4 className="font-medium text-white text-sm mb-2">{orderToCancel.cakeName}</h4>
-                <p className="text-gray-400 text-xs">#{orderToCancel.id?.slice(-8).toUpperCase()}</p>
-                <div className="text-orange-400 font-medium text-sm mt-2">
-                  {orderToCancel.totalPrice.toLocaleString()} so'm
-                </div>
-              </div>
-
-              <p className="text-gray-300 text-sm text-center mb-6">
-                Haqiqatan ham bu buyurtmani bekor qilishni xohlaysizmi?
-              </p>
-
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => {
-                    setShowCancelModal(false);
-                    setOrderToCancel(null);
-                  }}
-                  className="flex-1 bg-gray-700 text-gray-300 py-3 px-4 rounded-xl font-medium hover:bg-gray-600 transition-colors"
-                >
-                  Bekor qilish
-                </button>
-                <button
-                  onClick={handleCancelOrder}
-                  disabled={cancellingOrderId === orderToCancel.id}
-                  className="flex-1 bg-red-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  {cancellingOrderId === orderToCancel.id ? (
-                    <>
-                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                      <span>Bekor qilinmoqda...</span>
-                    </>
-                  ) : (
-                    <span>Ha, bekor qilish</span>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        
       </div>
     </div>
   );
