@@ -44,8 +44,7 @@ export interface Cake {
 export interface Order {
   id?: string;
   orderUniqueId?: string; // Har bir buyurtma uchun bir martalik noyob ID
-  customerId: string;
-  userId?: string; // Foydalanuvchi ID reference uchun
+  userId: string; // Foydalanuvchi ID - yagona identifikator
   customerName: string;
   customerPhone: string;
   cakeId: string; // Mahsulot uchun bir martalik noyob ID
@@ -78,7 +77,7 @@ export interface Review {
 // Qo'llab-quvvatlash so'rovlari uchun interface
 export interface SupportTicket {
   id?: string;
-  customerId: string;
+  userId: string;
   customerName: string;
   customerPhone: string;
   customerEmail?: string;
@@ -224,7 +223,7 @@ class DataService {
       const uniqueOrderId = `ORD_${timestamp}_${randomSuffix}`;
       
       // users collection'dagi id bilan bir xil bo'lishi kerak
-      const userIdFromUsersCollection = order.customerId?.toString().trim() || '';
+      const userIdFromUsersCollection = order.userId?.toString().trim() || '';
       
       console.log('🆔 Noyob buyurtma ID yaratildi:', uniqueOrderId);
       console.log('👤 Users collection ID:', userIdFromUsersCollection);
@@ -233,8 +232,7 @@ class DataService {
       const orderData = {
         ...order,
         orderUniqueId: uniqueOrderId, // Bir martalik noyob ID
-        customerId: userIdFromUsersCollection, // Users collection'dagi id
-        userId: userIdFromUsersCollection, // Users collection'dagi id bilan bir xil
+        userId: userIdFromUsersCollection, // Faqat userId ishlatiladi
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       };
@@ -305,8 +303,7 @@ class DataService {
           const order: Order = {
             id: doc.id,
             orderUniqueId: data.orderUniqueId || doc.id,
-            customerId: data.userId, // Users collection ID
-            userId: data.userId, // Users collection ID bilan bir xil
+            userId: data.userId, // Faqat userId ishlatiladi
             customerName: data.customerName || 'Noma\'lum mijoz',
             customerPhone: data.customerPhone || '',
             cakeId: data.cakeId,
@@ -361,12 +358,12 @@ class DataService {
   
 
   // Buyurtmalarni olish
-  async getOrders(filters?: { customerId?: string; status?: string }): Promise<Order[]> {
+  async getOrders(filters?: { userId?: string; status?: string }): Promise<Order[]> {
     try {
       let q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
 
-      if (filters?.customerId) {
-        q = query(q, where('customerId', '==', filters.customerId));
+      if (filters?.userId) {
+        q = query(q, where('userId', '==', filters.userId));
       }
       if (filters?.status) {
         q = query(q, where('status', '==', filters.status));
@@ -376,7 +373,7 @@ class DataService {
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         orderUniqueId: doc.data().orderUniqueId,
-        userId: doc.data().userId, // Users collection ID
+        userId: doc.data().userId,
         ...doc.data(),
         createdAt: doc.data().createdAt.toDate(),
         updatedAt: doc.data().updatedAt.toDate(),
@@ -695,7 +692,7 @@ class DataService {
 
   // Support ticketlarni olish
   async getSupportTickets(filters?: { 
-    customerId?: string; 
+    userId?: string; 
     status?: string;
     assignedTo?: string;
     priority?: string;
@@ -703,8 +700,8 @@ class DataService {
     try {
       let q = query(collection(db, 'supportTickets'), orderBy('createdAt', 'desc'));
 
-      if (filters?.customerId) {
-        q = query(q, where('customerId', '==', filters.customerId));
+      if (filters?.userId) {
+        q = query(q, where('userId', '==', filters.userId));
       }
       if (filters?.status) {
         q = query(q, where('status', '==', filters.status));
@@ -1257,18 +1254,18 @@ class DataService {
     });
   }
 
-  // Buyurtmalar holatini real-time kuzatish (Customer ID bo'yicha optimized)
-  subscribeToOrders(callback: (orders: Order[]) => void, filters?: { customerId?: string }) {
+  // Buyurtmalar holatini real-time kuzatish (User ID bo'yicha optimized)
+  subscribeToOrders(callback: (orders: Order[]) => void, filters?: { userId?: string }) {
     let q;
     
-    if (filters?.customerId) {
-      console.log('🔄 Real-time subscription: Customer ID bo\'yicha', filters.customerId);
-      // Faqat specific customer uchun
+    if (filters?.userId) {
+      console.log('🔄 Real-time subscription: User ID bo\'yicha', filters.userId);
+      // Faqat specific user uchun
       q = query(
         collection(db, 'orders'), 
-        where('customerId', '==', filters.customerId),
+        where('userId', '==', filters.userId),
         orderBy('createdAt', 'desc'),
-        limit(500) // Customer uchun barcha buyurtmalar
+        limit(500) // User uchun barcha buyurtmalar
       );
     } else {
       console.log('🔄 Real-time subscription: Umumiy buyurtmalar');
@@ -1282,7 +1279,7 @@ class DataService {
 
     return onSnapshot(q, (querySnapshot) => {
       try {
-        const filterText = filters?.customerId ? `Customer ID (${filters.customerId})` : 'Umumiy';
+        const filterText = filters?.userId ? `User ID (${filters.userId})` : 'Umumiy';
         console.log(`📥 Real-time (${filterText}): ${querySnapshot.docs.length} ta hujjat keldi`);
         
         const orders: Order[] = [];
@@ -1291,16 +1288,15 @@ class DataService {
           try {
             const data = doc.data();
             
-            // Customer filter bo'lsa, yana bir marta tekshirish
-            if (filters?.customerId && data.customerId !== filters.customerId) {
+            // User filter bo'lsa, yana bir marta tekshirish
+            if (filters?.userId && data.userId !== filters.userId) {
               return; // Skip this order
             }
             
             const order: Order = {
               id: doc.id,
               orderUniqueId: data.orderUniqueId,
-              customerId: data.customerId || 'unknown',
-              userId: data.userId || 'unknown', // Users collection ID
+              userId: data.userId || 'unknown',
               customerName: data.customerName || 'Noma\'lum',
               customerPhone: data.customerPhone || '',
               cakeId: data.cakeId || '',
