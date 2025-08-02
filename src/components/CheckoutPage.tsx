@@ -571,13 +571,18 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 </button>
                 <button
                   onClick={() => {
-                    if (formData.coordinates && formData.deliveryAddress) {
+                    if (formData.deliveryAddress.trim()) {
                       setShowLocationPicker(false);
                     } else {
                       alert('Iltimos, avval manzilni tanlang');
                     }
                   }}
-                  className="flex-1 bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
+                  className={`flex-1 py-2 rounded-lg transition-colors ${
+                    formData.deliveryAddress.trim() 
+                      ? 'bg-orange-500 text-white hover:bg-orange-600' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                  disabled={!formData.deliveryAddress.trim()}
                 >
                   Tanlash
                 </button>
