@@ -165,8 +165,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           const updateAddressFromCoords = (coords) => {
             window.ymaps.geocode(coords, {
               kind: 'house',
-              results: 1,
-              apikey: '40496c4d-9fd2-450a-bea8-9a78d5955593'
+              results: 1
             }).then((result) => {
               const firstGeoObject = result.geoObjects.get(0);
               if (firstGeoObject) {
