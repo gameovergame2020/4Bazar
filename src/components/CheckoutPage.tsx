@@ -37,6 +37,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const [isMapInitialized, setIsMapInitialized] = useState(false);
   const [isYmapsLoaded, setIsYmapsLoaded] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [orderDetails, setOrderDetails] = useState<{
     orderId: string;
     operatorPhone: string;
@@ -425,6 +426,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       return;
     }
 
+    // Bank kartasi tanlangan bo'lsa, to'lov modalini ko'rsatish
+    if (userInfo.paymentMethod === 'card') {
+      setShowPaymentModal(true);
+      return;
+    }
+
     try {
       // Buyurtma ma'lumotlarini tayyorlash
       const orderData = {
@@ -481,6 +488,95 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         const { notificationService } = await import('../services/notificationService');
         await notificationService.createNotification({
           userId: 'operator-1', // Operator ID si
+          type: 'order',
+          title: 'Yangi buyurtma!',
+          message: `${userInfo.name} tomonidan yangi buyurtma: ${cartProducts.map(p => p.name).join(', ')}`,
+          data: { 
+            orderId, 
+            customerName: userInfo.name,
+            customerPhone: userInfo.phone,
+            totalPrice 
+          },
+          read: false,
+          priority: 'high',
+          actionUrl: `/operator/orders/${orderId}`
+        });
+        console.log('📢 Operator bildirishnomasi yuborildi');
+      } catch (notifError) {
+        console.warn('⚠️ Operator bildirishnomasi yuborishda xato:', notifError);
+      }
+
+    } catch (error) {
+      console.error('❌ Buyurtma yuborishda xato:', error);
+      alert('Buyurtma yuborishda xato yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
+    }
+  };
+
+  // To'lov turini tanlash va buyurtmani davom ettirish
+  const handlePaymentTypeSelect = async (paymentType: string) => {
+    setUserInfo(prev => ({ ...prev, paymentType }));
+    setShowPaymentModal(false);
+    
+    // To'lov turi tanlanganidan keyin buyurtmani yuborish
+    await processOrder(paymentType);
+  };
+
+  // Buyurtmani qayta ishlash (to'lov turi bilan)
+  const processOrder = async (paymentType?: string) => {
+    const finalPaymentType = paymentType || userInfo.paymentType;
+    
+    try {
+      // Buyurtma ma'lumotlarini tayyorlash
+      const orderData = {
+        customerId: 'customer-' + Date.now(),
+        customerName: userInfo.name,
+        customerPhone: userInfo.phone,
+        cakeId: cartProducts[0]?.id || '',
+        cakeName: cartProducts.map(p => p.name).join(', '),
+        quantity: cartProducts.reduce((sum, p) => sum + p.quantity, 0),
+        totalPrice: totalPrice,
+        status: 'pending',
+        deliveryAddress: deliveryAddress,
+        coordinates: selectedCoordinates ? { 
+          lat: selectedCoordinates[0], 
+          lng: selectedCoordinates[1] 
+        } : undefined,
+        paymentMethod: userInfo.paymentMethod,
+        paymentType: finalPaymentType,
+        notes: `To'lov usuli: ${
+          userInfo.paymentMethod === 'cash' ? 'Naqd pul' :
+          userInfo.paymentMethod === 'card' ? 
+            (finalPaymentType === 'click' ? 'Click' :
+             finalPaymentType === 'payme' ? 'Payme' :
+             finalPaymentType === 'visa' ? 'Visa/Mastercard' : 'Bank kartasi') :
+          userInfo.paymentMethod
+        }. Yetkazib berish: ${
+          userInfo.deliveryTime === 'asap' ? 'Tez yetkazish (2-3 soat)' :
+          userInfo.deliveryTime === 'today' ? 'Bugun yetkazish (09:00-22:00)' :
+          userInfo.deliveryTime === 'tomorrow' ? 'Ertaga yetkazish (09:00-22:00)' :
+          userInfo.deliveryTime === 'custom' ? `O'zi tanlagan vaqt: ${userInfo.customDeliveryDate ? new Date(userInfo.customDeliveryDate).toLocaleDateString('uz-UZ') : 'tanlanmagan'} soat ${userInfo.customDeliveryTime || 'tanlanmagan'}` : userInfo.deliveryTime
+        }. Mahsulotlar: ${cartProducts.map(p => `${p.name} (${p.quantity} dona)`).join(', ')}`
+      };
+
+      console.log('🛒 Buyurtma Firebase ga yuborilmoqda:', orderData);
+
+      const { dataService } = await import('../services/dataService');
+      const orderId = await dataService.createOrder(orderData);
+
+      console.log('✅ Buyurtma yaratildi, ID:', orderId);
+
+      const operatorPhone = '+998 90 123 45 67';
+
+      setOrderDetails({ 
+        orderId: `ORD-${orderId.slice(-8).toUpperCase()}`, 
+        operatorPhone 
+      });
+      setOrderConfirmed(true);
+
+      try {
+        const { notificationService } = await import('../services/notificationService');
+        await notificationService.createNotification({
+          userId: 'operator-1',
           type: 'order',
           title: 'Yangi buyurtma!',
           message: `${userInfo.name} tomonidan yangi buyurtma: ${cartProducts.map(p => p.name).join(', ')}`,
@@ -813,6 +909,69 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           </button>
         </div>
       </div>
+
+      {/* To'lov tanlash modali */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CreditCard className="w-8 h-8 text-blue-600" />
+              </div>
+
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                💳 To'lov turini tanlang
+              </h3>
+
+              <p className="text-gray-600 mb-6">
+                Bank kartasi orqali to'lov qilish uchun quyidagi variantlardan birini tanlang:
+              </p>
+
+              <div className="space-y-3 mb-6">
+                <button
+                  onClick={() => handlePaymentTypeSelect('click')}
+                  className="w-full flex items-center justify-center space-x-3 p-4 border-2 border-blue-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all duration-200"
+                >
+                  <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">🔵</span>
+                  </div>
+                  <div className="text-left">
+                    <h4 className="font-semibold text-gray-900">Click</h4>
+                    <p className="text-sm text-gray-600">Click orqali to'lov qilish</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handlePaymentTypeSelect('payme')}
+                  className="w-full flex items-center justify-center space-x-3 p-4 border-2 border-green-200 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all duration-200"
+                >
+                  <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">🟢</span>
+                  </div>
+                  <div className="text-left">
+                    <h4 className="font-semibold text-gray-900">Payme</h4>
+                    <p className="text-sm text-gray-600">Payme orqali to'lov qilish</p>
+                  </div>
+                </button>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Jami to'lov:</span>
+                  <span className="font-bold text-orange-600 text-lg">{totalPrice.toLocaleString()} so'm</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="w-full bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+              >
+                Bekor qilish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Buyurtma tasdiqlash modali */}
       {orderConfirmed && orderDetails && (
