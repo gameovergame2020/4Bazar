@@ -164,10 +164,17 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           // Manzilni olish va saqlash funksiyasi
           const updateAddressFromCoords = (coords) => {
             console.log('Geocoding boshlanmoqda:', coords);
+            console.log('Ishlatiladigan API kalit:', import.meta.env.VITE_YANDEX_MAPS_API_KEY || '40496c4d-9fd2-450a-bea8-9a78d5955593');
+            
+            // Geocoding uchun provider va options to'g'ri sozlanishi
             window.ymaps.geocode(coords, {
+              provider: 'yandex#map',
               kind: 'house',
-              results: 1
+              results: 1,
+              skip: 0,
+              strictBounds: false
             }).then((result) => {
+              console.log('Geocoding natijasi:', result);
               const firstGeoObject = result.geoObjects.get(0);
               if (firstGeoObject) {
                 // Aniq manzil tafsilotlarini olish
@@ -252,11 +259,20 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
               }
             }).catch((error) => {
               console.error('Geocoding xatosi:', error);
+              console.error('Xato tafsilotlari:', {
+                message: error.message,
+                code: error.code,
+                stack: error.stack
+              });
+              
               // Xato bo'lsa, koordinatalarni o'zi manzil sifatida ishlatamiz
               const fallbackAddress = `Tanlangan joylashuv: ${coords[0].toFixed(6)}, ${coords[1].toFixed(6)}`;
               setSelectedMapAddress(fallbackAddress);
               setSelectedCoordinates({ lat: coords[0], lng: coords[1] });
               placemark.properties.set('balloonContent', `📍 ${fallbackAddress}`);
+              
+              // Foydalanuvchiga xato haqida xabar berish
+              console.warn('Manzil aniqlanmadi, koordinatalar ishlatilmoqda');
             });
           };
 
@@ -298,15 +314,26 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
       // Yandex Maps API scriptini yuklash
       if (!window.ymaps) {
+        // Eski scriptlarni olib tashlash
+        const existingScripts = document.querySelectorAll('script[src*="api-maps.yandex.ru"]');
+        existingScripts.forEach(script => script.remove());
+        
         const script = document.createElement('script');
         const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY || '40496c4d-9fd2-450a-bea8-9a78d5955593';
-        const version = '2025.01.12'; // Yangi versiya raqami cache'ni tozalash uchun
-        script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&v=${version}`;
+        const cacheBuster = Date.now() + Math.random(); // Har safar yangi parametr
+        
+        console.log('Yandex Maps yuklanmoqda, API kalit:', apiKey);
+        
+        script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&cb=${cacheBuster}`;
         script.type = 'text/javascript';
         script.async = true;
-        script.onload = initializeYandexMap;
-        script.onerror = () => {
-          console.error('Yandex Maps API yuklanmadi');
+        script.onload = () => {
+          console.log('Yandex Maps muvaffaqiyatli yuklandi');
+          initializeYandexMap();
+        };
+        script.onerror = (error) => {
+          console.error('Yandex Maps API yuklanmadi:', error);
+          console.error('Ishlatilgan URL:', script.src);
           alert('Xarita xizmati vaqtincha ishlamayapti. Manzilni qo\'lda kiriting.');
         };
         document.head.appendChild(script);
