@@ -96,32 +96,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     }
   }, [cartProducts.length, orderConfirmed, onBack]);
 
-  // Agar cart bo'sh yoki mavjud bo'lmasa - shartli return barcha hooks dan keyin
+  // Agar cart bo'sh yoki mavjud bo'lmasa - avtomatik qaytish useEffect orqali bajariladi
   if (!cart || Object.keys(cart).length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-4 mb-6">
-            <button
-              onClick={onBack}
-              className="p-2 rounded-lg bg-white shadow-sm border hover:bg-gray-50"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <h1 className="text-2xl font-bold">Savat bo'sh</h1>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border text-center">
-            <p className="text-gray-600 mb-4">Savatda hech qanday mahsulot yo'q</p>
-            <button
-              onClick={onBack}
-              className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors"
-            >
-              Bosh sahifaga qaytish
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+    return null; // Hech narsa ko'rsatmaslik, useEffect avtomatik qaytaradi
   }
 
   // Yandex Maps skriptini yuklash
