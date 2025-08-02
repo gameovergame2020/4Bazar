@@ -224,6 +224,7 @@ class DataService {
       
       console.log('🆔 Noyob buyurtma ID yaratildi:', uniqueOrderId);
       console.log('🍰 Mahsulot ID:', order.cakeId);
+      console.log('👤 Customer ID (User ID):', order.customerId);
       
       const orderData = {
         ...order,
@@ -236,7 +237,8 @@ class DataService {
       const docRef = await addDoc(collection(db, 'orders'), orderData);
       
       console.log('✅ Firebase hujjat ID:', docRef.id);
-      console.log('🆔 Noyob buyurtma ID:', uniqueOrderId);
+      console.log('🆔 Noyob buyurtma ID:', uniqueOrderid);
+      console.log('👤 Customer ID bilan bog\'langan:', order.customerId);
       
       return docRef.id;
     } catch (error) {
@@ -247,30 +249,30 @@ class DataService {
 
   
 
-  // Foydalanuvchi buyurtmalarini customerPhone bo'yicha olish
-  async getOrdersByUserId(customerPhone: string): Promise<Order[]> {
+  // Foydalanuvchi buyurtmalarini customerId bo'yicha olish
+  async getOrdersByUserId(userId: string): Promise<Order[]> {
     try {
       // Input validation
-      if (!customerPhone || typeof customerPhone !== 'string' || customerPhone.trim() === '') {
-        console.log('⚠️ Customer phone noto\'g\'ri yoki bo\'sh:', customerPhone);
+      if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+        console.log('⚠️ User ID noto\'g\'ri yoki bo\'sh:', userId);
         return [];
       }
 
-      const cleanPhone = customerPhone.trim();
-      console.log('🔍 Customer phone bo\'yicha qidirish:', cleanPhone);
+      const cleanUserId = userId.trim();
+      console.log('🔍 User ID bo\'yicha qidirish:', cleanUserId);
 
-      // Firebase query - customerPhone bo'yicha filter
-      const phoneQuery = query(
+      // Firebase query - customerId bo'yicha filter
+      const userQuery = query(
         collection(db, 'orders'),
-        where('customerPhone', '==', cleanPhone),
+        where('customerId', '==', cleanUserId),
         orderBy('createdAt', 'desc'),
         limit(1000) // Yetarli limit
       );
 
-      const querySnapshot = await getDocs(phoneQuery);
+      const querySnapshot = await getDocs(userQuery);
 
       if (querySnapshot.empty) {
-        console.log('📭 Customer buyurtmalari topilmadi:', cleanPhone);
+        console.log('📭 User buyurtmalari topilmadi:', cleanUserId);
         return [];
       }
 
@@ -282,9 +284,9 @@ class DataService {
         try {
           const data = doc.data();
           
-          // Strict phone checking
-          if (data.customerPhone !== cleanPhone) {
-            console.warn('⚠️ Customer phone noto\'g\'ri:', data.customerPhone, '!=', cleanPhone);
+          // Strict customerId checking
+          if (data.customerId !== cleanUserId) {
+            console.warn('⚠️ Customer ID noto\'g\'ri:', data.customerId, '!=', cleanUserId);
             return;
           }
 
@@ -297,7 +299,7 @@ class DataService {
           const order: Order = {
             id: doc.id,
             orderUniqueId: data.orderUniqueId || doc.id,
-            customerId: data.customerId || data.customerPhone || '',
+            customerId: data.customerId || '',
             customerName: data.customerName || 'Noma\'lum mijoz',
             customerPhone: data.customerPhone || '',
             cakeId: data.cakeId,
@@ -322,12 +324,12 @@ class DataService {
         }
       });
 
-      console.log(`✅ Customer (${cleanPhone}): ${orders.length} ta buyurtma yuklandi`);
+      console.log(`✅ User (${cleanUserId}): ${orders.length} ta buyurtma yuklandi`);
       
-      // Verify all orders belong to correct customer
-      const invalidOrders = orders.filter(order => order.customerPhone !== cleanPhone);
+      // Verify all orders belong to correct user
+      const invalidOrders = orders.filter(order => order.customerId !== cleanUserId);
       if (invalidOrders.length > 0) {
-        console.error('❌ Noto\'g\'ri customer phone li buyurtmalar topildi:', invalidOrders.length);
+        console.error('❌ Noto\'g\'ri customer ID li buyurtmalar topildi:', invalidOrders.length);
       }
 
       return orders;
@@ -1254,15 +1256,15 @@ class DataService {
   }
 
   // Buyurtmalar holatini real-time kuzatish (User ID bo'yicha optimized)
-  subscribeToOrders(callback: (orders: Order[]) => void, filters?: { customerPhone?: string }) {
+  subscribeToOrders(callback: (orders: Order[]) => void, filters?: { customerId?: string }) {
     let q;
     
-    if (filters?.customerPhone) {
-      console.log('🔄 Real-time subscription: Customer phone bo\'yicha', filters.customerPhone);
+    if (filters?.customerId) {
+      console.log('🔄 Real-time subscription: Customer ID bo\'yicha', filters.customerId);
       // Faqat specific customer uchun
       q = query(
         collection(db, 'orders'), 
-        where('customerPhone', '==', filters.customerPhone),
+        where('customerId', '==', filters.customerId),
         orderBy('createdAt', 'desc'),
         limit(500) // Customer uchun barcha buyurtmalar
       );
@@ -1278,7 +1280,7 @@ class DataService {
 
     return onSnapshot(q, (querySnapshot) => {
       try {
-        const filterText = filters?.customerPhone ? `Customer phone (${filters.customerPhone})` : 'Umumiy';
+        const filterText = filters?.customerId ? `Customer ID (${filters.customerId})` : 'Umumiy';
         console.log(`📥 Real-time (${filterText}): ${querySnapshot.docs.length} ta hujjat keldi`);
         
         const orders: Order[] = [];
@@ -1288,14 +1290,14 @@ class DataService {
             const data = doc.data();
             
             // Customer filter bo'lsa, yana bir marta tekshirish
-            if (filters?.customerPhone && data.customerPhone !== filters.customerPhone) {
+            if (filters?.customerId && data.customerId !== filters.customerId) {
               return; // Skip this order
             }
             
             const order: Order = {
               id: doc.id,
               orderUniqueId: data.orderUniqueId,
-              customerId: data.customerId || data.customerPhone || '',
+              customerId: data.customerId || '',
               customerName: data.customerName || 'Noma\'lum',
               customerPhone: data.customerPhone || '',
               cakeId: data.cakeId || '',
