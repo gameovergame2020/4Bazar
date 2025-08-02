@@ -1,792 +1,495 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, MapPin, Phone, User, CreditCard, Truck, Clock, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
-import { dataService } from '../services/dataService';
+import { ArrowLeft, MapPin, Phone, User, CreditCard, Truck } from 'lucide-react';
 
 interface CheckoutPageProps {
-  cart: {[key: string]: number};
-  cakes: any[];
+  cartItems: { [key: string]: number };
+  products: any[];
   onBack: () => void;
-  onOrderComplete: () => void;
-  removeFromCart: (cakeId: string) => void;
 }
 
-const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrderComplete, removeFromCart }) => {
-  const { userData, isAuthenticated } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [orderPlaced, setOrderPlaced] = useState(false);
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const [showLocationPicker, setShowLocationPicker] = useState(false);
-  const [formData, setFormData] = useState({
-    customerName: userData?.name || '',
-    customerPhone: userData?.phone || '',
-    deliveryAddress: '',
-    notes: '',
-    paymentMethod: 'cash',
-    deliveryTime: 'asap',
-    coordinates: null,
+// Global Yandex Maps tiplarini e'lon qilish
+declare global {
+  interface Window {
+    ymaps: any;
+  }
+}
+
+const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, products, onBack }) => {
+  const [userInfo, setUserInfo] = useState({
+    name: '',
+    phone: '',
+    address: '',
+    paymentMethod: 'cash'
   });
 
-  const [selectedMapAddress, setSelectedMapAddress] = useState('');
-  const [selectedCoordinates, setSelectedCoordinates] = useState<{lat: number, lng: number} | null>(null);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [addressSuggestions, setAddressSuggestions] = useState<string[]>([]);
+  const [selectedCoordinates, setSelectedCoordinates] = useState<[number, number] | null>(null);
+  const [isLoadingGeocoding, setIsLoadingGeocoding] = useState(false);
+  const [geocodingError, setGeocodingError] = useState<string | null>(null);
+  const [isMapInitialized, setIsMapInitialized] = useState(false);
 
   const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const placemarkRef = useRef<any>(null);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Savat bo'sh bo'lganda asosiy sahifaga qaytish
-  React.useEffect(() => {
-    if (Object.keys(cart).length === 0 && !orderPlaced) {
-      onBack();
-    }
-  }, [cart, onBack, orderPlaced]);
-
-  // Foydalanuvchi tizimga kirmagan bo'lsa login oynasini ko'rsatish
-  React.useEffect(() => {
-    if (!isAuthenticated) {
-      setShowLoginPrompt(true);
-    } else {
-      setShowLoginPrompt(false);
-    }
-  }, [isAuthenticated]);
-
-  const cartItems = Object.entries(cart).map(([cakeId, quantity]) => {
-    const cake = cakes.find(c => c.id === cakeId);
-    if (!cake) return null;
-
-    const price = cake.discount ? cake.price * (1 - cake.discount / 100) : cake.price;
-    return {
-      cake,
-      quantity,
-      price,
-      total: price * quantity
-    };
+  // Mahsulotlar ro'yxatini yaratish
+  const cartProducts = Object.entries(cartItems).map(([productId, quantity]) => {
+    const product = products.find(p => p.id === productId);
+    return product ? { ...product, quantity } : null;
   }).filter(Boolean);
 
-  const totalAmount = cartItems.reduce((sum, item) => sum + item!.total, 0);
-  const deliveryFee = totalAmount > 100000 ? 0 : 15000; // Bepul yetkazib berish 100,000 so'mdan yuqori
-  const finalTotal = totalAmount + deliveryFee;
+  const totalPrice = cartProducts.reduce((sum, product) => sum + (product.price * product.quantity), 0);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+  // Yandex Maps skriptini yuklash
+  const loadYandexMaps = () => {
+    return new Promise<void>((resolve, reject) => {
+      // Eski skriptlarni olib tashlash
+      const existingScripts = document.querySelectorAll('script[src*="api-maps.yandex.ru"]');
+      existingScripts.forEach(script => script.remove());
+
+      if (window.ymaps) {
+        delete window.ymaps;
+      }
+
+      const script = document.createElement('script');
+      const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY || 'your_actual_yandex_maps_api_key_here';
+
+      console.log('🗺️ Yandex Maps yuklanmoqda, API kalit:', apiKey);
+
+      script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&coordorder=lonlat`;
+      script.type = 'text/javascript';
+      script.async = true;
+
+      script.onload = () => {
+        console.log('✅ Yandex Maps skriti yuklandi');
+        resolve();
+      };
+
+      script.onerror = () => {
+        console.error('❌ Yandex Maps skriptini yuklashda xato');
+        reject(new Error('Yandex Maps skriptini yuklashda xato'));
+      };
+
+      document.head.appendChild(script);
+    });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.customerName || !formData.customerPhone || !formData.deliveryAddress) {
-      alert('Iltimos, barcha majburiy maydonlarni to\'ldiring');
+  // Yandex Maps ni ishga tushirish
+  const initializeYandexMap = async () => {
+    try {
+      console.log('🚀 Yandex Maps ishga tushirilmoqda...');
+
+      if (!window.ymaps) {
+        await loadYandexMaps();
+      }
+
+      await new Promise<void>((resolve) => {
+        window.ymaps.ready(() => {
+          console.log('✅ Yandex Maps tayyor');
+          resolve();
+        });
+      });
+
+      // Xaritani yaratish
+      if (mapRef.current && !mapInstanceRef.current) {
+        mapInstanceRef.current = new window.ymaps.Map(mapRef.current, {
+          center: [69.240562, 41.311158], // Toshkent markazi
+          zoom: 12,
+          controls: ['zoomControl', 'fullscreenControl']
+        });
+
+        console.log('🗺️ Xarita yaratildi');
+        setIsMapInitialized(true);
+
+        // Xarita bosilganda koordinatalarni olish
+        mapInstanceRef.current.events.add('click', handleMapClick);
+      }
+
+    } catch (error) {
+      console.error('❌ Yandex Maps ishga tushirishda xato:', error);
+      setGeocodingError('Xaritani yuklashda xato yuz berdi');
+    }
+  };
+
+  // Xarita bosilganda
+  const handleMapClick = async (e: any) => {
+    const coords = e.get('coords');
+    console.log('📍 Xaritada bosilgan koordinata:', coords);
+
+    setSelectedCoordinates([coords[0], coords[1]]);
+
+    // Eski belgilarni olib tashlash
+    if (placemarkRef.current) {
+      mapInstanceRef.current.geoObjects.remove(placemarkRef.current);
+    }
+
+    // Yangi belgini qo'shish
+    placemarkRef.current = new window.ymaps.Placemark(coords, {
+      hintContent: 'Tanlangan manzil',
+      balloonContent: 'Yetkazib berish manzili'
+    });
+
+    mapInstanceRef.current.geoObjects.add(placemarkRef.current);
+
+    // Koordinatani manzilga aylantirish
+    await reverseGeocode(coords);
+  };
+
+  // Koordinatani manzilga aylantirish (Reverse Geocoding)
+  const reverseGeocode = async (coords: [number, number]) => {
+    try {
+      setIsLoadingGeocoding(true);
+      setGeocodingError(null);
+
+      console.log('🔄 Reverse geocoding boshlanmoqda:', coords);
+
+      const result = await window.ymaps.geocode(coords, {
+        kind: 'house',
+        results: 1
+      });
+
+      const firstGeoObject = result.geoObjects.get(0);
+      if (firstGeoObject) {
+        const address = firstGeoObject.getAddressLine();
+        console.log('✅ Manzil topildi:', address);
+        setDeliveryAddress(address);
+        setUserInfo(prev => ({ ...prev, address }));
+      } else {
+        console.warn('⚠️ Ushbu koordinata uchun manzil topilmadi');
+        setGeocodingError('Ushbu joyning manzilini aniqlab bo\'lmadi');
+      }
+
+    } catch (error) {
+      console.error('❌ Reverse geocoding xatosi:', error);
+      setGeocodingError('Manzilni aniqlashda xato yuz berdi');
+    } finally {
+      setIsLoadingGeocoding(false);
+    }
+  };
+
+  // Manzil qidirish (Forward Geocoding)
+  const searchAddress = async (query: string) => {
+    if (!query.trim() || query.length < 3) {
+      setAddressSuggestions([]);
       return;
     }
 
-    // Mavjud mahsulot miqdorini tekshirish
-    for (const item of cartItems) {
-      if (item && item.cake.productType === 'ready' && item.cake.quantity !== undefined) {
-        if (item.quantity > item.cake.quantity) {
-          alert(`"${item.cake.name}" mahsulotidan faqat ${item.cake.quantity} ta mavjud. Savatingizda ${item.quantity} ta bor.`);
-          return;
-        }
-      }
-    }
-
-    setLoading(true);
     try {
-      // Har bir tort uchun alohida buyurtma yaratamiz
-      for (const item of cartItems) {
-        if (item) {
-          // Buyurtma yaratish
-          const orderId = await dataService.createOrder({
-            customerId: userData?.id?.toString() || 'guest',
-            customerName: formData.customerName,
-            customerPhone: formData.customerPhone,
-            cakeId: item.cake.id!,
-            cakeName: item.cake.name,
-            quantity: item.quantity,
-            amount: item.quantity, // Amount qo'shildi
-            totalPrice: item.total,
-            status: 'pending',
-            deliveryAddress: formData.deliveryAddress,
-            coordinates: formData.coordinates, // Koordinatalar qo'shildi
-            notes: formData.notes
-          });
+      console.log('🔍 Manzil qidirilmoqda:', query);
 
-          // Mahsulot quantity va amount'ini yangilash
-          await dataService.processOrderQuantity(item.cake.id!, item.quantity);
-        }
+      const result = await window.ymaps.geocode(query, {
+        kind: 'house',
+        results: 5,
+        boundedBy: [[67.0, 40.0], [71.0, 42.0]] // O'zbekiston chegaralari
+      });
+
+      const suggestions: string[] = [];
+      const iterator = result.geoObjects.getIterator();
+      let geoObject = iterator.getNext();
+
+      while (geoObject) {
+        suggestions.push(geoObject.getAddressLine());
+        geoObject = iterator.getNext();
       }
 
-      setOrderPlaced(true);
-      setTimeout(() => {
-        onOrderComplete();
-      }, 2000);
+      console.log('✅ Topilgan manzillar:', suggestions);
+      setAddressSuggestions(suggestions);
+
     } catch (error) {
-      console.error('Buyurtma berish xatoligi:', error);
-      alert('Buyurtma berishda xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.');
-    } finally {
-      setLoading(false);
+      console.error('❌ Manzil qidirishda xato:', error);
+      setAddressSuggestions([]);
     }
   };
 
-    // Yandex Maps integratsiyasi
-    useEffect(() => {
-      if (!showLocationPicker) return;
+  // Manzil tanlanganda
+  const selectAddress = async (address: string) => {
+    setDeliveryAddress(address);
+    setUserInfo(prev => ({ ...prev, address }));
+    setAddressSuggestions([]);
 
-      let mapInstance = null;
-      let isDestroyed = false;
+    try {
+      console.log('📍 Tanlangan manzil uchun koordinata qidirilmoqda:', address);
 
-      const initializeYandexMap = async () => {
-        if (isDestroyed || !mapRef.current) return;
+      const result = await window.ymaps.geocode(address, {
+        kind: 'house',
+        results: 1
+      });
 
-        try {
-          // Eski xaritani tozalash
-          if (mapRef.current) {
-            mapRef.current.innerHTML = '';
+      const firstGeoObject = result.geoObjects.get(0);
+      if (firstGeoObject) {
+        const coords = firstGeoObject.geometry.getCoordinates();
+        console.log('✅ Koordinata topildi:', coords);
+
+        setSelectedCoordinates([coords[0], coords[1]]);
+
+        // Xaritani yangi koordinataga markazlashtirish
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.setCenter(coords, 15);
+
+          // Eski belgilarni olib tashlash
+          if (placemarkRef.current) {
+            mapInstanceRef.current.geoObjects.remove(placemarkRef.current);
           }
 
-          if (!window.ymaps) {
-            console.error('window.ymaps mavjud emas');
-            return;
-          }
-
-          await new Promise((resolve) => {
-            window.ymaps.ready(() => {
-              if (isDestroyed) return;
-
-              try {
-                // Xarita yaratish
-                mapInstance = new window.ymaps.Map(mapRef.current, {
-                  center: [41.290748, 69.240562], // Toshkent markazi
-                  zoom: 12,
-                  controls: ['zoomControl', 'geolocationControl'],
-                  behaviors: ['default', 'scrollZoom']
-                });
-
-                // Draggable placemark qo'shish
-                const placemark = new window.ymaps.Placemark(
-                  [41.290748, 69.240562],
-                  {
-                    hintContent: 'Manzilni tanlash uchun siljiting yoki xaritani bosing',
-                    balloonContent: 'Sizning tanlangan manzil'
-                  },
-                  {
-                    preset: 'islands#redDotIcon',
-                    draggable: true
-                  }
-                );
-
-                mapInstance.geoObjects.add(placemark);
-
-                // Geocoding funksiyasi - yangi va ishonchli
-                const getAddressFromCoords = async (coords) => {
-                  try {
-                    console.log('🗺️ Geocoding boshlandi:', coords);
-                    
-                    // Koordinatalarni to'g'ri formatda tayyorlash
-                    const lat = parseFloat(coords[0]);
-                    const lng = parseFloat(coords[1]);
-                    
-                    if (isNaN(lat) || isNaN(lng)) {
-                      throw new Error('Noto\'g\'ri koordinatalar');
-                    }
-
-                    // Geocoder so'rovi
-                    const geocodeResult = await window.ymaps.geocode([lat, lng], {
-                      kind: 'house',
-                      results: 1,
-                      strictBounds: false
-                    });
-
-                    console.log('🔍 Geocoding natijasi:', geocodeResult);
-
-                    const geoObject = geocodeResult.geoObjects.get(0);
-                    let address = '';
-
-                    if (geoObject) {
-                      // Manzil matnini olish
-                      address = geoObject.getAddressLine();
-                      
-                      // Agar manzil bo'sh bo'lsa, properties dan olishga harakat qilamiz
-                      if (!address || address.trim() === '') {
-                        const properties = geoObject.properties.getAll();
-                        address = properties.text || properties.name || properties.description || '';
-                      }
-
-                      // Manzilni tozalash va formatlash
-                      if (address && address.trim()) {
-                        // O'zbekistonga mos formatga o'zgartirish
-                        address = address
-                          .replace(/Узбекистан,?\s*/gi, 'O\'zbekiston, ')
-                          .replace(/Ташкент,?\s*/gi, 'Toshkent, ')
-                          .replace(/улица/gi, 'ko\'chasi')
-                          .replace(/дом/gi, 'uy')
-                          .replace(/,\s*,/g, ',')
-                          .trim();
-                      }
-                    }
-
-                    // Agar manzil olinmasa, koordinatalarni ko'rsatamiz
-                    if (!address || address.trim() === '') {
-                      address = `📍 Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
-                      console.log('⚠️ Manzil topilmadi, koordinatalar ishlatilmoqda');
-                    } else {
-                      console.log('✅ Manzil topildi:', address);
-                    }
-
-                    // State larni yangilash
-                    setSelectedMapAddress(address);
-                    setSelectedCoordinates({ lat, lng });
-
-                    // Placemark ni yangilash
-                    if (placemark && !isDestroyed) {
-                      placemark.properties.set('balloonContent', `📍 ${address}`);
-                      placemark.properties.set('hintContent', address);
-                    }
-
-                    return address;
-
-                  } catch (error) {
-                    console.error('❌ Geocoding xatosi:', error);
-                    
-                    // Xato holatida koordinatalarni ko'rsatish
-                    const fallbackAddress = `📍 Lat: ${coords[0]}, Lng: ${coords[1]}`;
-                    setSelectedMapAddress(fallbackAddress);
-                    setSelectedCoordinates({ lat: coords[0], lng: coords[1] });
-                    
-                    if (placemark && !isDestroyed) {
-                      placemark.properties.set('balloonContent', `📍 ${fallbackAddress}`);
-                    }
-                    
-                    return fallbackAddress;
-                  }
-                };
-
-                // Event listener lar
-                if (!isDestroyed) {
-                  // Placemark harakatlanganda
-                  placemark.events.add('dragend', async () => {
-                    if (isDestroyed) return;
-                    const coords = placemark.geometry.getCoordinates();
-                    await getAddressFromCoords(coords);
-                  });
-
-                  // Xaritani bosish orqali manzil tanlash
-                  mapInstance.events.add('click', async (e) => {
-                    if (isDestroyed) return;
-                    const coords = e.get('coords');
-                    placemark.geometry.setCoordinates(coords);
-                    await getAddressFromCoords(coords);
-                  });
-
-                  // Geolocation tugmasi
-                  const geoControl = mapInstance.controls.get('geolocationControl');
-                  if (geoControl) {
-                    geoControl.events.add('locationchange', async (e) => {
-                      if (isDestroyed) return;
-                      const position = e.get('position');
-                      if (position && position.coords) {
-                        const coords = [position.coords[0], position.coords[1]];
-                        placemark.geometry.setCoordinates(coords);
-                        await getAddressFromCoords(coords);
-                        mapInstance.setCenter(coords, 15);
-                      }
-                    });
-                  }
-                }
-
-                resolve();
-              } catch (error) {
-                console.error('❌ Xarita yaratishda xato:', error);
-                alert('Xarita ishga tushmadi. Manzilni qo\'lda kiriting.');
-                resolve();
-              }
-            });
+          // Yangi belgini qo'shish
+          placemarkRef.current = new window.ymaps.Placemark(coords, {
+            hintContent: 'Tanlangan manzil',
+            balloonContent: address
           });
 
-        } catch (error) {
-          console.error('❌ Xarita ishga tushirishda xato:', error);
-          if (!isDestroyed) {
-            alert('Xarita xizmati ishlamayapti. Manzilni qo\'lda kiriting.');
-          }
+          mapInstanceRef.current.geoObjects.add(placemarkRef.current);
         }
-      };
+      }
 
-      // Yandex Maps API ni yuklash
-      const loadYandexMaps = async () => {
-        if (window.ymaps) {
-          await initializeYandexMap();
-          return;
-        }
+    } catch (error) {
+      console.error('❌ Manzil uchun koordinata topishda xato:', error);
+    }
+  };
 
-        try {
-          // Eski scriptlarni olib tashlash
-          const existingScripts = document.querySelectorAll('script[src*="api-maps.yandex.ru"]');
-          existingScripts.forEach(script => {
-            if (script.parentNode) {
-              script.parentNode.removeChild(script);
-            }
-          });
+  // Manzil input o'zgarganda
+  const handleAddressChange = (value: string) => {
+    setDeliveryAddress(value);
+    setUserInfo(prev => ({ ...prev, address: value }));
 
-          // Yangi API kalit
-          const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY || 'your_new_api_key_here';
-          
-          if (!apiKey || apiKey === 'your_new_api_key_here') {
-            throw new Error('API kalit mavjud emas');
-          }
+    // Debounce qidirish
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
 
-          console.log('🚀 Yandex Maps yuklanmoqda...');
+    debounceTimeoutRef.current = setTimeout(() => {
+      if (isMapInitialized) {
+        searchAddress(value);
+      }
+    }, 500);
+  };
 
-          const script = document.createElement('script');
-          script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&load=geocode,geoObject,map,placemark`;
-          script.async = true;
+  // Component yuklanganida
+  useEffect(() => {
+    initializeYandexMap();
 
-          const loadPromise = new Promise((resolve, reject) => {
-            script.onload = () => {
-              console.log('✅ Yandex Maps yuklandi');
-              resolve(undefined);
-            };
-            script.onerror = (error) => {
-              console.error('❌ Yandex Maps yuklanmadi:', error);
-              reject(error);
-            };
-          });
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
-          document.head.appendChild(script);
-          await loadPromise;
+  // Buyurtmani yuborish
+  const handleSubmitOrder = () => {
+    if (!userInfo.name || !userInfo.phone || !deliveryAddress) {
+      alert('Iltimos, barcha maydonlarni to\'ldiring');
+      return;
+    }
 
-          if (!isDestroyed) {
-            await initializeYandexMap();
-          }
+    const orderData = {
+      userInfo,
+      deliveryAddress,
+      coordinates: selectedCoordinates,
+      cartProducts,
+      totalPrice,
+      orderDate: new Date().toISOString()
+    };
 
-        } catch (error) {
-          console.error('❌ Yandex Maps yuklashda xato:', error);
-          if (!isDestroyed) {
-            alert('Xarita xizmati mavjud emas. Manzilni qo\'lda kiriting.');
-            setShowLocationPicker(false);
-          }
-        }
-      };
-
-      loadYandexMaps();
-
-      // Cleanup funksiyasi
-      return () => {
-        isDestroyed = true;
-        if (mapInstance) {
-          try {
-            mapInstance.destroy();
-          } catch (error) {
-            console.log('Xarita tozalashda xato:', error);
-          }
-        }
-        setSelectedMapAddress('');
-        setSelectedCoordinates(null);
-      };
-    }, [showLocationPicker]);
-
-  // Login talab qilish modali
-  if (showLoginPrompt) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-2xl p-8 text-center shadow-lg">
-          <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <User size={32} className="text-orange-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Buyurtma berish uchun tizimga kiring</h2>
-          <p className="text-gray-600 mb-6">
-            Buyurtma berish uchun avval ro'yhatdan o'tishingiz yoki tizimga kirishingiz kerak
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              onClick={() => {
-                // Login sahifasiga o'tish logikasi
-                window.location.href = '/login';
-              }}
-              className="bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
-            >
-              Tizimga kirish
-            </button>
-            <button
-              onClick={onBack}
-              className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
-            >
-              Orqaga qaytish
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (orderPlaced) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-2xl p-8 text-center shadow-lg">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle size={32} className="text-green-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Buyurtma muvaffaqiyatli qabul qilindi!</h2>
-          <p className="text-gray-600 mb-4">
-            Buyurtmangiz raqami: #{Date.now().toString().slice(-6)}
-          </p>
-          <p className="text-sm text-gray-500">
-            Tez orada operatorlarimiz siz bilan bog'lanishadi
-          </p>
-        </div>
-      </div>
-    );
-  }
+    console.log('🛒 Buyurtma yuborilmoqda:', orderData);
+    alert('Buyurtma muvaffaqiyatli yuborildi!');
+    onBack();
+  };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
-      {/* Header */}
-      <div className="flex items-center mb-6">
-        <button
-          onClick={onBack}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors mr-3"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <h1 className="text-2xl font-bold text-gray-900">Buyurtma berish</h1>
-      </div>
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={onBack}
+            className="p-2 rounded-lg bg-white shadow-sm border hover:bg-gray-50"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-2xl font-bold">Buyurtmani rasmiylashtirish</h1>
+        </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Order Form */}
-        <div className="lg:col-span-2">
-          <form onSubmit={handleSubmit} className="space-y-6" id="checkout-form">
-            {/* Contact Information */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <User size={20} className="mr-2" />
-                Aloqa ma'lumotlari
-              </h3>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    To'liq ism *
-                  </label>
-                  <input
-                    type="text"
-                    name="customerName"
-                    value={formData.customerName}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="Ismingizni kiriting"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Telefon raqam *
-                  </label>
-                  <input
-                    type="tel"
-                    name="customerPhone"
-                    value={formData.customerPhone}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="+998 90 123 45 67"
-                  />
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Foydalanuvchi ma'lumotlari */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <User className="w-5 h-5" />
+              Shaxsiy ma'lumotlar
+            </h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ism va familiya
+                </label>
+                <input
+                  type="text"
+                  value={userInfo.name}
+                  onChange={(e) => setUserInfo(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  placeholder="Ismingizni kiriting"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Telefon raqam
+                </label>
+                <input
+                  type="tel"
+                  value={userInfo.phone}
+                  onChange={(e) => setUserInfo(prev => ({ ...prev, phone: e.target.value }))}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  placeholder="+998 90 123 45 67"
+                />
               </div>
             </div>
 
-            {/* Delivery Information */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <MapPin size={20} className="mr-2" />
-                Yetkazib berish ma'lumotlari
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Yetkazib berish manzili *
-                  </label>
-                  <div className="relative">
-                    <textarea
-                      name="deliveryAddress"
-                      value={formData.deliveryAddress || ''}
-                      onChange={handleInputChange}
-                      required
-                      rows={3}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
-                        formData.coordinates ? 'border-green-300 bg-green-50' : 'border-gray-300'
-                      }`}
-                      placeholder="Manzilni kiriting yoki xaritadan tanlash uchun tugmani bosing"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowLocationPicker(true)}
-                      className="absolute top-2 right-2 bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition-colors"
-                      title="Xaritadan tanlash"
-                    >
-                      <MapPin size={16} />
-                    </button>
-                    {formData.coordinates && (
-                      <div className="absolute bottom-1 left-2 text-xs text-green-600">
-                        ✓ Xaritadan tanlandi
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Yetkazib berish vaqti
-                  </label>
-                  <select
-                    name="deliveryTime"
-                    value={formData.deliveryTime}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  >
-                    <option value="asap">Imkon qadar tez</option>
-                    <option value="today">Bugun</option>
-                    <option value="tomorrow">Ertaga</option>
-                    <option value="custom">Boshqa vaqt</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Payment Method */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <CreditCard size={20} className="mr-2" />
+            {/* To'lov usuli */}
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <CreditCard className="w-5 h-5" />
                 To'lov usuli
               </h3>
-              <div className="space-y-3">
-                <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-3">
                   <input
                     type="radio"
                     name="paymentMethod"
                     value="cash"
-                    checked={formData.paymentMethod === 'cash'}
-                    onChange={handleInputChange}
-                    className="mr-3"
+                    checked={userInfo.paymentMethod === 'cash'}
+                    onChange={(e) => setUserInfo(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                    className="text-orange-500"
                   />
-                  <span className="text-gray-900">Naqd pul (yetkazib berishda)</span>
+                  <span>Naqd pul</span>
                 </label>
-                <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+
+                <label className="flex items-center gap-3">
                   <input
                     type="radio"
                     name="paymentMethod"
                     value="card"
-                    checked={formData.paymentMethod === 'card'}
-                    onChange={handleInputChange}
-                    className="mr-3"
+                    checked={userInfo.paymentMethod === 'card'}
+                    onChange={(e) => setUserInfo(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                    className="text-orange-500"
                   />
-                  <span className="text-gray-900">Plastik karta (yetkazib berishda)</span>
+                  <span>Bank kartasi</span>
                 </label>
               </div>
             </div>
-
-            {/* Notes */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Qo'shimcha eslatma
-              </h3>
-              <textarea
-                name="notes"
-                value={formData.notes}
-                onChange={handleInputChange}
-                rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                placeholder="Maxsus talablar yoki eslatmalar (ixtiyoriy)"
-              />
-            </div>
-          </form>
-        </div>
-
-        {/* Order Summary */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 sticky top-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Buyurtma xulosasi</h3>
-
-            <div className="space-y-3 mb-4">
-              {cartItems.map((item) => item && (
-                <div key={item.cake.id} className="flex justify-between items-start group">
-                  <div className="flex-1">
-                    <h4 className="text-sm font-medium text-gray-900">{item.cake.name}</h4>
-                     <p className="text-xs text-gray-500 mb-2">
-                  {item.cake.productType === 'baked' 
-                    ? item.cake.available 
-                      ? item.cake.quantity !== undefined 
-                        ? `Qoldi: ${item.cake.quantity} ta`
-                        : 'Miqdor: cheklanmagan'
-                      : `Buyurtma qilingan: ${item.cake.amount || 0} ta` 
-                    : item.cake.quantity !== undefined 
-                      ? `Qoldi: ${item.cake.quantity} ta`
-                      : 'Miqdor: cheklanmagan'
-                  }</p>
-                    <p className="text-xs text-gray-500">
-                      {item.quantity} x {item.price.toLocaleString('uz-UZ')} so'm
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium text-gray-900">
-                      {item.total.toLocaleString('uz-UZ')} so'm
-                    </span>
-                    <button
-                        onClick={() => removeFromCart(item.cake.id!)}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors p-2 rounded-lg cursor-pointer"
-                        title="Savatdan olib tashlash"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="border-t pt-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Mahsulotlar:</span>
-                <span className="text-gray-900">{totalAmount.toLocaleString('uz-UZ')} so'm</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Yetkazib berish:</span>
-                <span className="text-gray-900">
-                  {deliveryFee === 0 ? 'Bepul' : `${deliveryFee.toLocaleString('uz-UZ')} so'm`}
-                </span>
-              </div>
-              {deliveryFee === 0 && (
-                <p className="text-xs text-green-600">100,000 so'mdan yuqori buyurtmalar uchun bepul yetkazib berish</p>
-              )}
-              <div className="border-t pt-2">
-                <div className="flex justify-between font-semibold text-lg">
-                  <span className="text-gray-900">Jami:</span>
-                  <span className="text-gray-900">{finalTotal.toLocaleString('uz-UZ')} so'm</span>
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              form="checkout-form"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6"
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  Buyurtma berilmoqda...
-                </div>
-              ) : (
-                'Buyurtma berish'
-              )}
-            </button>
-
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-              <div className="flex items-start">
-                <AlertCircle size={16} className="text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-blue-700">
-                  Buyurtmangiz qabul qilingandan so'ng, operatorlarimiz siz bilan bog'lanib, 
-                  buyurtma tafsilotlarini tasdiqlaydi.
-                </p>
-              </div>
-            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Location Picker Modal */}
-      {showLocationPicker && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Yetkazib berish manzilini tanlang</h3>
-              <button
-                onClick={() => {
-                  setShowLocationPicker(false);
-                  setSelectedMapAddress('');
-                  setSelectedCoordinates(null);
-                }}
-                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
-              >
-                ✕
-              </button>
-            </div>
+          {/* Yetkazib berish manzili */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <MapPin className="w-5 h-5" />
+              Yetkazib berish manzili
+            </h2>
 
             <div className="space-y-4">
-              <div className="bg-blue-50 p-3 rounded-lg">
-                <p className="text-sm text-blue-700">
-                  📍 Xaritada nuqtani siljiting yoki kerakli joyni bosing. Sizning joriy joylashuvingiz avtomatik aniqlanadi.
-                </p>
-              </div>
-
-              <div className="relative w-full h-96 rounded-lg border border-gray-300">
-                <div 
-                  ref={mapRef}
-                  className="w-full h-full rounded-lg"
-                  style={{ minHeight: '400px' }}
+              <div className="relative">
+                <input
+                  type="text"
+                  value={deliveryAddress}
+                  onChange={(e) => handleAddressChange(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  placeholder="Manzilni kiriting yoki xaritadan tanlang"
                 />
 
-                {/* Loading overlay - faqat ymaps yuklanmagan vaqtda */}
-                {!window.ymaps && (
-                  <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center z-20">
-                    <div className="text-center">
-                      <MapPin size={48} className="text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-500">Xarita yuklanmoqda...</p>
-                    </div>
+                {isLoadingGeocoding && (
+                  <div className="absolute right-3 top-3">
+                    <div className="animate-spin h-4 w-4 border-2 border-orange-500 border-t-transparent rounded-full"></div>
+                  </div>
+                )}
+
+                {/* Manzil takliflari */}
+                {addressSuggestions.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    {addressSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => selectAddress(suggestion)}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
 
-              {selectedMapAddress && (
-                <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
-                  <p className="text-sm font-medium text-green-700 mb-1">✓ Tanlangan manzil:</p>
-                  <p className="text-sm text-green-600">{selectedMapAddress}</p>
-                  {selectedCoordinates && (
-                    <p className="text-xs text-green-500 mt-1">
-                      📍 {selectedCoordinates.lat.toFixed(6)}, {selectedCoordinates.lng.toFixed(6)}
-                    </p>
-                  )}
-                </div>
+              {geocodingError && (
+                <p className="text-sm text-red-600">{geocodingError}</p>
               )}
 
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => {
-                    setShowLocationPicker(false);
-                    setSelectedMapAddress('');
-                    setSelectedCoordinates(null);
-                  }}
-                  className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Bekor qilish
-                </button>
-                <button
-                  onClick={() => {
-                    if (selectedMapAddress && selectedMapAddress.trim() && selectedCoordinates) {
-                      setFormData(prev => ({
-                        ...prev,
-                        deliveryAddress: selectedMapAddress,
-                        coordinates: selectedCoordinates
-                      }));
-                      setShowLocationPicker(false);
-                      setSelectedMapAddress('');
-                      setSelectedCoordinates(null);
-                      console.log('Manzil formaga qo\'shildi:', selectedMapAddress);
-                      console.log('Koordinatalar formaga qo\'shildi:', selectedCoordinates);
-                    } else {
-                      alert('Iltimos, xaritadan manzilni tanlang');
-                    }
-                  }}
-                  className={`flex-1 py-2 rounded-lg transition-colors ${
-                    selectedMapAddress && selectedMapAddress.trim() && selectedCoordinates
-                      ? 'bg-orange-500 text-white hover:bg-orange-600' 
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-                  disabled={!selectedMapAddress || !selectedMapAddress.trim() || !selectedCoordinates}
-                >
-                  Tanlash
-                </button>
-              </div>
+              {selectedCoordinates && (
+                <p className="text-sm text-green-600">
+                  ✅ Manzil tanlandi: {selectedCoordinates[1].toFixed(6)}, {selectedCoordinates[0].toFixed(6)}
+                </p>
+              )}
+            </div>
+
+            {/* Xarita */}
+            <div className="mt-4">
+              <div 
+                ref={mapRef}
+                className="w-full h-64 rounded-lg border border-gray-200"
+                style={{ minHeight: '256px' }}
+              />
+              {!isMapInitialized && (
+                <div className="flex items-center justify-center h-64 bg-gray-100 rounded-lg">
+                  <div className="text-center">
+                    <div className="animate-spin h-8 w-8 border-2 border-orange-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                    <p className="text-gray-600">Xarita yuklanmoqda...</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
-      )}
+
+        {/* Buyurtma xulasasi */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border mt-6">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Truck className="w-5 h-5" />
+            Buyurtma xulasasi
+          </h2>
+
+          <div className="space-y-3">
+            {cartProducts.map((product) => (
+              <div key={product.id} className="flex justify-between items-center py-2 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-12 h-12 object-cover rounded-lg"
+                  />
+                  <div>
+                    <p className="font-medium">{product.name}</p>
+                    <p className="text-sm text-gray-600">{product.quantity} dona</p>
+                  </div>
+                </div>
+                <p className="font-semibold">{(product.price * product.quantity).toLocaleString()} so'm</p>
+              </div>
+            ))}
+
+            <div className="flex justify-between items-center pt-4 text-xl font-bold">
+              <span>Jami:</span>
+              <span className="text-orange-600">{totalPrice.toLocaleString()} so'm</span>
+            </div>
+          </div>
+
+          <button
+            onClick={handleSubmitOrder}
+            className="w-full mt-6 bg-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+          >
+            Buyurtmani rasmiylashtirish
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
