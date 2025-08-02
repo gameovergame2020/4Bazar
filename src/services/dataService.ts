@@ -246,33 +246,34 @@ class DataService {
 
   
 
-  // Foydalanuvchi buyurtmalarini customer ID bo'yicha olish (faqat ID bo'yicha)
+  // Foydalanuvchi buyurtmalarini customer ID bo'yicha olish
   async getOrdersByCustomerId(customerId: string): Promise<Order[]> {
     try {
-      if (!customerId || customerId.trim() === '') {
-        console.log('⚠️ Customer ID bo\'sh yoki mavjud emas');
+      // Input validation
+      if (!customerId || typeof customerId !== 'string' || customerId.trim() === '') {
+        console.log('⚠️ Customer ID noto\'g\'ri yoki bo\'sh:', customerId);
         return [];
       }
 
       const cleanCustomerId = customerId.trim();
-      console.log('🔍 Customer ID bo\'yicha qidirilmoqda:', cleanCustomerId);
+      console.log('🔍 Customer buyurtmalarini qidirish:', cleanCustomerId);
 
-      // Faqat Customer ID bo'yicha to'g'ridan-to'g'ri Firebase query
+      // Firebase query - customer ID bo'yicha filter
       const customerIdQuery = query(
         collection(db, 'orders'),
         where('customerId', '==', cleanCustomerId),
         orderBy('createdAt', 'desc'),
-        limit(500) // Barcha buyurtmalarni yuklash uchun katta limit
+        limit(1000) // Yetarli limit
       );
 
       const querySnapshot = await getDocs(customerIdQuery);
 
       if (querySnapshot.empty) {
-        console.log('⚠️ Ushbu Customer ID bo\'yicha buyurtma topilmadi:', cleanCustomerId);
+        console.log('📭 Customer buyurtmalari topilmadi:', cleanCustomerId);
         return [];
       }
 
-      console.log(`📥 Customer ID bo'yicha ${querySnapshot.docs.length} ta buyurtma topildi`);
+      console.log(`📥 ${querySnapshot.docs.length} ta hujjat topildi`);
 
       const orders: Order[] = [];
 
@@ -280,29 +281,35 @@ class DataService {
         try {
           const data = doc.data();
           
-          // Customer ID ni qayta tekshirish (double check)
+          // Strict customer ID checking
           if (data.customerId !== cleanCustomerId) {
-            console.warn('⚠️ Customer ID mos kelmadi:', data.customerId, 'vs', cleanCustomerId);
+            console.warn('⚠️ Customer ID noto\'g\'ri:', data.customerId, '!=', cleanCustomerId);
+            return;
+          }
+
+          // Data validation va parsing
+          if (!data.cakeId || !data.cakeName) {
+            console.warn('⚠️ Noto\'g\'ri buyurtma ma\'lumotlari:', doc.id);
             return;
           }
           
           const order: Order = {
             id: doc.id,
-            orderUniqueId: data.orderUniqueId,
+            orderUniqueId: data.orderUniqueId || doc.id,
             customerId: data.customerId,
-            customerName: data.customerName || 'Noma\'lum',
+            customerName: data.customerName || 'Noma\'lum mijoz',
             customerPhone: data.customerPhone || '',
-            cakeId: data.cakeId || '',
-            cakeName: data.cakeName || '',
-            quantity: data.quantity || 1,
+            cakeId: data.cakeId,
+            cakeName: data.cakeName,
+            quantity: Math.max(1, data.quantity || 1),
             amount: data.amount,
-            totalPrice: data.totalPrice || 0,
+            totalPrice: Math.max(0, data.totalPrice || 0),
             status: data.status || 'pending',
             deliveryAddress: data.deliveryAddress || '',
             coordinates: data.coordinates,
-            paymentMethod: data.paymentMethod,
+            paymentMethod: data.paymentMethod || 'cash',
             paymentType: data.paymentType,
-            notes: data.notes,
+            notes: data.notes || '',
             createdAt: data.createdAt?.toDate() || new Date(),
             updatedAt: data.updatedAt?.toDate() || new Date(),
             deliveryTime: data.deliveryTime?.toDate()
@@ -310,15 +317,29 @@ class DataService {
 
           orders.push(order);
         } catch (parseError) {
-          console.warn('⚠️ Buyurtma parse qilishda xato:', doc.id, parseError);
+          console.error('❌ Buyurtma parse xatosi:', doc.id, parseError);
         }
       });
 
-      console.log(`✅ Customer ID (${cleanCustomerId}) bo'yicha ${orders.length} ta buyurtma qayta ishlandi`);
+      console.log(`✅ Customer (${cleanCustomerId}): ${orders.length} ta buyurtma yuklandi`);
+      
+      // Verify all orders belong to correct customer
+      const invalidOrders = orders.filter(order => order.customerId !== cleanCustomerId);
+      if (invalidOrders.length > 0) {
+        console.error('❌ Noto\'g\'ri customer ID li buyurtmalar topildi:', invalidOrders.length);
+      }
+
       return orders;
       
     } catch (error) {
-      console.error('❌ Customer ID bo\'yicha buyurtmalarni yuklashda xato:', error);
+      console.error('❌ Customer buyurtmalarini yuklashda xato:', error);
+      
+      // Detailed error logging
+      if (error instanceof Error) {
+        console.error('❌ Xato detallari:', error.message);
+        console.error('❌ Stack trace:', error.stack);
+      }
+      
       return [];
     }
   }

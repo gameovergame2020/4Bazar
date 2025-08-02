@@ -89,30 +89,38 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
   // Real-time subscription
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.log('⚠️ User ID mavjud emas, subscription o\'rnatilmadi');
+      setUserOrders([]);
+      return;
+    }
 
-    console.log('🔄 Real-time subscription boshlanmoqda...');
+    console.log('🔄 Real-time subscription boshlanmoqda... Customer ID:', user.id);
     
     // Dastlab ma'lumotlarni yuklash
     loadUserOrders(true);
 
-    // Real-time subscription o'rnatish
+    // Real-time subscription o'rnatish (faqat customer ID bo'yicha)
     const unsubscribe = dataService.subscribeToOrders(
       (realtimeOrders) => {
         try {
-          console.log('📡 Real-time yangilanish:', realtimeOrders.length, 'ta umumiy buyurtma');
+          console.log('📡 Real-time yangilanish:', realtimeOrders.length, 'ta buyurtma keldi');
 
-          // Faqat joriy foydalanuvchi buyurtmalarini filtirlash
-          const userSpecificOrders = realtimeOrders.filter(order => 
-            order.customerId === user.id
-          );
+          // Double check - faqat joriy foydalanuvchi buyurtmalari
+          const userSpecificOrders = realtimeOrders.filter(order => {
+            const match = order.customerId === user.id;
+            if (!match) {
+              console.log('⚠️ Customer ID mos kelmadi:', order.customerId, 'vs', user.id);
+            }
+            return match;
+          });
 
-          // Sanaga qarab saralash
+          // Sanaga qarab saralash (eng yangi birinchi)
           const sortedOrders = userSpecificOrders.sort((a, b) => 
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
 
-          console.log('🔄 Foydalanuvchi buyurtmalari yangilandi:', sortedOrders.length, 'ta');
+          console.log('✅ Foydalanuvchi buyurtmalari:', sortedOrders.length, 'ta topildi');
           
           setUserOrders(sortedOrders);
           setLastUpdated(new Date());
@@ -120,14 +128,16 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
         } catch (error) {
           console.error('❌ Real-time ma\'lumotlarni qayta ishlashda xato:', error);
+          setOrdersError('Ma\'lumotlarni yangilashda xatolik');
         }
       },
-      { customerId: user.id } // Filter by customer ID
+      { customerId: user.id } // Bu muhim - faqat customer ID bo'yicha filter
     );
 
     // Cleanup function
     return () => {
       if (unsubscribe && typeof unsubscribe === 'function') {
+        console.log('🧹 Real-time subscription tozalanmoqda...');
         unsubscribe();
       }
     };
