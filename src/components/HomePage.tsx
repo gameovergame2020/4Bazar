@@ -1,5 +1,3 @@
-The code has been modified to remove the duplicate React import and the ProfilePage component from the HomePage file, addressing the reported error.
-```typescript
 import React, { useState, useEffect } from 'react';
 import { Search, Star, Heart, Clock, ChefHat, Gift, Cake, Cookie, ShoppingCart, Plus, Minus, ShoppingBasket } from 'lucide-react';
 import { dataService, Cake as CakeType } from '../services/dataService';
