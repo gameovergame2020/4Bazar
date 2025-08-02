@@ -37,8 +37,8 @@ const CustomerDashboard = () => {
         }).map(cake => {
           // Baker mahsulotlari uchun buyurtma qilingan miqdorni hisoblash
           if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
-            // Faqat available: false va quantity undefined (haqiqiy buyurtma uchun) holatidagi mahsulotlar uchun buyurtma miqdorini ko'rsatish
-            if (!cake.available && cake.quantity === undefined) {
+            // Faqat available: false (buyurtma uchun) holatidagi mahsulotlar uchun buyurtma miqdorini ko'rsatish
+            if (!cake.available) {
               const orderedQuantity = allOrders
                 .filter(order => 
                   order.cakeId === cake.id && 
@@ -51,7 +51,7 @@ const CustomerDashboard = () => {
                 quantity: orderedQuantity
               };
             }
-            // Available: true (hozir mavjud) yoki quantity: 0 (sotilgan) holatidagi mahsulotlar uchun real quantity ni saqlab qolish
+            // Available: true (hozir mavjud) holatidagi mahsulotlar uchun real quantity ni saqlab qolish
             return cake;
           }
 
@@ -116,8 +116,8 @@ const CustomerDashboard = () => {
       }).map(cake => {
           // Baker mahsulotlari uchun buyurtma qilingan miqdorni hisoblash
           if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
-            // Faqat available: false va quantity undefined (haqiqiy buyurtma uchun) holatidagi mahsulotlar uchun buyurtma miqdorini ko'rsatish
-            if (!cake.available && cake.quantity === undefined) {
+            // Faqat available: false (buyurtma uchun) holatidagi mahsulotlar uchun buyurtma miqdorini ko'rsatish
+            if (!cake.available) {
               const orderedQuantity = allOrders
                 .filter(order => 
                   order.cakeId === cake.id && 
@@ -130,7 +130,7 @@ const CustomerDashboard = () => {
                 quantity: orderedQuantity
               };
             }
-            // Available: true (hozir mavjud) yoki quantity: 0 (sotilgan) holatidagi mahsulotlar uchun real quantity ni saqlab qolish
+            // Available: true (hozir mavjud) holatidagi mahsulotlar uchun real quantity ni saqlab qolish
             return cake;
           }
 
