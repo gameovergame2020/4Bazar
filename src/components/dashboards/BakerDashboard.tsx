@@ -736,15 +736,15 @@ const BakerDashboard = () => {
                   <div className="text-sm">
                     <span className="text-gray-600">Qoldi: </span>
                     <span className={`font-medium ${
-                      cake.amount !== undefined && cake.amount <= 0 
+                      cake.quantity !== undefined && cake.quantity <= 0 
                         ? 'text-red-600' 
-                        : cake.amount !== undefined && cake.amount <= 5 
+                        : cake.quantity !== undefined && cake.quantity <= 5 
                           ? 'text-orange-600' 
                           : 'text-green-600'
                     }`}>
-                      {cake.amount !== undefined ? `${cake.amount} ta` : 'Cheksiz'}
+                      {cake.quantity !== undefined ? `${cake.quantity} ta` : 'Cheksiz'}
                     </span>
-                    {cake.amount !== undefined && cake.amount <= 0 && (
+                    {cake.quantity !== undefined && cake.quantity <= 0 && (
                       <span className="block text-xs text-red-600 mt-1">
                         Avtomatik "Buyurtma uchun" ga o'tkazildi
                       </span>
