@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   User, 
   Settings,
@@ -76,6 +76,83 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     },
   ];
 
+  // Foydalanuvchi buyurtmalarini yuklash
+  const loadUserOrders = useCallback(async () => {
+    if (!user?.id && !user?.phone) {
+      console.log('⚠️ User ID va telefon raqam mavjud emas, buyurtmalar yuklanmaydi');
+      setUserOrders([]);
+      setIsLoadingOrders(false);
+      return;
+    }
+
+    try {
+      setIsLoadingOrders(true);
+      console.log('📦 Foydalanuvchi buyurtmalari yuklanmoqda...');
+      console.log('User ID:', user?.id);
+      console.log('User Phone:', user?.phone);
+
+      let allOrders: any[] = [];
+
+      // 1. Avval Customer ID bo'yicha qidirish
+      if (user?.id) {
+        try {
+          console.log('🔍 Customer ID bo\'yicha qidirilmoqda:', user.id);
+          const ordersByCustomerId = await dataService.getOrdersByCustomerId(user.id);
+          console.log('📥 Customer ID bo\'yicha topildi:', ordersByCustomerId.length, 'ta');
+          allOrders = [...allOrders, ...ordersByCustomerId];
+        } catch (error) {
+          console.warn('⚠️ Customer ID bo\'yicha qidirishda xato:', error);
+        }
+      }
+
+      // 2. Agar Customer ID bo'yicha buyurtma topilmasa, telefon raqam bo'yicha qidirish
+      if (allOrders.length === 0 && user?.phone) {
+        try {
+          console.log('📱 Telefon raqam bo\'yicha fallback qidiruv:', user.phone);
+          const ordersByPhone = await dataService.getOrdersByCustomerPhone(user.phone);
+          console.log('📥 Telefon bo\'yicha topildi:', ordersByPhone.length, 'ta');
+          allOrders = [...allOrders, ...ordersByPhone];
+        } catch (error) {
+          console.warn('⚠️ Telefon bo\'yicha qidirishda xato:', error);
+        }
+      }
+
+      // 3. Duplikatlarni olib tashlash (agar ikkalasi ham natija bersa)
+      const uniqueOrders = allOrders.filter((order, index, self) => 
+        index === self.findIndex(o => o.id === order.id)
+      );
+
+      // 4. Sanaga qarab saralash
+      const sortedOrders = uniqueOrders.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      console.log('✅ Jami topilgan buyurtmalar:', sortedOrders.length, 'ta');
+      setUserOrders(sortedOrders);
+
+      // 5. Real-time yangilanish uchun subscription o'rnatish
+      if (user?.id) {
+        console.log('🔄 Real-time subscription o\'rnatilmoqda...');
+        const unsubscribe = dataService.subscribeToOrders(
+          (realtimeOrders) => {
+            console.log('📡 Real-time yangilanish:', realtimeOrders.length, 'ta buyurtma');
+            setUserOrders(realtimeOrders);
+          },
+          { customerId: user.id }
+        );
+
+        // Cleanup function qaytarish
+        return unsubscribe;
+      }
+
+    } catch (error) {
+      console.error('❌ Buyurtmalarni yuklashda umumiy xato:', error);
+      setUserOrders([]);
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  }, [user?.id, user?.phone]);
+
   // Firebase dan foydalanuvchi buyurtmalarini yuklash (faqat Customer ID bo'yicha)
   useEffect(() => {
     let unsubscribe: (() => void) | null = null;
@@ -131,12 +208,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     const setupRealTimeSubscription = () => {
       try {
         console.log('🔄 Real-time subscription boshlanmoqda... Customer ID:', user.id);
-        
+
         if (!user.id) {
           console.log('⚠️ Customer ID yo\'q, real-time subscription o\'rnatilmadi');
           return;
         }
-        
+
         // Faqat customer ID bo'yicha subscription
         unsubscribe = dataService.subscribeToOrders((allOrders) => {
           if (!isActive) return;
@@ -150,7 +227,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
             const sortedOrders = userOrders.sort((a, b) => 
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
             );
-            
+
             setUserOrders(sortedOrders);
             console.log('🔄 Real-time yangilandi:', sortedOrders.length, 'ta buyurtma');
 
@@ -417,14 +494,26 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                     <div className="animate-spin h-8 w-8 border-2 border-orange-500 border-t-transparent rounded-full mb-3"></div>
                     <span className="text-gray-300 text-sm mb-2">Buyurtmalar yuklanmoqda...</span>
                     <span className="text-gray-500 text-xs">Real-time yangilanish</span>
+                    {user?.id && (
+                      <span className="text-gray-600 text-xs mt-1">ID: {user.id.slice(-8)}</span>
+                    )}
+                    {user?.phone && (
+                      <span className="text-gray-600 text-xs">Tel: {user.phone}</span>
+                    )}
                   </div>
                 ) : userOrders.length === 0 ? (
                   <div className="text-center py-8">
                     <div className="w-16 h-16 mx-auto mb-4 bg-gray-600/30 rounded-full flex items-center justify-center">
-                      <ShoppingBag className="w-8 h-8 text-gray-500" />
+                      <ShoppingBag className="w-8 h-8 text-gray-400" />
                     </div>
                     <p className="text-gray-400 text-sm">Hozircha buyurtmalar yo'q</p>
                     <p className="text-gray-500 text-xs mt-1">Birinchi buyurtmangizni bering!</p>
+                    {user?.id && (
+                      <p className="text-gray-600 text-xs mt-2">ID: {user.id.slice(-8)}</p>
+                    )}
+                    {user?.phone && (
+                      <p className="text-gray-600 text-xs">Tel: {user.phone}</p>
+                    )}
                   </div>
                 ) : (
                   <>

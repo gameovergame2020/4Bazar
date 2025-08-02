@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, MapPin, Phone, User, CreditCard, Truck } from 'lucide-react';
 
@@ -8,7 +7,7 @@ const animationStyles = `
     from { opacity: 0; }
     to { opacity: 1; }
   }
-  
+
   @keyframes slideUp {
     from { 
       opacity: 0;
@@ -19,7 +18,7 @@ const animationStyles = `
       transform: translateY(0) scale(1);
     }
   }
-  
+
   @keyframes slideDown {
     from {
       opacity: 0;
@@ -30,15 +29,15 @@ const animationStyles = `
       transform: translateY(0);
     }
   }
-  
+
   .animate-fadeIn {
     animation: fadeIn 0.3s ease-out;
   }
-  
+
   .animate-slideUp {
     animation: slideUp 0.4s ease-out;
   }
-  
+
   .animate-slideDown {
     animation: slideDown 0.3s ease-out;
   }
@@ -105,7 +104,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   }).filter(Boolean) : [];
 
   const cartSubtotal = cartProducts.reduce((sum, product) => sum + (product.price * product.quantity), 0);
-  
+
   // Yetkazib berish to'lovlari
   const getDeliveryFee = (deliveryTime: string) => {
     switch (deliveryTime) {
@@ -114,7 +113,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       default: return 0; // Bugun va ertaga yetkazish bepul
     }
   };
-  
+
   const deliveryFee = getDeliveryFee(userInfo.deliveryTime);
   const totalPrice = cartSubtotal + deliveryFee;
 
@@ -485,7 +484,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     try {
       // Buyurtma ma'lumotlarini tayyorlash - haqiqiy foydalanuvchi ID sini olish
       const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId') || `customer-${Date.now()}`;
-      
+
       const orderData = {
         customerId: userId, // Haqiqiy foydalanuvchi ID si
         customerName: userInfo.name,
@@ -568,7 +567,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const handlePaymentTypeSelect = async (paymentType: string) => {
     setUserInfo(prev => ({ ...prev, paymentType }));
     setShowPaymentModal(false);
-    
+
     // To'lov turi tanlanganidan keyin buyurtmani yuborish
     await processOrder(paymentType);
   };
@@ -576,11 +575,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   // Buyurtmani qayta ishlash (to'lov turi bilan)
   const processOrder = async (paymentType?: string) => {
     const finalPaymentType = paymentType || userInfo.paymentType;
-    
+
     try {
       // Buyurtma ma'lumotlarini tayyorlash - haqiqiy foydalanuvchi ID sini olish
       const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId') || `customer-${Date.now()}`;
-      
+
       const orderData = {
         customerId: userId, // Haqiqiy foydalanuvchi ID si
         customerName: userInfo.name,
@@ -738,7 +737,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 </label>
               </div>
 
-              
+
             </div>
 
             {/* Yetkazib berish muddati */}
@@ -770,8 +769,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   </div>
                 </div>
               )}
-              
-              
+
+
 
               {/* Custom vaqt tanlash */}
               {userInfo.deliveryTime === 'custom' && (
@@ -779,7 +778,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   <p className="text-sm text-orange-700 font-medium">
                     📅 Yetkazib berish kun va vaqtini tanlang:
                   </p>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -793,7 +792,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Vaqtni tanlang
@@ -809,7 +808,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                       </select>
                     </div>
                   </div>
-                  
+
                   {userInfo.customDeliveryDate && userInfo.customDeliveryTime && (
                     <div className="bg-white p-3 rounded-lg border border-orange-300">
                       <p className="text-sm text-green-700">
@@ -1014,7 +1013,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                   <span className="text-gray-600">Jami to'lov:</span>
                   <span className="font-bold text-orange-600 text-lg">{totalPrice.toLocaleString()} so'm</span>
                 </div>
-                
+
                 <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-xs text-blue-700">
                     ℹ️ <strong>Muhim:</strong> Bank kartasi orqali to'lov qilingan buyurtmalar bekor qilinganda xizmat haqi ushlab qolinadi:
