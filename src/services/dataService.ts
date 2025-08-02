@@ -237,11 +237,6 @@ class DataService {
         updatedAt: Timestamp.now()
       };
 
-      // customerId maydonini butunlay olib tashlash
-      if (orderData.customerId) {
-        delete orderData.customerId;
-      }
-
       // Firebase'ga buyurtma qo'shish
       const docRef = await addDoc(collection(db, 'orders'), orderData);
       
