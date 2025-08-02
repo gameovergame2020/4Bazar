@@ -443,7 +443,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     try {
       console.log('📱 Customer telefon:', userInfo.phone);
 
-      const orderData = {
+      const orderData: any = {
         customerId: userData?.id || userInfo.phone.trim(), // User ID ni ishlatish, fallback sifatida phone
         customerName: userInfo.name.trim(),
         customerPhone: userInfo.phone.trim(),
@@ -453,10 +453,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         totalPrice: totalPrice,
         status: 'pending', // Operator tasdiqlashini kutmoqda
         deliveryAddress: deliveryAddress.trim(),
-        coordinates: selectedCoordinates ? { 
-          lat: selectedCoordinates[0], 
-          lng: selectedCoordinates[1] 
-        } : undefined,
         paymentMethod: userInfo.paymentMethod,
         paymentType: userInfo.paymentType,
         notes: `To'lov usuli: ${
@@ -473,6 +469,14 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           userInfo.deliveryTime === 'custom' ? `O'zi tanlagan vaqt: ${userInfo.customDeliveryDate ? new Date(userInfo.customDeliveryDate).toLocaleDateString('uz-UZ') : 'tanlanmagan'} soat ${userInfo.customDeliveryTime || 'tanlanmagan'}` : userInfo.deliveryTime
         }. Mahsulotlar: ${cartProducts.map(p => `${p.name} (${p.quantity} dona)`).join(', ')}`
       };
+
+      // Faqat coordinates mavjud bo'lsa qo'shish
+      if (selectedCoordinates && selectedCoordinates.length >= 2) {
+        orderData.coordinates = { 
+          lat: selectedCoordinates[0], 
+          lng: selectedCoordinates[1] 
+        };
+      }
 
       console.log('🛒 Buyurtma Firebase ga yuborilmoqda:', orderData);
 
@@ -537,7 +541,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     const finalPaymentType = paymentType || userInfo.paymentType;
 
     try {
-      const orderData = {
+      const orderData: any = {
         customerId: userData?.id || userInfo.phone.trim(), // User ID ni ishlatish, fallback sifatida phone
         customerName: userInfo.name,
         customerPhone: userInfo.phone,
@@ -547,10 +551,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         totalPrice: totalPrice,
         status: 'pending',
         deliveryAddress: deliveryAddress,
-        coordinates: selectedCoordinates ? { 
-          lat: selectedCoordinates[0], 
-          lng: selectedCoordinates[1] 
-        } : undefined,
         paymentMethod: userInfo.paymentMethod,
         paymentType: finalPaymentType,
         notes: `To'lov usuli: ${
@@ -567,6 +567,14 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           userInfo.deliveryTime === 'custom' ? `O'zi tanlagan vaqt: ${userInfo.customDeliveryDate ? new Date(userInfo.customDeliveryDate).toLocaleDateString('uz-UZ') : 'tanlanmagan'} soat ${userInfo.customDeliveryTime || 'tanlanmagan'}` : userInfo.deliveryTime
         }. Mahsulotlar: ${cartProducts.map(p => `${p.name} (${p.quantity} dona)`).join(', ')}`
       };
+
+      // Faqat coordinates mavjud bo'lsa qo'shish
+      if (selectedCoordinates && selectedCoordinates.length >= 2) {
+        orderData.coordinates = { 
+          lat: selectedCoordinates[0], 
+          lng: selectedCoordinates[1] 
+        };
+      }
 
       console.log('🛒 Buyurtma Firebase ga yuborilmoqda:', orderData);
 

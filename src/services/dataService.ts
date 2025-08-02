@@ -275,12 +275,19 @@ class DataService {
       console.log('🍰 Mahsulot ID:', order.cakeId);
       console.log('👤 Customer ID (User ID):', order.customerId);
       
-      const orderData = {
+      const orderData: any = {
         ...order,
         orderUniqueId: uniqueOrderId, // 8 belgilik alphanumeric noyob ID
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       };
+
+      // undefined qiymatlarni olib tashlash (Firebase undefined ni qabul qilmaydi)
+      Object.keys(orderData).forEach(key => {
+        if (orderData[key] === undefined) {
+          delete orderData[key];
+        }
+      });
 
       // Firebase'ga buyurtma qo'shish
       const docRef = await addDoc(collection(db, 'orders'), orderData);
