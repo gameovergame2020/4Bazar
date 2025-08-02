@@ -103,6 +103,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
             totalPrice: item.total,
             status: 'pending',
             deliveryAddress: formData.deliveryAddress,
+            coordinates: formData.coordinates, // Koordinatalar qo'shildi
             notes: formData.notes
           });
 
@@ -125,68 +126,104 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
     // Yandex Maps integratsiyasi
     useEffect(() => {
-      const initializeYandexMap = async () => {
-        if (typeof window === 'undefined' || !mapRef.current) return;
-  
-        const YMaps = await window.ymaps3.ready;
-  
-        const map = new YMaps.Map(mapRef.current, {
-          location: {
-            center: [69.240562, 41.290748], // Toshkent markazi
-            zoom: 12
-          }
-        });
-  
-        // Placemark qo'shish
-        const marker = new YMaps.Placemark({
-          location: { value: [69.240562, 41.290748] },
-        });
-        map.addChild(marker);
-  
-        // Xarita bo'ylab harakatlanishni kuzatish
-        map.on('move', (e) => {
-          const center = map.center;
-          marker.location.setValue(center);
-          setFormData(prev => ({
-            ...prev,
-            coordinates: center,
-          }));
-  
-          // Manzilni aniqlash
-          ymaps3.geocode({
-            plainText: center[0] + ',' + center[1],
-            lang: 'uz_UZ',
-            apikey: 'ваш API key', // API keyni almashtiring
-          }).then(result => {
-            if (result.geoObjects.length > 0) {
-              const address = result.geoObjects[0].properties.get('name') + ', ' + result.geoObjects[0].properties.get('description');
-              setFormData(prev => ({
-                ...prev,
-                deliveryAddress: address,
-              }));
-            } else {
-              setFormData(prev => ({
-                ...prev,
-                deliveryAddress: 'Manzil topilmadi',
-              }));
+      if (!showLocationPicker) return;
+
+      const initializeYandexMap = () => {
+        if (!window.ymaps || !mapRef.current) return;
+
+        window.ymaps.ready(() => {
+          const map = new window.ymaps.Map(mapRef.current, {
+            center: [41.290748, 69.240562], // Toshkent markazi (lat, lng)
+            zoom: 12,
+            controls: ['zoomControl', 'geolocationControl']
+          });
+
+          // Draggable placemark qo'shish
+          const placemark = new window.ymaps.Placemark(
+            [41.290748, 69.240562],
+            {
+              hintContent: 'Manzilni tanlash uchun siljiting',
+              balloonContent: 'Sizning manzil'
+            },
+            {
+              preset: 'islands#redIcon',
+              draggable: true
+            }
+          );
+
+          map.geoObjects.add(placemark);
+
+          // Placemark harakatlanganda manzilni yangilash
+          placemark.events.add('dragend', () => {
+            const coords = placemark.geometry.getCoordinates();
+            
+            // Geocoding - koordinatadan manzilni aniqlash
+            window.ymaps.geocode(coords).then((result) => {
+              const firstGeoObject = result.geoObjects.get(0);
+              if (firstGeoObject) {
+                const address = firstGeoObject.getAddressLine();
+                setFormData(prev => ({
+                  ...prev,
+                  deliveryAddress: address,
+                  coordinates: { lat: coords[0], lng: coords[1] }
+                }));
+              }
+            });
+          });
+
+          // Xaritani bosish orqali manzil tanlash
+          map.events.add('click', (e) => {
+            const coords = e.get('coords');
+            placemark.geometry.setCoordinates(coords);
+            
+            window.ymaps.geocode(coords).then((result) => {
+              const firstGeoObject = result.geoObjects.get(0);
+              if (firstGeoObject) {
+                const address = firstGeoObject.getAddressLine();
+                setFormData(prev => ({
+                  ...prev,
+                  deliveryAddress: address,
+                  coordinates: { lat: coords[0], lng: coords[1] }
+                }));
+              }
+            });
+          });
+
+          // Geolocation button bosilganda
+          map.controls.get('geolocationControl').events.add('locationchange', (e) => {
+            const position = e.get('position');
+            if (position) {
+              const coords = position.coords;
+              placemark.geometry.setCoordinates([coords[0], coords[1]]);
+              
+              window.ymaps.geocode([coords[0], coords[1]]).then((result) => {
+                const firstGeoObject = result.geoObjects.get(0);
+                if (firstGeoObject) {
+                  const address = firstGeoObject.getAddressLine();
+                  setFormData(prev => ({
+                    ...prev,
+                    deliveryAddress: address,
+                    coordinates: { lat: coords[0], lng: coords[1] }
+                  }));
+                }
+              });
             }
           });
         });
       };
-  
-      if (typeof window !== 'undefined') {
+
+      // Yandex Maps API scriptini yuklash
+      if (!window.ymaps) {
         const script = document.createElement('script');
-        script.src = 'https://api.maps.yandex.ru/3.0/?apikey=ваш API key&lang=uz_UZ'; // API keyni almashtiring
+        script.src = 'https://api-maps.yandex.ru/2.1/?apikey=YOUR_API_KEY&lang=uz_UZ';
         script.type = 'text/javascript';
         script.async = true;
         script.onload = initializeYandexMap;
         document.head.appendChild(script);
+      } else {
+        initializeYandexMap();
       }
-  
-      return () => {
-        // Tozalash (agar kerak bo'lsa)
-      };
-    }, []);
+    }, [showLocationPicker]);
 
   // Login talab qilish modali
   if (showLoginPrompt) {
