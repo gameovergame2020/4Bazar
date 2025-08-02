@@ -802,7 +802,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                         onChange={(e) => setUserInfo(prev => ({ ...prev, customDeliveryTime: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
                       >
-                        <option value="">Vaqt oralig'ini tanlang
+                        <option value="">Vaqt oralig'ini tanlang</option>
                         <option value="09:00-15:00">🌅 09:00-15:00 (Ertalab)</option>
                         <option value="15:00-22:00">🌆 15:00-22:00 (Kechqurun)</option>
                       </select>
