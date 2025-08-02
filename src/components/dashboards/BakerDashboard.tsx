@@ -474,6 +474,25 @@ const BakerDashboard = () => {
   };
 
 
+  const handleUpdateStock = async (productId: string, newValue: number, field: 'quantity' | 'amount' = 'quantity') => {
+    try {
+      const updateData: any = {};
+
+      if (field === 'amount') {
+        updateData.amount = newValue;
+        updateData.available = newValue > 0;
+      } else {
+        updateData.quantity = newValue;
+        updateData.available = newValue > 0;
+      }
+
+      await dataService.updateCake(productId, updateData);
+      await loadData();
+    } catch (error) {
+      console.error('Zaxirani yangilashda xatolik:', error);
+      alert('Zaxirani yangilashda xatolik yuz berdi');
+    }
+  };
 
   if (loading && orders.length === 0 && myCakes.length === 0) {
     return (
@@ -750,7 +769,7 @@ const BakerDashboard = () => {
                   <span>Tahrirlash</span>
                 </button>
                 <button
-                  onClick={() => handleDeleteCake(cake.id!)}
+                  onClick={()=> handleDeleteCake(cake.id!)}
                   className="flex-1 bg-red-500 text-white py-2 rounded-lg text-sm hover:bg-red-600 transition-colors flex items-center justify-center space-x-1"
                 >
                   <Trash2 size={14} />

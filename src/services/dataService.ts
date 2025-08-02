@@ -112,16 +112,20 @@ class DataService {
         updatedAt: Timestamp.now()
       };
       
-      // Quantity maydonini faqat qiymat mavjud bo'lsa qo'shish
-      if (cake.quantity !== undefined && cake.quantity !== null) {
-        cakeData.quantity = cake.quantity;
+      // Baker mahsulotlari uchun logika
+      if (cake.productType === 'baked') {
+        if (cake.available) {
+          // "Hozir mavjud" baker mahsulotlari - amount da hisoblansin
+          cakeData.amount = cake.amount !== undefined ? cake.amount : 0;
+        } else {
+          // "Buyurtma uchun" baker mahsulotlari - quantity da hisoblansin
+          if (cake.quantity !== undefined && cake.quantity !== null) {
+            cakeData.quantity = cake.quantity;
+          }
+        }
       } else if (cake.productType === 'ready') {
-        cakeData.quantity = 0; // Shop mahsulotlari uchun default 0
-      }
-      
-      // Amount maydonini faqat baker mahsulotlari uchun qo'shish va agar mavjud bo'lsa
-      if (cake.productType === 'baked' && cake.amount !== undefined) {
-        cakeData.amount = cake.amount;
+        // Shop mahsulotlari - doim quantity da hisoblansin
+        cakeData.quantity = cake.quantity !== undefined ? cake.quantity : 0;
       }
       
       // undefined qiymatlarni olib tashlash
