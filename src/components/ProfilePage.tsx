@@ -245,34 +245,42 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     return () => clearInterval(interval);
   }, [user.phone, user.name, user.id]);
 
+  // Buyurtmani bekor qilish uchun modal holatini boshqarish
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
+
+  // Buyurtmani bekor qilish modalini ochish
+  const openCancelModal = (order: Order) => {
+    setOrderToCancel(order);
+    setShowCancelModal(true);
+  };
+
   // Buyurtmani bekor qilish funksiyasi
-  const handleCancelOrder = async (orderId: string) => {
-    if (!window.confirm('Bu buyurtmani bekor qilishni tasdiqlaysizmi?')) {
-      return;
-    }
+  const handleCancelOrder = async () => {
+    if (!orderToCancel) return;
 
     try {
-      setCancellingOrderId(orderId);
-      console.log('🚫 Buyurtma bekor qilinmoqda:', orderId);
+      setCancellingOrderId(orderToCancel.id!);
+      console.log('🚫 Buyurtma bekor qilinmoqda:', orderToCancel.id);
       
       // Buyurtma holatini 'cancelled' qilib o'zgartirish
-      await dataService.updateOrderStatus(orderId, 'cancelled');
+      await dataService.updateOrderStatus(orderToCancel.id!, 'cancelled');
       
       // Local state'ni yangilash
       setUserOrders(prev => 
         prev.map(order => 
-          order.id === orderId 
+          order.id === orderToCancel.id 
             ? { ...order, status: 'cancelled', updatedAt: new Date() }
             : order
         )
       );
       
       console.log('✅ Buyurtma muvaffaqiyatli bekor qilindi');
-      alert('Buyurtma muvaffaqiyatli bekor qilindi!');
+      setShowCancelModal(false);
+      setOrderToCancel(null);
       
     } catch (error) {
       console.error('❌ Buyurtmani bekor qilishda xato:', error);
-      alert('Buyurtmani bekor qilishda xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.');
     } finally {
       setCancellingOrderId(null);
     }
@@ -577,7 +585,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                               {order.status === 'pending' && (
                                 <div className="mt-3 pt-2 border-t border-gray-600/30">
                                   <button
-                                    onClick={() => handleCancelOrder(order.id!)}
+                                    onClick={() => openCancelModal(order)}
                                     disabled={cancellingOrderId === order.id}
                                     className="w-full bg-red-500/20 text-red-400 py-2 px-3 rounded-lg text-xs font-medium hover:bg-red-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                                   >
@@ -689,6 +697,154 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
             })}
           </div>
         </div>
+
+        {/* Buyurtmani bekor qilish modal oynasi */}
+        {showCancelModal && orderToCancel && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+            <div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700 shadow-2xl">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white flex items-center space-x-2">
+                  <span className="text-2xl">⚠️</span>
+                  <span>Buyurtmani bekor qilish</span>
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowCancelModal(false);
+                    setOrderToCancel(null);
+                  }}
+                  className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Buyurtma ma'lumotlari */}
+              <div className="bg-gray-700/50 rounded-xl p-4 mb-6 border border-gray-600">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                    <Package className="w-5 h-5 text-orange-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-white text-sm">{orderToCancel.cakeName}</h4>
+                    <p className="text-gray-400 text-xs">#{orderToCancel.id?.slice(-8).toUpperCase()}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-gray-400">Narx:</span>
+                    <div className="text-orange-400 font-medium">{orderToCancel.totalPrice.toLocaleString()} so'm</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">To'lov:</span>
+                    <div className="text-white font-medium">
+                      {orderToCancel.paymentMethod === 'card' ? (
+                        orderToCancel.paymentType === 'click' ? '🔵 Click' :
+                        orderToCancel.paymentType === 'payme' ? '🟢 Payme' :
+                        orderToCancel.paymentType === 'visa' ? '💳 Visa/MC' : '💳 Bank kartasi'
+                      ) : '💵 Naqd pul'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ogohlantirish matni */}
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-6">
+                <div className="flex items-start space-x-3">
+                  <span className="text-yellow-400 text-lg">💡</span>
+                  <div className="text-sm">
+                    <h4 className="font-medium text-yellow-400 mb-2">Muhim ma'lumot:</h4>
+                    <ul className="text-gray-300 space-y-1 text-xs">
+                      <li>• Bu amalni ortga qaytarib bo'lmaydi</li>
+                      <li>• Buyurtma bekor qilinadi va holati o'zgaradi</li>
+                      {orderToCancel.paymentMethod === 'card' && (
+                        <>
+                          <li>• Bank kartasi orqali to'lov qilingan</li>
+                          <li>• Xizmat haqi ushlab qolinadi</li>
+                          <li>• Qolgan mablag' 3-5 ish kuni ichida qaytariladi</li>
+                        </>
+                      )}
+                      {orderToCancel.paymentMethod === 'cash' && (
+                        <li>• Naqd to'lov uchun qaytarish kerak emas</li>
+                      )}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Refund hisob-kitobi (agar bank kartasi bo'lsa) */}
+              {orderToCancel.paymentMethod === 'card' && (
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6">
+                  <h4 className="font-medium text-blue-400 mb-3 text-sm">💰 To'lov qaytarish hisobi:</h4>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Buyurtma summasi:</span>
+                      <span className="text-white">{orderToCancel.totalPrice.toLocaleString()} so'm</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Xizmat haqi:</span>
+                      <span className="text-red-300">
+                        -{(orderToCancel.paymentType === 'click' ? 2000 : 
+                           orderToCancel.paymentType === 'payme' ? 1500 :
+                           orderToCancel.paymentType === 'visa' ? 3000 : 2500).toLocaleString()} so'm
+                      </span>
+                    </div>
+                    <div className="border-t border-gray-600 pt-2">
+                      <div className="flex justify-between font-medium">
+                        <span className="text-blue-400">Qaytariladi:</span>
+                        <span className="text-blue-300">
+                          {(orderToCancel.totalPrice - (
+                            orderToCancel.paymentType === 'click' ? 2000 : 
+                            orderToCancel.paymentType === 'payme' ? 1500 :
+                            orderToCancel.paymentType === 'visa' ? 3000 : 2500
+                          )).toLocaleString()} so'm
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tasdiq soruvi */}
+              <div className="mb-6">
+                <p className="text-gray-300 text-sm text-center">
+                  Haqiqatan ham bu buyurtmani bekor qilishni xohlaysizmi?
+                </p>
+              </div>
+
+              {/* Action tugmalari */}
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    setShowCancelModal(false);
+                    setOrderToCancel(null);
+                  }}
+                  className="flex-1 bg-gray-700 text-gray-300 py-3 px-4 rounded-xl font-medium hover:bg-gray-600 transition-colors"
+                >
+                  Bekor qilish
+                </button>
+                <button
+                  onClick={handleCancelOrder}
+                  disabled={cancellingOrderId === orderToCancel.id}
+                  className="flex-1 bg-red-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {cancellingOrderId === orderToCancel.id ? (
+                    <>
+                      <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      <span>Bekor qilinmoqda...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>🚫</span>
+                      <span>Ha, bekor qilish</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
