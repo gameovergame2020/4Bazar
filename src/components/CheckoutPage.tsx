@@ -568,50 +568,53 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
               <div className="space-y-2">
                 <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                   userInfo.deliveryTime === 'asap' 
-                    ? 'bg-orange-50 border-orange-300 text-orange-900' 
+                    ? 'bg-orange-100 border-orange-400 text-orange-900 shadow-sm' 
                     : 'bg-white border-gray-200 hover:bg-gray-50'
                 }`}>
                   <input
-                    type="radio"
-                    name="deliveryTime"
-                    value="asap"
+                    type="checkbox"
                     checked={userInfo.deliveryTime === 'asap'}
-                    onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
-                    className="text-orange-500"
+                    onChange={() => setUserInfo(prev => ({ ...prev, deliveryTime: 'asap' }))}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
                   />
                   <span className="font-medium">⚡ Tez (2-3 soat)</span>
+                  {userInfo.deliveryTime === 'asap' && (
+                    <span className="ml-auto text-orange-600 font-bold">✓</span>
+                  )}
                 </label>
 
                 <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                   userInfo.deliveryTime === 'today' 
-                    ? 'bg-orange-50 border-orange-300 text-orange-900' 
+                    ? 'bg-orange-100 border-orange-400 text-orange-900 shadow-sm' 
                     : 'bg-white border-gray-200 hover:bg-gray-50'
                 }`}>
                   <input
-                    type="radio"
-                    name="deliveryTime"
-                    value="today"
+                    type="checkbox"
                     checked={userInfo.deliveryTime === 'today'}
-                    onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
-                    className="text-orange-500"
+                    onChange={() => setUserInfo(prev => ({ ...prev, deliveryTime: 'today' }))}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
                   />
                   <span className="font-medium">🌅 Bugun (18:00-22:00)</span>
+                  {userInfo.deliveryTime === 'today' && (
+                    <span className="ml-auto text-orange-600 font-bold">✓</span>
+                  )}
                 </label>
 
                 <label className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                   userInfo.deliveryTime === 'tomorrow' 
-                    ? 'bg-orange-50 border-orange-300 text-orange-900' 
+                    ? 'bg-orange-100 border-orange-400 text-orange-900 shadow-sm' 
                     : 'bg-white border-gray-200 hover:bg-gray-50'
                 }`}>
                   <input
-                    type="radio"
-                    name="deliveryTime"
-                    value="tomorrow"
+                    type="checkbox"
                     checked={userInfo.deliveryTime === 'tomorrow'}
-                    onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
-                    className="text-orange-500"
+                    onChange={() => setUserInfo(prev => ({ ...prev, deliveryTime: 'tomorrow' }))}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
                   />
                   <span className="font-medium">📅 Ertaga (09:00-21:00)</span>
+                  {userInfo.deliveryTime === 'tomorrow' && (
+                    <span className="ml-auto text-orange-600 font-bold">✓</span>
+                  )}
                 </label>
               </div>
             </div>
