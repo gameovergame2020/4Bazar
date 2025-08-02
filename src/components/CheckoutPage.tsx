@@ -350,9 +350,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                     onChange={handleInputChange}
                     required
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="To'liq manzilni kiriting (ko'cha, uy raqami, kvartira)"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer"
+                    placeholder="Manzilni tanlash uchun bosing"
                     onClick={() => setShowLocationPicker(true)}
+                    readOnly
                   />
                 </div>
                 <div>
@@ -572,9 +573,17 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 <button
                   onClick={() => {
                     if (formData.deliveryAddress.trim()) {
+                      // Manzilni asosiy formga saqlash
+                      const event = {
+                        target: {
+                          name: 'deliveryAddress',
+                          value: formData.deliveryAddress
+                        }
+                      } as React.ChangeEvent<HTMLTextAreaElement>;
+                      handleInputChange(event);
                       setShowLocationPicker(false);
                     } else {
-                      alert('Iltimos, avval manzilni tanlang');
+                      alert('Iltimos, xaritadan manzilni tanlang');
                     }
                   }}
                   className={`flex-1 py-2 rounded-lg transition-colors ${
