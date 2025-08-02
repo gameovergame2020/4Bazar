@@ -175,9 +175,20 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                 
                 // Balloon mazmunini yangilash
                 placemark.properties.set('balloonContent', `📍 ${address}`);
+              } else {
+                // Agar manzil topilmasa, koordinatalarni ko'rsatamiz
+                const fallbackAddress = `Koordinatalar: ${coords[0].toFixed(6)}, ${coords[1].toFixed(6)}`;
+                setSelectedMapAddress(fallbackAddress);
+                setSelectedCoordinates({ lat: coords[0], lng: coords[1] });
+                placemark.properties.set('balloonContent', `📍 ${fallbackAddress}`);
               }
             }).catch((error) => {
               console.error('Geocoding xatosi:', error);
+              // Xato bo'lsa, koordinatalarni o'zi manzil sifatida ishlatamiz
+              const fallbackAddress = `Tanlangan joylashuv: ${coords[0].toFixed(6)}, ${coords[1].toFixed(6)}`;
+              setSelectedMapAddress(fallbackAddress);
+              setSelectedCoordinates({ lat: coords[0], lng: coords[1] });
+              placemark.properties.set('balloonContent', `📍 ${fallbackAddress}`);
             });
           };
 
@@ -226,6 +237,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         script.onload = initializeYandexMap;
         script.onerror = () => {
           console.error('Yandex Maps API yuklanmadi');
+          alert('Xarita xizmati vaqtincha ishlamayapti. Manzilni qo\'lda kiriting.');
         };
         document.head.appendChild(script);
       } else {
