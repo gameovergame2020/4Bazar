@@ -561,96 +561,165 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
             {/* Yetkazib berish muddati */}
             <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                <Truck className="w-5 h-5" />
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Truck className="w-5 h-5 text-orange-500" />
                 Yetkazib berish muddati
               </h3>
 
-              <div className="space-y-2">
-                <label className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="deliveryTime"
-                    value="asap"
-                    checked={userInfo.deliveryTime === 'asap'}
-                    onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
-                    className="text-orange-500"
-                  />
-                  <div>
-                    <span className="font-medium">Iloji boricha tez</span>
-                    <p className="text-sm text-gray-600">2-3 soat ichida</p>
+              <div className="grid grid-cols-1 gap-3">
+                {/* Tez yetkazish */}
+                <div 
+                  className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                    userInfo.deliveryTime === 'asap' 
+                      ? 'border-orange-500 bg-orange-50 shadow-md' 
+                      : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
+                  }`}
+                  onClick={() => setUserInfo(prev => ({ ...prev, deliveryTime: 'asap' }))}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      userInfo.deliveryTime === 'asap' 
+                        ? 'border-orange-500 bg-orange-500' 
+                        : 'border-gray-300'
+                    }`}>
+                      {userInfo.deliveryTime === 'asap' && (
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-900">⚡ Iloji boricha tez</span>
+                        <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+                          Mashhur
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">2-3 soat ichida yetkazamiz</p>
+                    </div>
                   </div>
-                </label>
+                </div>
 
-                <label className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="deliveryTime"
-                    value="today"
-                    checked={userInfo.deliveryTime === 'today'}
-                    onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
-                    className="text-orange-500"
-                  />
-                  <div>
-                    <span className="font-medium">Bugun kechqurun</span>
-                    <p className="text-sm text-gray-600">18:00 - 22:00</p>
+                {/* Bugun kechqurun */}
+                <div 
+                  className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                    userInfo.deliveryTime === 'today' 
+                      ? 'border-orange-500 bg-orange-50 shadow-md' 
+                      : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
+                  }`}
+                  onClick={() => setUserInfo(prev => ({ ...prev, deliveryTime: 'today' }))}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      userInfo.deliveryTime === 'today' 
+                        ? 'border-orange-500 bg-orange-500' 
+                        : 'border-gray-300'
+                    }`}>
+                      {userInfo.deliveryTime === 'today' && (
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-900">🌅 Bugun kechqurun</span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">18:00 - 22:00 oralig'ida</p>
+                    </div>
                   </div>
-                </label>
+                </div>
 
-                <label className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="deliveryTime"
-                    value="tomorrow"
-                    checked={userInfo.deliveryTime === 'tomorrow'}
-                    onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
-                    className="text-orange-500"
-                  />
-                  <div>
-                    <span className="font-medium">Ertaga</span>
-                    <p className="text-sm text-gray-600">09:00 - 21:00</p>
+                {/* Ertaga */}
+                <div 
+                  className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                    userInfo.deliveryTime === 'tomorrow' 
+                      ? 'border-orange-500 bg-orange-50 shadow-md' 
+                      : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
+                  }`}
+                  onClick={() => setUserInfo(prev => ({ ...prev, deliveryTime: 'tomorrow' }))}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      userInfo.deliveryTime === 'tomorrow' 
+                        ? 'border-orange-500 bg-orange-500' 
+                        : 'border-gray-300'
+                    }`}>
+                      {userInfo.deliveryTime === 'tomorrow' && (
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-900">📅 Ertaga</span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">09:00 - 21:00 oralig'ida</p>
+                    </div>
                   </div>
-                </label>
+                </div>
 
-                <label className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="deliveryTime"
-                    value="schedule"
-                    checked={userInfo.deliveryTime === 'schedule'}
-                    onChange={(e) => setUserInfo(prev => ({ ...prev, deliveryTime: e.target.value }))}
-                    className="text-orange-500"
-                  />
-                  <div>
-                    <span className="font-medium">Boshqa vaqt</span>
-                    <p className="text-sm text-gray-600">Muayyan sanani tanlash</p>
+                {/* Muayyan vaqt */}
+                <div 
+                  className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                    userInfo.deliveryTime === 'schedule' 
+                      ? 'border-orange-500 bg-orange-50 shadow-md' 
+                      : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
+                  }`}
+                  onClick={() => setUserInfo(prev => ({ ...prev, deliveryTime: 'schedule' }))}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      userInfo.deliveryTime === 'schedule' 
+                        ? 'border-orange-500 bg-orange-500' 
+                        : 'border-gray-300'
+                    }`}>
+                      {userInfo.deliveryTime === 'schedule' && (
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-900">🗓️ Boshqa vaqt</span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">O'zingiz tanlagan vaqtda</p>
+                    </div>
                   </div>
-                </label>
+                </div>
               </div>
 
               {/* Muayyan vaqt tanlash */}
               {userInfo.deliveryTime === 'schedule' && (
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Sana
-                    </label>
-                    <input
-                      type="date"
-                      min={new Date().toISOString().split('T')[0]}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    />
+                <div className="mt-4 p-5 bg-gradient-to-br from-orange-50 to-yellow-50 border border-orange-200 rounded-xl space-y-4">
+                  <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                    <span>📋</span>
+                    Muayyan vaqtni tanlang
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        📅 Sana
+                      </label>
+                      <input
+                        type="date"
+                        min={new Date().toISOString().split('T')[0]}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        ⏰ Vaqt oralig'i
+                      </label>
+                      <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white">
+                        <option value="09:00-12:00">🌅 Ertalab (09:00 - 12:00)</option>
+                        <option value="12:00-15:00">☀️ Tushdan keyin (12:00 - 15:00)</option>
+                        <option value="15:00-18:00">🌤️ Peshindan keyin (15:00 - 18:00)</option>
+                        <option value="18:00-21:00">🌆 Kechqurun (18:00 - 21:00)</option>
+                      </select>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Vaqt
-                    </label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                      <option value="09:00-12:00">09:00 - 12:00</option>
-                      <option value="12:00-15:00">12:00 - 15:00</option>
-                      <option value="15:00-18:00">15:00 - 18:00</option>
-                      <option value="18:00-21:00">18:00 - 21:00</option>
-                    </select>
+                  
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-700 flex items-center gap-2">
+                      <span>💡</span>
+                      <span>Muayyan vaqtni tanlaganingiz uchun 5,000 so'm qo'shimcha haq olinadi.</span>
+                    </p>
                   </div>
                 </div>
               )}
