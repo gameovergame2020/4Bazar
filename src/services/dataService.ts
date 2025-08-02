@@ -234,23 +234,23 @@ class DataService {
   private normalizePhone(phone: string): string {
     // Barcha harflar va maxsus belgilarni olib tashlash
     const numbersOnly = phone.replace(/\D/g, '');
-    
+
     // Agar +998 bilan boshlansa
     if (numbersOnly.startsWith('998')) {
       return `+${numbersOnly}`;
     }
-    
+
     // Agar 998 siz boshlansa
     if (numbersOnly.length === 9) {
       return `+998${numbersOnly}`;
     }
-    
+
     // Agar uzun bo'lsa va oxirgi 9 ta raqamni olish
     if (numbersOnly.length > 9) {
       const last9 = numbersOnly.slice(-9);
       return `+998${last9}`;
     }
-    
+
     return phone;
   }
 
@@ -270,13 +270,13 @@ class DataService {
       );
 
       const querySnapshot = await getDocs(customerIdQuery);
-      
+
       if (querySnapshot.empty) {
         return [];
       }
 
       const orders: Order[] = [];
-      
+
       // Batch processing uchun promise array
       const promises = querySnapshot.docs.map(async (doc) => {
         try {
@@ -309,7 +309,7 @@ class DataService {
 
       const results = await Promise.all(promises);
       const validOrders = results.filter(order => order !== null) as Order[];
-      
+
       return validOrders;
     } catch (error) {
       console.error('❌ Customer ID bo\'yicha buyurtmalarni yuklashda xato:', error);
@@ -345,7 +345,7 @@ class DataService {
 
       // Har bir variant uchun alohida query (Firebase limitation tufayli)
       const allOrders: Order[] = [];
-      
+
       for (const phoneVariant of phoneVariants) {
         try {
           const phoneQuery = query(
@@ -355,11 +355,11 @@ class DataService {
           );
 
           const querySnapshot = await getDocs(phoneQuery);
-          
+
           querySnapshot.forEach((doc) => {
             try {
               const data = doc.data();
-              
+
               // Duplikatlarni oldini olish
               if (allOrders.some(order => order.id === doc.id)) {
                 return;
@@ -402,7 +402,7 @@ class DataService {
       );
 
       console.log('✅ Telefon bo\'yicha fallback topildi:', sortedOrders.length, 'ta buyurtma');
-      
+
       return sortedOrders;
     } catch (error) {
       console.error('❌ Telefon bo\'yicha fallback qidirishda xato:', error);
@@ -413,53 +413,53 @@ class DataService {
   // Telefon raqami variantlarini yaratish
   private generatePhoneVariants(cleanPhone: string): string[] {
     const variants = [cleanPhone];
-    
+
     // +998 bilan boshlash
     if (!cleanPhone.startsWith('998')) {
       variants.push(`998${cleanPhone}`);
     }
-    
+
     // 998 siz versiya
     if (cleanPhone.startsWith('998')) {
       variants.push(cleanPhone.substring(3));
     }
-    
+
     return variants;
   }
 
   // Telefon raqamlarini solishtirish
   private comparePhoneNumbers(orderPhone: string, searchPhone: string, searchVariants: string[]): boolean {
     if (!orderPhone || !searchPhone) return false;
-    
+
     // 1. To'liq mos kelish
     if (orderPhone === searchPhone) return true;
-    
+
     // 2. Variantlar bilan solishtirish
     for (const variant of searchVariants) {
       if (orderPhone === variant) return true;
     }
-    
+
     // 3. Oxirgi 9 raqam mos kelish (O'zbekiston uchun)
     if (orderPhone.length >= 9 && searchPhone.length >= 9) {
       const orderLast9 = orderPhone.slice(-9);
       const searchLast9 = searchPhone.slice(-9);
       if (orderLast9 === searchLast9) return true;
     }
-    
+
     // 4. Oxirgi 7 raqam mos kelish
     if (orderPhone.length >= 7 && searchPhone.length >= 7) {
       const orderLast7 = orderPhone.slice(-7);
       const searchLast7 = searchPhone.slice(-7);
       if (orderLast7 === searchLast7) return true;
     }
-    
+
     // 5. Ichida mavjudlik (ehtiyotkorlik bilan)
     if (orderPhone.length >= 8 && searchPhone.length >= 8) {
       if (orderPhone.includes(searchPhone) || searchPhone.includes(orderPhone)) {
         return true;
       }
     }
-    
+
     return false;
   }
 
@@ -520,7 +520,7 @@ class DataService {
       console.log('💳 To\'lov qaytarish jarayoni boshlandi:', orderId);
 
       const refundAmount = this.calculateRefundAmount(orderData.totalPrice, orderData.paymentType!);
-      
+
       // Refund ma'lumotlarini yaratish
       const refundData = {
         orderId,
@@ -538,7 +538,7 @@ class DataService {
 
       // Refunds collection'ga yozish
       const refundDocRef = await addDoc(collection(db, 'refunds'), refundData);
-      
+
       console.log('✅ Refund yaratildi:', refundDocRef.id);
 
       // Buyurtmaga refund ID ni qo'shish
@@ -594,7 +594,7 @@ class DataService {
     const refundAmount = Math.max(0, originalAmount - fee);
 
     console.log(`💰 Refund hisobi: Original: ${originalAmount}, Fee: ${fee}, Refund: ${refundAmount}`);
-    
+
     return refundAmount;
   }
 
@@ -603,7 +603,7 @@ class DataService {
     try {
       // Bu yerda real SMS yoki email yuborish xizmati integratsiyasi bo'lishi mumkin
       console.log(`📱 SMS yuborildi: ${orderData.customerPhone} - ${refundAmount.toLocaleString()} so'm qaytariladi`);
-      
+
       // Log sifatida saqlash
       await addDoc(collection(db, 'customerNotifications'), {
         customerPhone: orderData.customerPhone,
