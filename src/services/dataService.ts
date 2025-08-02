@@ -54,6 +54,8 @@ export interface Order {
   status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivering' | 'delivered' | 'cancelled';
   deliveryAddress: string;
   coordinates?: { lat: number; lng: number }; // Joylashuv koordinatalari
+  paymentMethod?: string; // cash, card
+  paymentType?: string; // click, payme, visa
   notes?: string;
   deliveryTime?: Date;
   createdAt: Date;

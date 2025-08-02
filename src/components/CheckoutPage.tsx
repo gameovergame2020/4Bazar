@@ -23,6 +23,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     phone: '',
     address: '',
     paymentMethod: 'cash',
+    paymentType: '', // Click, Payme, Visa/Mastercard uchun
     deliveryTime: 'asap', // Bitta tanlov
     customDeliveryDate: '',
     customDeliveryTime: ''
@@ -440,11 +441,15 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           lat: selectedCoordinates[0], 
           lng: selectedCoordinates[1] 
         } : undefined,
+        paymentMethod: userInfo.paymentMethod,
+        paymentType: userInfo.paymentType,
         notes: `To'lov usuli: ${
           userInfo.paymentMethod === 'cash' ? 'Naqd pul' :
-          userInfo.paymentMethod === 'card' ? 'Bank kartasi' :
-          userInfo.paymentMethod === 'click' ? 'Click' :
-          userInfo.paymentMethod === 'payme' ? 'Payme' : userInfo.paymentMethod
+          userInfo.paymentMethod === 'card' ? 
+            (userInfo.paymentType === 'click' ? 'Click' :
+             userInfo.paymentType === 'payme' ? 'Payme' :
+             userInfo.paymentType === 'visa' ? 'Visa/Mastercard' : 'Bank kartasi') :
+          userInfo.paymentMethod
         }. Yetkazib berish: ${
           userInfo.deliveryTime === 'asap' ? 'Tez yetkazish (2-3 soat)' :
           userInfo.deliveryTime === 'today' ? 'Bugun yetkazish (09:00-22:00)' :
@@ -593,7 +598,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                         type="radio"
                         name="cardType"
                         value="visa"
-                        defaultChecked
+                        checked={userInfo.paymentType === 'visa'}
+                        onChange={(e) => setUserInfo(prev => ({ ...prev, paymentType: e.target.value }))}
                         className="text-blue-500"
                       />
                       <span>💳 Visa/Mastercard</span>
@@ -603,6 +609,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                         type="radio"
                         name="cardType"
                         value="click"
+                        checked={userInfo.paymentType === 'click'}
+                        onChange={(e) => setUserInfo(prev => ({ ...prev, paymentType: e.target.value }))}
                         className="text-blue-500"
                       />
                       <span>🔵 Click</span>
@@ -612,6 +620,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                         type="radio"
                         name="cardType"
                         value="payme"
+                        checked={userInfo.paymentType === 'payme'}
+                        onChange={(e) => setUserInfo(prev => ({ ...prev, paymentType: e.target.value }))}
                         className="text-blue-500"
                       />
                       <span>🟢 Payme</span>

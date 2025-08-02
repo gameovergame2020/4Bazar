@@ -41,6 +41,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
       date: '2024-01-20',
       price: '250,000',
       status: 'delivered',
+      paymentMethod: 'card',
+      paymentType: 'click',
       image: 'https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg?auto=compress&cs=tinysrgb&w=150',
       rating: 5,
     },
@@ -51,6 +53,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
       date: '2024-01-18',
       price: '320,000',
       status: 'delivered',
+      paymentMethod: 'card',
+      paymentType: 'payme',
       image: 'https://images.pexels.com/photos/1721932/pexels-photo-1721932.jpeg?auto=compress&cs=tinysrgb&w=150',
       rating: 4,
     },
@@ -61,6 +65,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
       date: '2024-01-15',
       price: '280,000',
       status: 'cancelled',
+      paymentMethod: 'cash',
+      paymentType: '',
       image: 'https://images.pexels.com/photos/6880219/pexels-photo-6880219.jpeg?auto=compress&cs=tinysrgb&w=150',
       rating: null,
     },
@@ -241,6 +247,24 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                               <span>{getStatusText(order.status)}</span>
                             </div>
                           </div>
+                          {/* To'lov turi ko'rsatish */}
+                          {order.paymentMethod === 'card' && order.paymentType && (
+                            <div className="mt-1 flex items-center space-x-1">
+                              <span className="text-xs text-gray-400">To'lov:</span>
+                              <span className="text-xs font-medium text-blue-400">
+                                {order.paymentType === 'click' ? '🔵 Click' :
+                                 order.paymentType === 'payme' ? '🟢 Payme' :
+                                 order.paymentType === 'visa' ? '💳 Visa/MC' : 
+                                 '💳 Karta'}
+                              </span>
+                            </div>
+                          )}
+                          {order.paymentMethod === 'cash' && (
+                            <div className="mt-1 flex items-center space-x-1">
+                              <span className="text-xs text-gray-400">To'lov:</span>
+                              <span className="text-xs font-medium text-green-400">💵 Naqd</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
