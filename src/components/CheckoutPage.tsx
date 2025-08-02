@@ -187,12 +187,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
                     // Shahar/Tuman
                     if (country.AdministrativeArea.SubAdministrativeArea) {
-                      const subArea = country.AdministrativeArea.SubAdministrativeArea.SubAdministrativeAreaName;
+                      const subArea = country.AdministrativeArea.SubAdministrativeAreaName;
                       if (subArea) addressComponents.push(`${subArea}`);
 
                       // Mahalla/Locality
                       if (country.AdministrativeArea.SubAdministrativeArea.Locality) {
-                        const locality = country.AdministrativeArea.SubAdministrativeArea.Locality.LocalityName;
+                        const locality = country.AdministrativeArea.SubAdministrativeArea.LocalityName;
                         if (locality) addressComponents.push(`${locality}`);
 
                         // Ko'cha
