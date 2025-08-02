@@ -32,6 +32,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const [geocodingError, setGeocodingError] = useState<string | null>(null);
   const [isMapInitialized, setIsMapInitialized] = useState(false);
   const [isYmapsLoaded, setIsYmapsLoaded] = useState(false);
+  const [orderConfirmed, setOrderConfirmed] = useState(false);
+  const [orderDetails, setOrderDetails] = useState<{
+    orderId: string;
+    operatorPhone: string;
+  } | null>(null);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -403,21 +408,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     const operatorPhone = '+998 90 123 45 67';
     
     // Buyurtma tasdiqlash modalini ko'rsatish
-    const confirmationMessage = `🎉 Buyurtma muvaffaqiyatli yuborildi!
-
-📋 Buyurtma ID: ${orderId}
-
-👥 Operator siz bilan tez orada bog'lanadi va buyurtmani tasdiqlaydi.
-
-📞 Agar savollaringiz bo'lsa, operator bilan bog'laning:
-${operatorPhone}
-
-⏰ Buyurtma holati haqida SMS orqali xabar beramiz.
-
-Rahmat! 😊`;
-
-    alert(confirmationMessage);
-    onOrderComplete();
+    setOrderDetails({ orderId, operatorPhone });
+    setOrderConfirmed(true);
   };
 
   return (
@@ -613,6 +605,72 @@ Rahmat! 😊`;
           </button>
         </div>
       </div>
+
+      {/* Buyurtma tasdiqlash modali */}
+      {orderConfirmed && orderDetails && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <div className="text-center">
+              {/* Success icon */}
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                🎉 Buyurtma muvaffaqiyatli yuborildi!
+              </h3>
+
+              <div className="bg-gray-50 rounded-lg p-4 mb-4 text-left space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">📋 Buyurtma ID:</span>
+                  <span className="font-mono font-bold text-orange-600">{orderDetails.orderId}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">📞 Operator telefoni:</span>
+                  <span className="font-semibold text-blue-600">{orderDetails.operatorPhone}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">💰 Jami summa:</span>
+                  <span className="font-bold text-green-600">{totalPrice.toLocaleString()} so'm</span>
+                </div>
+              </div>
+
+              <div className="text-sm text-gray-600 space-y-2 mb-6">
+                <p>👥 Operator siz bilan tez orada bog'lanadi va buyurtmani tasdiqlaydi.</p>
+                <p>⏰ Buyurtma holati haqida SMS orqali xabar beramiz.</p>
+                <p>🚚 Yetkazib berish vaqti: 2-3 soat</p>
+              </div>
+
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setOrderConfirmed(false);
+                    setOrderDetails(null);
+                    onOrderComplete();
+                  }}
+                  className="w-full bg-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+                >
+                  Bosh sahifaga qaytish
+                </button>
+
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(orderDetails.orderId);
+                    alert('Buyurtma ID nusxalandi!');
+                  }}
+                  className="w-full bg-gray-200 text-gray-700 py-2 px-6 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                >
+                  📋 Buyurtma ID ni nusxalash
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
