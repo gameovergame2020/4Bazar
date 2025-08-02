@@ -3,9 +3,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, MapPin, Phone, User, CreditCard, Truck } from 'lucide-react';
 
 interface CheckoutPageProps {
-  cartItems: { [key: string]: number };
-  products: any[];
+  cart: { [key: string]: number };
+  cakes: any[];
   onBack: () => void;
+  onOrderComplete: () => void;
+  removeFromCart: (cakeId: string) => void;
 }
 
 // Global Yandex Maps tiplarini e'lon qilish
@@ -15,7 +17,7 @@ declare global {
   }
 }
 
-const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, products, onBack }) => {
+const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrderComplete, removeFromCart }) => {
   const [userInfo, setUserInfo] = useState({
     name: '',
     phone: '',
@@ -37,12 +39,40 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, products, onBack
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Mahsulotlar ro'yxatini yaratish
-  const cartProducts = Object.entries(cartItems).map(([productId, quantity]) => {
-    const product = products.find(p => p.id === productId);
+  const cartProducts = cart ? Object.entries(cart).map(([productId, quantity]) => {
+    const product = cakes.find(p => p.id === productId);
     return product ? { ...product, quantity } : null;
-  }).filter(Boolean);
+  }).filter(Boolean) : [];
 
   const totalPrice = cartProducts.reduce((sum, product) => sum + (product.price * product.quantity), 0);
+
+  // Agar cart bo'sh yoki mavjud bo'lmasa
+  if (!cart || Object.keys(cart).length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-4 mb-6">
+            <button
+              onClick={onBack}
+              className="p-2 rounded-lg bg-white shadow-sm border hover:bg-gray-50"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-2xl font-bold">Savat bo'sh</h1>
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow-sm border text-center">
+            <p className="text-gray-600 mb-4">Savatda hech qanday mahsulot yo'q</p>
+            <button
+              onClick={onBack}
+              className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+            >
+              Bosh sahifaga qaytish
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Yandex Maps skriptini yuklash
   const loadYandexMaps = () => {
@@ -366,7 +396,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, products, onBack
 
     console.log('🛒 Buyurtma yuborilmoqda:', orderData);
     alert('Buyurtma muvaffaqiyatli yuborildi!');
-    onBack();
+    onOrderComplete();
   };
 
   return (
