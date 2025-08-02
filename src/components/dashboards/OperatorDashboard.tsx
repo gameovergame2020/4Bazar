@@ -998,7 +998,7 @@ const OperatorDashboard = () => {
             <tbody>
               {filteredOrders.map((order) => (
                 <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-4 font-medium text-gray-900">#{order.id?.slice(-6)}</td>
+                  <td className="py-3 px-4 font-medium text-gray-900">#{order.orderUniqueId || order.id?.slice(-6)}</td>
                   <td className="py-3 px-4">
                     <div>
                       <p className="font-medium text-gray-900">{order.customerName}</p>
@@ -1120,7 +1120,7 @@ const OperatorDashboard = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Buyurtma ID:</span>
-                    <span className="font-medium">#{selectedOrderForDetails.id?.slice(-8)}</span>
+                    <span className="font-medium">#{selectedOrderForDetails.orderUniqueId || selectedOrderForDetails.id?.slice(-8)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Mijoz:</span>
@@ -1327,7 +1327,7 @@ const OperatorDashboard = () => {
                 <div className="space-y-4">
                   <div>
                     <span className="text-gray-600 text-sm">Buyurtma ID:</span>
-                    <span className="ml-2 font-medium">#{editingOrder.id?.slice(-8)}</span>
+                    <span className="ml-2 font-medium">#{editingOrder.orderUniqueId || editingOrder.id?.slice(-8)}</span>
                   </div>
 
                   {/* Mijoz ma'lumotlarini tahrirlash */}
