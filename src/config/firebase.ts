@@ -7,18 +7,26 @@ import { getAnalytics } from 'firebase/analytics';
 
 // Firebase konfiguratsiya obyekti
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBcEX52KvfyWY7tpIA6s4gcSVKAjT4Z9GQ",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "tortbazar.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "tortbazar",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "tortbazar.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "637277734867",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:637277734867:web:98dc476e1cc7c202d25126",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-ZEY7PY1BVX"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // Firebase konfiguratsiyasini tekshirish
-if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "AIzaSyBcEX52KvfyWY7tpIA6s4gcSVKAjT4Z9GQ") {
-  console.warn('⚠️ Firebase konfiguratsiyasi to\'liq emas. .env faylini to\'ldiring!');
+const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+const missingKeys = requiredKeys.filter(key => {
+  const value = firebaseConfig[key as keyof typeof firebaseConfig];
+  return !value || value.includes('your_') || value === 'undefined';
+});
+
+if (missingKeys.length > 0) {
+  console.warn('⚠️ Firebase konfiguratsiyasi to\'liq emas. .env faylini to\'g\'ri to\'ldiring!', {
+    missingKeys,
+    envExample: 'VITE_FIREBASE_API_KEY=your_actual_api_key'
+  });
 }
 
 // Firebase ilovasini ishga tushirish

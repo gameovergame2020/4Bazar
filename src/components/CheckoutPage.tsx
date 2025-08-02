@@ -63,7 +63,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cartItems, products, onBack
       }
 
       const script = document.createElement('script');
-      const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY || '40496c4d-9fd2-450a-bea8-9a78d5955593';
+      const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
 
       console.log('🗺️ Yandex Maps yuklanmoqda, API kalit:', apiKey);
 
