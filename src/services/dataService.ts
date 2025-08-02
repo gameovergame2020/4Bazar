@@ -264,52 +264,42 @@ class DataService {
         return [];
       }
 
+      const cleanPhone = customerPhone.replace(/\D/g, '');
+      console.log('🔍 Tozalangan telefon raqami:', cleanPhone);
+
+      if (cleanPhone.length < 7) {
+        console.log('⚠️ Telefon raqami juda qisqa:', cleanPhone.length, 'belgi');
+        return [];
+      }
+
       // Barcha buyurtmalarni olish
       const allOrdersQuery = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
       const allOrdersSnapshot = await getDocs(allOrdersQuery);
       console.log('📊 Jami buyurtmalar bazada:', allOrdersSnapshot.size, 'ta');
 
       const orders: Order[] = [];
-      const searchPhone = customerPhone.replace(/\D/g, ''); // faqat raqamlar
-
-      console.log('🔍 Qidirilayotgan telefon (faqat raqamlar):', searchPhone);
+      const phoneVariants = this.generatePhoneVariants(cleanPhone);
+      console.log('📱 Telefon variantlari:', phoneVariants);
 
       allOrdersSnapshot.forEach((doc) => {
         const data = doc.data();
-        const orderPhone = (data.customerPhone || '').replace(/\D/g, '');
+        
+        if (!data.customerPhone) return;
+        
+        const orderPhoneClean = data.customerPhone.replace(/\D/g, '');
         
         // Telefon raqamlarini solishtirish
-        let isPhoneMatch = false;
-        
-        if (orderPhone && searchPhone) {
-          // To'liq mos kelish
-          if (orderPhone === searchPhone) {
-            isPhoneMatch = true;
-          }
-          // Oxirgi 9 ta raqam mos kelish (O'zbekiston raqamlari uchun)
-          else if (orderPhone.length >= 9 && searchPhone.length >= 9) {
-            const orderLast9 = orderPhone.slice(-9);
-            const searchLast9 = searchPhone.slice(-9);
-            if (orderLast9 === searchLast9) {
-              isPhoneMatch = true;
-            }
-          }
-          // Qisqa telefon raqamlari uchun (7+ raqam)
-          else if (orderPhone.length >= 7 && searchPhone.length >= 7) {
-            if (orderPhone.includes(searchPhone) || searchPhone.includes(orderPhone)) {
-              isPhoneMatch = true;
-            }
-          }
-        }
+        const isPhoneMatch = this.comparePhoneNumbers(orderPhoneClean, cleanPhone, phoneVariants);
 
         if (isPhoneMatch) {
           console.log('📦 Buyurtma topildi:', {
             id: doc.id?.slice(-8),
             originalPhone: data.customerPhone,
-            cleanPhone: orderPhone,
+            cleanPhone: orderPhoneClean,
             customerName: data.customerName,
             cake: data.cakeName,
             status: data.status,
+            totalPrice: data.totalPrice,
             createdAt: data.createdAt?.toDate()
           });
 
@@ -357,31 +347,95 @@ class DataService {
       if (sortedOrders.length > 0) {
         const allStatuses = [...new Set(sortedOrders.map(o => o.status))];
         console.log('📋 Buyurtma holatlari:', allStatuses);
-      } else {
-        console.log('⚠️ Hech qanday buyurtma topilmadi');
         
-        // Debug uchun dastlabki 5 ta buyurtmani ko'rsatish
-        const sampleOrders = Array.from({ length: Math.min(5, allOrdersSnapshot.size) }, (_, i) => {
+        // Birinchi 3 buyurtmani log qilish
+        const firstThree = sortedOrders.slice(0, 3).map(order => ({
+          id: order.id?.slice(-8),
+          cake: order.cakeName,
+          status: order.status,
+          price: order.totalPrice,
+          date: order.createdAt.toISOString().split('T')[0]
+        }));
+        console.log('🎯 Birinchi 3 buyurtma:', firstThree);
+      } else {
+        console.log('⚠️ Hech qanday buyurtma topilmadi telefon bo\'yicha');
+        
+        // Debug uchun dastlabki 3 ta buyurtmani ko'rsatish
+        const sampleOrders = Array.from({ length: Math.min(3, allOrdersSnapshot.size) }, (_, i) => {
           const doc = allOrdersSnapshot.docs[i];
           const data = doc.data();
           return {
+            id: doc.id?.slice(-8),
             customerPhone: data.customerPhone,
             cleanPhone: (data.customerPhone || '').replace(/\D/g, ''),
             customerName: data.customerName,
-            cakeName: data.cakeName
+            cakeName: data.cakeName,
+            status: data.status
           };
         });
         
         console.log('🔍 Namuna buyurtmalar (debug):', sampleOrders);
+        console.log('🔍 Qidirilgan telefon:', cleanPhone, '(uzunlik:', cleanPhone.length, ')');
       }
       
       return sortedOrders;
     } catch (error) {
       console.error('❌ Buyurtmalarni yuklashda xato:', error);
-      
-      // Xato holatida bo'sh array qaytarish
       return [];
     }
+  }
+
+  // Telefon raqami variantlarini yaratish
+  private generatePhoneVariants(cleanPhone: string): string[] {
+    const variants = [cleanPhone];
+    
+    // +998 bilan boshlash
+    if (!cleanPhone.startsWith('998')) {
+      variants.push(`998${cleanPhone}`);
+    }
+    
+    // 998 siz versiya
+    if (cleanPhone.startsWith('998')) {
+      variants.push(cleanPhone.substring(3));
+    }
+    
+    return variants;
+  }
+
+  // Telefon raqamlarini solishtirish
+  private comparePhoneNumbers(orderPhone: string, searchPhone: string, searchVariants: string[]): boolean {
+    if (!orderPhone || !searchPhone) return false;
+    
+    // 1. To'liq mos kelish
+    if (orderPhone === searchPhone) return true;
+    
+    // 2. Variantlar bilan solishtirish
+    for (const variant of searchVariants) {
+      if (orderPhone === variant) return true;
+    }
+    
+    // 3. Oxirgi 9 raqam mos kelish (O'zbekiston uchun)
+    if (orderPhone.length >= 9 && searchPhone.length >= 9) {
+      const orderLast9 = orderPhone.slice(-9);
+      const searchLast9 = searchPhone.slice(-9);
+      if (orderLast9 === searchLast9) return true;
+    }
+    
+    // 4. Oxirgi 7 raqam mos kelish
+    if (orderPhone.length >= 7 && searchPhone.length >= 7) {
+      const orderLast7 = orderPhone.slice(-7);
+      const searchLast7 = searchPhone.slice(-7);
+      if (orderLast7 === searchLast7) return true;
+    }
+    
+    // 5. Ichida mavjudlik (ehtiyotkorlik bilan)
+    if (orderPhone.length >= 8 && searchPhone.length >= 8) {
+      if (orderPhone.includes(searchPhone) || searchPhone.includes(orderPhone)) {
+        return true;
+      }
+    }
+    
+    return false;
   }
 
   // Buyurtmalarni olish
