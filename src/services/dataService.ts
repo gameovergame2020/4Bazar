@@ -289,6 +289,14 @@ class DataService {
       console.log('🆔 Noyob buyurtma ID:', uniqueOrderId);
       console.log('👤 Customer ID bilan bog\'langan:', order.customerId);
       
+      // Buyurtma yaratilganda mahsulot quantity ni avtomatik yangilash
+      try {
+        await this.processOrderQuantity(order.cakeId, order.quantity);
+        console.log('📦 Mahsulot quantity muvaffaqiyatli yangilandi');
+      } catch (quantityError) {
+        console.warn('⚠️ Mahsulot quantity yangilashda xato:', quantityError);
+      }
+      
       return { docId: docRef.id, orderUniqueId: uniqueOrderId };
     } catch (error) {
       console.error('Buyurtma yaratishda xatolik:', error);
@@ -895,23 +903,36 @@ class DataService {
       const cake = await this.getCakeById(cakeId);
       if (!cake) throw new Error('Mahsulot topilmadi');
 
-      let newQuantity = cake.quantity || 0;
-      let newAmount = cake.amount || 0;
+      const updateData: any = {};
 
       if (isOrder) {
-        // Buyurtma berilganda - quantity kamayadi, amount oshadi
-        newQuantity = Math.max(0, newQuantity - Math.abs(quantityChange));
-        newAmount += Math.abs(quantityChange);
+        // Buyurtma berilganda
+        if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
+          // Baker mahsulotlari
+          if (cake.available && cake.quantity !== undefined) {
+            // "Hozir mavjud" - quantity kamayadi, amount oshadi
+            const newQuantity = Math.max(0, cake.quantity - Math.abs(quantityChange));
+            updateData.quantity = newQuantity;
+            updateData.available = newQuantity > 0;
+            updateData.amount = (cake.amount || 0) + Math.abs(quantityChange);
+          } else {
+            // "Buyurtma uchun" - faqat amount oshadi
+            updateData.amount = (cake.amount || 0) + Math.abs(quantityChange);
+          }
+        } else {
+          // Shop mahsulotlari - quantity kamayadi
+          const newQuantity = Math.max(0, (cake.quantity || 0) - Math.abs(quantityChange));
+          updateData.quantity = newQuantity;
+          updateData.available = newQuantity > 0;
+        }
       } else {
         // Mahsulot qo'shilganda - quantity oshadi
-        newQuantity += Math.abs(quantityChange);
+        const newQuantity = (cake.quantity || 0) + Math.abs(quantityChange);
+        updateData.quantity = newQuantity;
+        updateData.available = newQuantity > 0;
       }
 
-      await this.updateCake(cakeId, {
-        quantity: newQuantity,
-        amount: newAmount,
-        available: newQuantity > 0
-      });
+      await this.updateCake(cakeId, updateData);
     } catch (error) {
       console.error('Miqdor va amount yangilashda xatolik:', error);
       throw error;
@@ -941,7 +962,72 @@ class DataService {
 
   // Buyurtma berilganda mahsulot miqdorini kamaytirish va amount oshirish
   async processOrderQuantity(cakeId: string, orderQuantity: number): Promise<void> {
-    await this.updateProductQuantityAndAmount(cakeId, orderQuantity, true);
+    try {
+      const cake = await this.getCakeById(cakeId);
+      if (!cake) {
+        console.error('❌ Mahsulot topilmadi:', cakeId);
+        return;
+      }
+
+      console.log('📦 Mahsulot quantity processing:', {
+        cakeId,
+        productType: cake.productType,
+        available: cake.available,
+        currentQuantity: cake.quantity,
+        currentAmount: cake.amount,
+        orderQuantity
+      });
+
+      const updateData: any = {};
+
+      // Baker mahsulotlari uchun
+      if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
+        if (cake.available && cake.quantity !== undefined) {
+          // "Hozir mavjud" baker mahsulotlari - quantity kamaytirish
+          const newQuantity = Math.max(0, cake.quantity - orderQuantity);
+          updateData.quantity = newQuantity;
+          updateData.available = newQuantity > 0;
+          
+          // Amount ni ham oshirish
+          updateData.amount = (cake.amount || 0) + orderQuantity;
+          
+          console.log('🔄 Baker "Hozir mavjud" mahsulot yangilanadi:', {
+            oldQuantity: cake.quantity,
+            newQuantity,
+            oldAmount: cake.amount || 0,
+            newAmount: updateData.amount
+          });
+        } else {
+          // "Buyurtma uchun" baker mahsulotlari - faqat amount oshirish
+          updateData.amount = (cake.amount || 0) + orderQuantity;
+          
+          console.log('🔄 Baker "Buyurtma uchun" mahsulot yangilanadi:', {
+            oldAmount: cake.amount || 0,
+            newAmount: updateData.amount
+          });
+        }
+      } else if (cake.productType === 'ready') {
+        // Shop mahsulotlari - quantity kamaytirish
+        const newQuantity = Math.max(0, (cake.quantity || 0) - orderQuantity);
+        updateData.quantity = newQuantity;
+        updateData.available = newQuantity > 0;
+        
+        console.log('🔄 Shop mahsulot yangilanadi:', {
+          oldQuantity: cake.quantity || 0,
+          newQuantity
+        });
+      }
+
+      // Ma'lumotlarni yangilash
+      if (Object.keys(updateData).length > 0) {
+        await this.updateCake(cakeId, updateData);
+        console.log('✅ Mahsulot quantity muvaffaqiyatli yangilandi:', updateData);
+      }
+
+    } catch (error) {
+      console.error('❌ processOrderQuantity xatosi:', error);
+      throw error;
+    }
   }
 
   // Buyurtma bekor qilinganda mahsulot miqdorini qaytarish va amount kamaytirish
