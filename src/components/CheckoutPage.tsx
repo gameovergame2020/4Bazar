@@ -87,30 +87,23 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       // Har bir tort uchun alohida buyurtma yaratamiz
       for (const item of cartItems) {
         if (item) {
-          await dataService.createOrder({
+          // Buyurtma yaratish
+          const orderId = await dataService.createOrder({
             customerId: userData?.id?.toString() || 'guest',
             customerName: formData.customerName,
             customerPhone: formData.customerPhone,
             cakeId: item.cake.id!,
             cakeName: item.cake.name,
             quantity: item.quantity,
+            amount: item.quantity, // Amount qo'shildi
             totalPrice: item.total,
             status: 'pending',
             deliveryAddress: formData.deliveryAddress,
             notes: formData.notes
           });
 
-          // Mahsulot quantity'sini kamaytirish
-          if (item.cake.quantity !== undefined && item.cake.quantity > 0) {
-            const newQuantity = Math.max(0, item.cake.quantity - item.quantity);
-            const isAvailable = newQuantity > 0;
-            
-            // Barcha mahsulot turlari uchun quantity va available holatini yangilash
-            await dataService.updateCake(item.cake.id!, {
-              quantity: newQuantity,
-              available: isAvailable
-            });
-          }
+          // Mahsulot quantity va amount'ini yangilash
+          await dataService.processOrderQuantity(item.cake.id!, item.quantity);
         }
       }
 

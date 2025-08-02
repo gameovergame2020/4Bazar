@@ -33,7 +33,8 @@ export interface Cake {
   reviewCount: number;
   available: boolean;
   ingredients: string[];
-  quantity?: number;
+  quantity?: number; // Mavjud miqdor
+  amount?: number; // Buyurtma berilgan miqdor
   discount?: number;
   createdAt: Date;
   updatedAt: Date;
@@ -48,6 +49,7 @@ export interface Order {
   cakeId: string;
   cakeName: string;
   quantity: number;
+  amount?: number; // Buyurtma uchun yangi amount maydoni
   totalPrice: number;
   status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivering' | 'delivered' | 'cancelled';
   deliveryAddress: string;
@@ -481,6 +483,83 @@ class DataService {
       await deleteObject(imageRef);
     } catch (error) {
       console.error('Rasmni o\'chirishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // MIQDOR VA AMOUNT HISOBLASH FUNKSIYALARI
+
+  // Mahsulot miqdorini yangilash va amount hisoblash
+  async updateProductQuantityAndAmount(cakeId: string, quantityChange: number, isOrder: boolean = false): Promise<void> {
+    try {
+      const cake = await this.getCakeById(cakeId);
+      if (!cake) throw new Error('Mahsulot topilmadi');
+
+      let newQuantity = cake.quantity || 0;
+      let newAmount = cake.amount || 0;
+
+      if (isOrder) {
+        // Buyurtma berilganda - quantity kamayadi, amount oshadi
+        newQuantity = Math.max(0, newQuantity - Math.abs(quantityChange));
+        newAmount += Math.abs(quantityChange);
+      } else {
+        // Mahsulot qo'shilganda - quantity oshadi
+        newQuantity += Math.abs(quantityChange);
+      }
+
+      await this.updateCake(cakeId, {
+        quantity: newQuantity,
+        amount: newAmount,
+        available: newQuantity > 0
+      });
+    } catch (error) {
+      console.error('Miqdor va amount yangilashda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Bitta tortning ma'lumotlarini olish
+  async getCakeById(cakeId: string): Promise<Cake | null> {
+    try {
+      const docRef = doc(db, 'cakes', cakeId);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        return {
+          id: docSnap.id,
+          ...docSnap.data(),
+          createdAt: docSnap.data().createdAt.toDate(),
+          updatedAt: docSnap.data().updatedAt.toDate()
+        } as Cake;
+      }
+      return null;
+    } catch (error) {
+      console.error('Tortni olishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Buyurtma berilganda mahsulot miqdorini kamaytirish va amount oshirish
+  async processOrderQuantity(cakeId: string, orderQuantity: number): Promise<void> {
+    await this.updateProductQuantityAndAmount(cakeId, orderQuantity, true);
+  }
+
+  // Buyurtma bekor qilinganda mahsulot miqdorini qaytarish va amount kamaytirish
+  async revertOrderQuantity(cakeId: string, orderQuantity: number): Promise<void> {
+    try {
+      const cake = await this.getCakeById(cakeId);
+      if (!cake) throw new Error('Mahsulot topilmadi');
+
+      const newQuantity = (cake.quantity || 0) + orderQuantity;
+      const newAmount = Math.max(0, (cake.amount || 0) - orderQuantity);
+
+      await this.updateCake(cakeId, {
+        quantity: newQuantity,
+        amount: newAmount,
+        available: newQuantity > 0
+      });
+    } catch (error) {
+      console.error('Buyurtma bekor qilishda xatolik:', error);
       throw error;
     }
   }
