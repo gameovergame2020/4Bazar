@@ -584,11 +584,11 @@ const addToCart = (cakeId: string) => {
                           onClick={() => addToCart(cake.id!)}
                           disabled={
                             (cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
-                            (cake.productType === 'baked' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity)
+                            (cake.productType === 'baked' && cake.available && (cake.inStockQuantity !== undefined ? cake.inStockQuantity : cake.quantity) !== undefined && getCartQuantity(cake.id!) >= (cake.inStockQuantity !== undefined ? cake.inStockQuantity : cake.quantity))
                           }
                           className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                           ((cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
-                           (cake.productType === 'baked' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity))
+                           (cake.productType === 'baked' && cake.available && (cake.inStockQuantity !== undefined ? cake.inStockQuantity : cake.quantity) !== undefined && getCartQuantity(cake.id!) >= (cake.inStockQuantity !== undefined ? cake.inStockQuantity : cake.quantity)))
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             : 'bg-orange-500 text-white hover:bg-orange-600'
                         }`}
@@ -689,8 +689,7 @@ const addToCart = (cakeId: string) => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="mb-1 sm:mb-2">
-                      <p className="text-sm sm:text-lg font-bold text-gray-900">
+                    <div className="mb-1 sm:mb-2"><p className="text-sm sm:text-lg font-bold text-gray-900">
                         {formatPrice(cake.price, cake.discount)}
                       </p>
                       {cake.discount && cake.discount > 0 && (
@@ -715,11 +714,11 @@ const addToCart = (cakeId: string) => {
                            onClick={() => addToCart(cake.id!)}
                           disabled={
                             (cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
-                            (cake.productType === 'baked' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity)
+                            (cake.productType === 'baked' && cake.available && (cake.inStockQuantity !== undefined ? cake.inStockQuantity : cake.quantity) !== undefined && getCartQuantity(cake.id!) >= (cake.inStockQuantity !== undefined ? cake.inStockQuantity : cake.quantity))
                           }
                           className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
                             ((cake.productType === 'ready' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity) ||
-                             (cake.productType === 'baked' && cake.available && cake.quantity !== undefined && getCartQuantity(cake.id!) >= cake.quantity))
+                             (cake.productType === 'baked' && cake.available && (cake.inStockQuantity !== undefined ? cake.inStockQuantity : cake.quantity) !== undefined && getCartQuantity(cake.id!) >= (cake.inStockQuantity !== undefined ? cake.inStockQuantity : cake.quantity)))
                               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                               : 'bg-orange-500 text-white hover:bg-orange-600'
                           }`}

@@ -516,11 +516,9 @@ const CustomerDashboard = () => {
 
                 <p className="text-xs text-gray-500 mb-2">
                   {cake.productType === 'baked' 
-                    ? cake.available && cake.quantity !== undefined && cake.quantity > 0
-                      ? `Qoldi: ${cake.quantity} ta`
-                      : cake.quantity !== undefined && cake.quantity > 0
-                        ? `Buyurtma qilingan: ${cake.quantity} ta`
-                        : 'Buyurtma uchun'
+                    ? cake.available && (cake.inStockQuantity !== undefined ? cake.inStockQuantity : cake.quantity) > 0
+                      ? `Qoldi: ${cake.inStockQuantity !== undefined ? cake.inStockQuantity : cake.quantity} ta`
+                      : `Buyurtma uchun: ${cake.amount || 0} ta`
                     : cake.quantity !== undefined 
                       ? `Qoldi: ${cake.quantity} ta`
                       : 'Miqdor: cheklanmagan'
