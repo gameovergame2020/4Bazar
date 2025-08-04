@@ -27,11 +27,12 @@ class ProductService {
         updatedAt: Timestamp.now()
       };
 
-      // Yangi tizim: inStockQuantity va amount maydonlari
+      // Yangi tizim: inStockQuantity, amount va rejectAmount maydonlari
       if (cake.productType === 'baked') {
         // Baker mahsulotlari
         cakeData.inStockQuantity = cake.inStockQuantity !== undefined ? cake.inStockQuantity : 0;
         cakeData.amount = cake.amount !== undefined ? cake.amount : 0;
+        cakeData.rejectAmount = cake.rejectAmount !== undefined ? cake.rejectAmount : 0;
         
         // Available holati: quantity mavjud va > 0 bo'lsa true
         if (cake.quantity !== undefined && cake.quantity > 0) {
@@ -42,6 +43,7 @@ class ProductService {
       } else if (cake.productType === 'ready') {
         // Shop mahsulotlari
         cakeData.inStockQuantity = cake.inStockQuantity !== undefined ? cake.inStockQuantity : 0;
+        cakeData.rejectAmount = cake.rejectAmount !== undefined ? cake.rejectAmount : 0;
         cakeData.available = (cakeData.inStockQuantity > 0);
       }
 
@@ -61,6 +63,7 @@ class ProductService {
         productType: cakeData.productType,
         inStockQuantity: cakeData.inStockQuantity,
         amount: cakeData.amount,
+        rejectAmount: cakeData.rejectAmount,
         available: cakeData.available
       });
 
@@ -174,6 +177,7 @@ class ProductService {
         quantity: cake.quantity,
         amount: cake.amount,
         inStockQuantity: cake.inStockQuantity,
+        rejectAmount: cake.rejectAmount,
         orderQuantity
       });
 
@@ -287,7 +291,8 @@ class ProductService {
         available: cake.available,
         quantity: cake.quantity,
         amount: cake.amount,
-        inStockQuantity: cake.inStockQuantity
+        inStockQuantity: cake.inStockQuantity,
+        rejectAmount: cake.rejectAmount
       });
 
       const updateData: any = {};
@@ -318,24 +323,31 @@ class ProductService {
             statusChange: newQuantity > 0 ? '"Buyurtma uchun" -> "Hozir mavjud"' : 'Mavjud emas'
           });
         } else {
-          // "Buyurtma uchun" dan bekor qilindi - FAQAT amount kamayadi
+          // "Buyurtma uchun" dan bekor qilindi - FAQAT amount kamayadi va rejectAmount oshadi
           // Quantity va inStockQuantity HECH QACHON o'zgartirilmaydi
           const currentAmount = cake.amount || 0;
           const newAmount = Math.max(0, currentAmount - orderQuantity);
           updateData.amount = newAmount;
           
+          // Bekor qilingan miqdorni rejectAmount ga qo'shish
+          const currentRejectAmount = cake.rejectAmount || 0;
+          updateData.rejectAmount = currentRejectAmount + orderQuantity;
+          
           // CRITICAL: quantity, inStockQuantity va available holatini o'zgartirmaslik
           // "Buyurtma uchun" mahsulotlar virtual buyurtma, real zaxira emas
           
-          console.log('🔄 Baker "Buyurtma uchun" bekor qilindi - FAQAT amount kamaytirildi:', {
+          console.log('🔄 Baker "Buyurtma uchun" bekor qilindi - amount kamaydi, rejectAmount oshdi:', {
             oldAmount: currentAmount,
             newAmount,
+            oldRejectAmount: currentRejectAmount,
+            newRejectAmount: updateData.rejectAmount,
             orderQuantity,
             amountReduction: currentAmount - newAmount,
+            rejectAmountIncrease: orderQuantity,
             quantityUNTOUCHED: cake.quantity || 0,
             availableUNTOUCHED: cake.available,
             inStockUNTOUCHED: cake.inStockQuantity || 0,
-            rule: 'BUYURTMA UCHUN bekor qilinganda hech qanday zaxira o\'zgartirilmaydi'
+            rule: 'BUYURTMA UCHUN bekor qilinganda amount kamayadi, rejectAmount oshadi'
           });
         }
         
