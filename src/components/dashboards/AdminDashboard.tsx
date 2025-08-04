@@ -724,7 +724,7 @@ const AdminDashboard = () => {
                       <Eye size={16} />
                     </button>
                     <button className="text-green-600 hover:text-green-700">
-                      <Edit size={16})
+                      <Edit size={16} />
                     </button>
                   </div>
                 </div>
