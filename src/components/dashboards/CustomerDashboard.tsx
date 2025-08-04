@@ -540,6 +540,11 @@ const CustomerDashboard = () => {
                         <span className="text-xs text-gray-500">Baholangan</span>
                       </div>
                     )}
+                    {order.status !== 'delivered' && (
+                      <div className="text-xs text-gray-400 italic">
+                        Qabul qilingandan keyin baho bering
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
