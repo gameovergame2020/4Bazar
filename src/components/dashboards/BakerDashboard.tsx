@@ -543,21 +543,23 @@ const BakerDashboard = () => {
     try {
       const updateData: any = {};
 
-      if (field === 'amount') {
-        updateData.amount = newValue;
-        // Available holati amount emas, faqat inStockQuantity ga bog'liq
-        // Hozirgi inStockQuantity ni olish kerak
-        const cake = myCakes.find(c => c.id === productId);
-        const currentInStock = cake?.inStockQuantity || 0;
-        updateData.available = currentInStock > 0; // Faqat inStockQuantity > 0 bo'lsa available
-      } else if (field === 'inStockQuantity') {
-        updateData.inStockQuantity = newValue;
-        updateData.available = newValue > 0; // Faqat inStockQuantity > 0 bo'lsa available
-      } else {
-        // Legacy support
-        updateData.quantity = newValue;
-        updateData.available = newValue > 0;
-      }
+          if (field === 'amount') {
+            updateData.amount = newValue;
+            // Available holati quantity ga bog'liq
+            const cake = myCakes.find(c => c.id === productId);
+            const currentQuantity = cake?.quantity || 0;
+            updateData.available = currentQuantity > 0; // Faqat quantity > 0 bo'lsa available
+          } else if (field === 'inStockQuantity') {
+            updateData.inStockQuantity = newValue;
+            // Available holati quantity ga bog'liq, inStockQuantity ga emas
+            const cake = myCakes.find(c => c.id === productId);
+            const currentQuantity = cake?.quantity || 0;
+            updateData.available = currentQuantity > 0;
+          } else {
+            // Legacy support - quantity o'zgarganda
+            updateData.quantity = newValue;
+            updateData.available = newValue > 0;
+          }
 
       await dataService.updateCake(productId, updateData);
       await loadData();
