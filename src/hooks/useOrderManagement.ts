@@ -31,24 +31,36 @@ export const useOrderManagement = (orders: Order[], setOrders: React.Dispatch<Re
             cakeId: order.cakeId,
             quantity: order.quantity,
             fromStock: order.fromStock,
-            status: order.status
+            status: order.status,
+            customerName: order.customerName
           });
 
-          // Buyurtma holatini cancelled qilib o'zgartirish
+          // MUHIM: Buyurtma holatini cancelled qilib o'zgartirish
           await dataService.updateOrderStatus(orderId, 'cancelled');
           
-          // Mahsulot miqdorini qaytarish (fromStock flag ni hisobga olgan holda)
-          const fromStockStatus = order.fromStock !== undefined ? order.fromStock : true; // Default true deb hisoblaymiz
+          // MUHIM: Mahsulot miqdorini qaytarish va inStockQuantity ni to'g'ri boshqarish
+          const fromStockStatus = order.fromStock !== undefined ? order.fromStock : true;
+          
+          console.log('🔄 Operator bekor qilish: mahsulot quantity va inStockQuantity ni qaytarish:', {
+            cakeId: order.cakeId,
+            orderQuantity: order.quantity,
+            fromStock: fromStockStatus
+          });
+          
           await dataService.revertOrderQuantity(order.cakeId, order.quantity, fromStockStatus);
           
-          console.log('✅ Operator: buyurtma bekor qilindi va mahsulot soni qaytarildi');
+          console.log('✅ Operator: buyurtma bekor qilindi, mahsulot quantity va inStockQuantity to\'g\'ri qaytarildi');
         }
         
+        // Local state ni yangilash
         setOrders(prev => prev.filter(order => order.id !== orderId));
-        loadData();
+        
+        // Ma'lumotlarni qayta yuklash
+        await loadData();
+        
       } catch (error) {
-        console.error('Buyurtmani o\'chirishda xatolik:', error);
-        alert('Buyurtmani o\'chirishda xatolik yuz berdi');
+        console.error('❌ Operator buyurtmani bekor qilishda xatolik:', error);
+        alert('Buyurtmani o\'chirishda xatolik yuz berdi. Qaytadan urinib ko\'ring.');
       }
     }
   };

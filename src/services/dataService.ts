@@ -1141,8 +1141,9 @@ class DataService {
         
         if (fromStock) {
           // "Hozir mavjud" dan sotilgan mahsulot operator tomonidan bekor qilindi
-          // inStockQuantity dan olib tashlab, quantity ga qaytarish
-          const newInStockQuantity = Math.max(0, (cake.inStockQuantity || 0) - orderQuantity);
+          // inStockQuantity dan BUTUNLAY olib tashlab, quantity ga qaytarish
+          const currentInStock = cake.inStockQuantity || 0;
+          const newInStockQuantity = Math.max(0, currentInStock - orderQuantity);
           const newQuantity = (cake.quantity || 0) + orderQuantity;
           
           updateData.inStockQuantity = newInStockQuantity;
@@ -1154,8 +1155,9 @@ class DataService {
           console.log('✅ Baker "Hozir mavjud" dan bekor qilindi - quantity qaytarildi:', {
             oldQuantity: cake.quantity || 0,
             newQuantity,
-            oldInStock: cake.inStockQuantity || 0,
+            oldInStock: currentInStock,
             newInStock: newInStockQuantity,
+            orderQuantity,
             newAvailable: updateData.available,
             statusChange: newQuantity > 0 ? '"Buyurtma uchun" -> "Hozir mavjud"' : 'Mavjud emas'
           });
@@ -1169,15 +1171,17 @@ class DataService {
             oldAmount: cake.amount || 0,
             newAmount,
             quantityUnchanged: cake.quantity || 0,
-            availableUnchanged: cake.available
+            availableUnchanged: cake.available,
+            inStockUnchanged: cake.inStockQuantity || 0
           });
         }
         
       } else if (cake.productType === 'ready') {
         // Shop mahsulotlari - faqat "Hozir mavjud" dan sotiladi
         if (fromStock) {
-          // inStockQuantity dan olib tashlab, quantity ga qaytarish
-          const newInStockQuantity = Math.max(0, (cake.inStockQuantity || 0) - orderQuantity);
+          // inStockQuantity dan BUTUNLAY olib tashlab, quantity ga qaytarish
+          const currentInStock = cake.inStockQuantity || 0;
+          const newInStockQuantity = Math.max(0, currentInStock - orderQuantity);
           const newQuantity = (cake.quantity || 0) + orderQuantity;
           
           updateData.inStockQuantity = newInStockQuantity;
@@ -1189,8 +1193,9 @@ class DataService {
           console.log('✅ Shop mahsulot bekor qilindi - quantity qaytarildi:', {
             oldQuantity: cake.quantity || 0,
             newQuantity,
-            oldInStock: cake.inStockQuantity || 0,
+            oldInStock: currentInStock,
             newInStock: newInStockQuantity,
+            orderQuantity,
             newAvailable: updateData.available,
             statusChange: newQuantity > 0 ? 'Tugagan -> Mavjud' : 'Tugagan'
           });
