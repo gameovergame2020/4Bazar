@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
@@ -16,7 +17,17 @@ import {
   Award,
   Target,
   TrendingUp,
-  Plus
+  Plus,
+  Settings,
+  Bell,
+  Shield,
+  CreditCard,
+  Globe,
+  Smartphone,
+  Lock,
+  Eye,
+  EyeOff,
+  Check
 } from 'lucide-react';
 import { UserData, authService } from '../../services/authService';
 import { dataService } from '../../services/dataService';
@@ -31,6 +42,7 @@ interface CustomerProfileProps {
 const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [activeSettingsTab, setActiveSettingsTab] = useState('profile');
   const [stats, setStats] = useState({
     totalOrders: 0,
     completedOrders: 0,
@@ -55,11 +67,44 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
   const [usernameRequests, setUsernameRequests] = useState<any[]>([]);
   const [loadingUsernameRequest, setLoadingUsernameRequest] = useState(false);
 
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
+  const [settings, setSettings] = useState({
+    notifications: {
+      orderUpdates: true,
+      promotions: false,
+      emailNotifications: false,
+      pushNotifications: true,
+      smsNotifications: true
+    },
+    privacy: {
+      profileVisibility: 'public',
+      showOrderHistory: false,
+      allowReviews: true,
+      dataSharing: false
+    },
+    preferences: {
+      language: 'uz',
+      currency: 'UZS',
+      theme: 'light',
+      autoSave: true,
+      quickOrder: false
+    },
+    security: {
+      twoFactorAuth: false,
+      loginAlerts: true,
+      deviceTracking: true,
+      autoLogout: false
+    }
+  });
+
   const { favoriteCount, favorites, loadFavorites, removeFromFavorites } = useFavorites(user.id);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('orders');
+  const [activeTab, setActiveTab] = useState('profile');
   const [isOrdersExpanded, setIsOrdersExpanded] = useState(false);
   const [isFavoritesExpanded, setIsFavoritesExpanded] = useState(false);
 
@@ -179,7 +224,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
         completedOrders: completedOrders.length,
         totalSpent,
         favoriteCount,
-        averageRating: 4.5, // Customer feedback rating
+        averageRating: 4.5,
         membershipLevel
       });
     } catch (error) {
@@ -218,12 +263,615 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
     }
   };
 
+  const handleSettingChange = (category: string, key: string, value: any) => {
+    setSettings(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [key]: value
+      }
+    }));
+  };
+
   const getMembershipColor = (level: string) => {
     switch (level) {
       case 'Platinum': return 'from-gray-400 to-gray-600';
       case 'Gold': return 'from-yellow-400 to-yellow-600';
       case 'Silver': return 'from-gray-300 to-gray-500';
       default: return 'from-orange-400 to-orange-600';
+    }
+  };
+
+  const settingsTabs = [
+    { id: 'profile', name: 'Profil', icon: User },
+    { id: 'notifications', name: 'Bildirishnomalar', icon: Bell },
+    { id: 'security', name: 'Xavfsizlik', icon: Shield },
+    { id: 'privacy', name: 'Maxfiylik', icon: Lock },
+    { id: 'preferences', name: 'Sozlamalar', icon: Settings }
+  ];
+
+  const renderSettingsContent = () => {
+    switch (activeSettingsTab) {
+      case 'profile':
+        return (
+          <div className="space-y-6">
+            {/* Basic Profile Info */}
+            <div className="bg-white rounded-xl p-6 border border-gray-100">
+              <h4 className="font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                <User size={18} className="text-blue-500" />
+                <span>Shaxsiy ma'lumotlar</span>
+              </h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">To'liq ism</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editForm.name}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <span>{user.name}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  {isEditing ? (
+                    <input
+                      type="email"
+                      value={editForm.email}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <Mail size={16} className="text-gray-400" />
+                      <span>{user.email || 'Belgilanmagan'}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Telefon</label>
+                  {isEditing ? (
+                    <input
+                      type="tel"
+                      value={editForm.phone}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <Phone size={16} className="text-gray-400" />
+                      <span>{user.phone}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tug'ilgan kun</label>
+                  {isEditing ? (
+                    <input
+                      type="date"
+                      value={editForm.birthDate}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, birthDate: e.target.value }))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <Calendar size={16} className="text-gray-400" />
+                      <span>{user.birthDate ? new Date(user.birthDate).toLocaleDateString('uz-UZ') : 'Belgilanmagan'}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Manzil</label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editForm.address}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, address: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Yashash manzilingiz"
+                  />
+                ) : (
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                    <MapPin size={16} className="text-gray-400" />
+                    <span>{user.address || 'Belgilanmagan'}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                {isEditing ? (
+                  <textarea
+                    value={editForm.bio}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, bio: e.target.value }))}
+                    className="w-full p-3 border border-gray-300 rounded-lg resize-none"
+                    rows={3}
+                    placeholder="O'zingiz haqida qisqacha..."
+                  />
+                ) : (
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <span>{user.bio || 'Bio belgilanmagan'}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Username Section */}
+            {user.isVerified && (
+              <div className="bg-white rounded-xl p-6 border border-gray-100">
+                <h4 className="font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                  <span className="text-blue-500">@</span>
+                  <span>Username</span>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    ✓ Tasdiqlangan
+                  </span>
+                </h4>
+                
+                <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-900">
+                      {user.username ? (
+                        <span className="font-mono text-blue-600">@{user.username}</span>
+                      ) : (
+                        <span className="text-gray-500">Username belgilanmagan</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Username sizning noyob identifikatoringiz
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowUsernameModal(true)}
+                    className="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                  >
+                    {user.username ? 'O\'zgartirish' : 'Qo\'shish'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Password Change */}
+            <div className="bg-white rounded-xl p-6 border border-gray-100">
+              <button 
+                onClick={() => setShowPasswordForm(!showPasswordForm)}
+                className="w-full flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-3">
+                  <Lock size={18} className="text-red-500" />
+                  <span className="font-medium text-gray-900">Parolni o'zgartirish</span>
+                </div>
+                <span className={`transform transition-transform ${showPasswordForm ? 'rotate-180' : ''}`}>
+                  ▼
+                </span>
+              </button>
+
+              {showPasswordForm && (
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Joriy parol</label>
+                    <div className="relative">
+                      <input
+                        type={showCurrentPassword ? 'text' : 'password'}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        placeholder="Joriy parolingizni kiriting"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      >
+                        {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Yangi parol</label>
+                    <div className="relative">
+                      <input
+                        type={showNewPassword ? 'text' : 'password'}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        placeholder="Yangi parolingizni kiriting"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      >
+                        {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-3">
+                    <button className="flex-1 bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition-colors">
+                      Parolni yangilash
+                    </button>
+                    <button 
+                      onClick={() => setShowPasswordForm(false)}
+                      className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                      Bekor qilish
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 'notifications':
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl p-6 border border-gray-100">
+              <h4 className="font-semibold text-gray-900 mb-6 flex items-center space-x-2">
+                <Bell size={18} className="text-yellow-500" />
+                <span>Bildirishnoma turlari</span>
+              </h4>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h5 className="font-medium text-gray-900">Buyurtma yangiliklari</h5>
+                    <p className="text-sm text-gray-600">Buyurtma holati haqida xabarlar</p>
+                  </div>
+                  <button
+                    onClick={() => handleSettingChange('notifications', 'orderUpdates', !settings.notifications.orderUpdates)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.notifications.orderUpdates ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.notifications.orderUpdates ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h5 className="font-medium text-gray-900">Aksiyalar va chegirmalar</h5>
+                    <p className="text-sm text-gray-600">Maxsus takliflar haqida xabarlar</p>
+                  </div>
+                  <button
+                    onClick={() => handleSettingChange('notifications', 'promotions', !settings.notifications.promotions)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.notifications.promotions ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.notifications.promotions ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Mail size={16} className="text-gray-400" />
+                    <div>
+                      <h5 className="font-medium text-gray-900">Email bildirishnomalar</h5>
+                      <p className="text-sm text-gray-600">Email orqali xabarlar olish</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleSettingChange('notifications', 'emailNotifications', !settings.notifications.emailNotifications)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.notifications.emailNotifications ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.notifications.emailNotifications ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Smartphone size={16} className="text-gray-400" />
+                    <div>
+                      <h5 className="font-medium text-gray-900">Push bildirishnomalar</h5>
+                      <p className="text-sm text-gray-600">Mobil qurilmaga xabarlar</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleSettingChange('notifications', 'pushNotifications', !settings.notifications.pushNotifications)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.notifications.pushNotifications ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.notifications.pushNotifications ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Phone size={16} className="text-gray-400" />
+                    <div>
+                      <h5 className="font-medium text-gray-900">SMS xabarlar</h5>
+                      <p className="text-sm text-gray-600">Telefonga SMS orqali xabarlar</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleSettingChange('notifications', 'smsNotifications', !settings.notifications.smsNotifications)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.notifications.smsNotifications ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.notifications.smsNotifications ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'security':
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl p-6 border border-gray-100">
+              <h4 className="font-semibold text-gray-900 mb-6 flex items-center space-x-2">
+                <Shield size={18} className="text-red-500" />
+                <span>Xavfsizlik sozlamalari</span>
+              </h4>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h5 className="font-medium text-gray-900">Ikki faktorli autentifikatsiya</h5>
+                    <p className="text-sm text-gray-600">Qo'shimcha xavfsizlik qatlami</p>
+                  </div>
+                  <button
+                    onClick={() => handleSettingChange('security', 'twoFactorAuth', !settings.security.twoFactorAuth)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.security.twoFactorAuth ? 'bg-red-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.security.twoFactorAuth ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h5 className="font-medium text-gray-900">Kirish ogohlantirishlari</h5>
+                    <p className="text-sm text-gray-600">Yangi qurilmadan kirganda xabar olish</p>
+                  </div>
+                  <button
+                    onClick={() => handleSettingChange('security', 'loginAlerts', !settings.security.loginAlerts)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.security.loginAlerts ? 'bg-red-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.security.loginAlerts ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h5 className="font-medium text-gray-900">Qurilmalarni kuzatish</h5>
+                    <p className="text-sm text-gray-600">Faol qurilmalarni nazorat qilish</p>
+                  </div>
+                  <button
+                    onClick={() => handleSettingChange('security', 'deviceTracking', !settings.security.deviceTracking)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.security.deviceTracking ? 'bg-red-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.security.deviceTracking ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h5 className="font-medium text-gray-900">Avtomatik chiqish</h5>
+                    <p className="text-sm text-gray-600">Faolsizlik vaqtida avtomatik chiqish</p>
+                  </div>
+                  <button
+                    onClick={() => handleSettingChange('security', 'autoLogout', !settings.security.autoLogout)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.security.autoLogout ? 'bg-red-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.security.autoLogout ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'privacy':
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl p-6 border border-gray-100">
+              <h4 className="font-semibold text-gray-900 mb-6 flex items-center space-x-2">
+                <Lock size={18} className="text-purple-500" />
+                <span>Maxfiylik sozlamalari</span>
+              </h4>
+              
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h5 className="font-medium text-gray-900 mb-2">Profil ko'rinishi</h5>
+                  <p className="text-sm text-gray-600 mb-3">Kim sizning profilingizni ko'ra oladi</p>
+                  <select
+                    value={settings.privacy.profileVisibility}
+                    onChange={(e) => handleSettingChange('privacy', 'profileVisibility', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="public">Hammaga ochiq</option>
+                    <option value="friends">Faqat do'stlar</option>
+                    <option value="private">Maxfiy</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h5 className="font-medium text-gray-900">Buyurtmalar tarixini ko'rsatish</h5>
+                    <p className="text-sm text-gray-600">Boshqalar sizning buyurtmalaringizni ko'ra oladi</p>
+                  </div>
+                  <button
+                    onClick={() => handleSettingChange('privacy', 'showOrderHistory', !settings.privacy.showOrderHistory)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.privacy.showOrderHistory ? 'bg-purple-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.privacy.showOrderHistory ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h5 className="font-medium text-gray-900">Sharhlar va baholarni qabul qilish</h5>
+                    <p className="text-sm text-gray-600">Boshqalar sizga sharh qoldira oladi</p>
+                  </div>
+                  <button
+                    onClick={() => handleSettingChange('privacy', 'allowReviews', !settings.privacy.allowReviews)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.privacy.allowReviews ? 'bg-purple-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.privacy.allowReviews ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h5 className="font-medium text-gray-900">Ma'lumotlarni ulashish</h5>
+                    <p className="text-sm text-gray-600">Statistika va tahlil uchun anonim ma'lumotlar</p>
+                  </div>
+                  <button
+                    onClick={() => handleSettingChange('privacy', 'dataSharing', !settings.privacy.dataSharing)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.privacy.dataSharing ? 'bg-purple-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.privacy.dataSharing ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'preferences':
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl p-6 border border-gray-100">
+              <h4 className="font-semibold text-gray-900 mb-6 flex items-center space-x-2">
+                <Settings size={18} className="text-green-500" />
+                <span>Umumiy sozlamalar</span>
+              </h4>
+              
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h5 className="font-medium text-gray-900 mb-2">Til</h5>
+                  <p className="text-sm text-gray-600 mb-3">Interfeys tili</p>
+                  <select
+                    value={settings.preferences.language}
+                    onChange={(e) => handleSettingChange('preferences', 'language', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="uz">O'zbek tili</option>
+                    <option value="ru">Русский язык</option>
+                    <option value="en">English</option>
+                  </select>
+                </div>
+
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h5 className="font-medium text-gray-900 mb-2">Valyuta</h5>
+                  <p className="text-sm text-gray-600 mb-3">Narxlarni ko'rsatish uchun valyuta</p>
+                  <select
+                    value={settings.preferences.currency}
+                    onChange={(e) => handleSettingChange('preferences', 'currency', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="UZS">O'zbek so'mi (UZS)</option>
+                    <option value="USD">AQSh dollari (USD)</option>
+                    <option value="RUB">Rossiya rubli (RUB)</option>
+                  </select>
+                </div>
+
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h5 className="font-medium text-gray-900 mb-2">Mavzu</h5>
+                  <p className="text-sm text-gray-600 mb-3">Interfeys ko'rinishi</p>
+                  <select
+                    value={settings.preferences.theme}
+                    onChange={(e) => handleSettingChange('preferences', 'theme', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="light">Yorug'</option>
+                    <option value="dark">Qorong'u</option>
+                    <option value="auto">Avtomatik</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h5 className="font-medium text-gray-900">Avtomatik saqlash</h5>
+                    <p className="text-sm text-gray-600">O'zgarishlarni avtomatik saqlash</p>
+                  </div>
+                  <button
+                    onClick={() => handleSettingChange('preferences', 'autoSave', !settings.preferences.autoSave)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.preferences.autoSave ? 'bg-green-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.preferences.autoSave ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h5 className="font-medium text-gray-900">Tezkor buyurtma</h5>
+                    <p className="text-sm text-gray-600">Bir click orqali buyurtma berish</p>
+                  </div>
+                  <button
+                    onClick={() => handleSettingChange('preferences', 'quickOrder', !settings.preferences.quickOrder)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      settings.preferences.quickOrder ? 'bg-green-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      settings.preferences.quickOrder ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
     }
   };
 
@@ -294,41 +942,22 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
               </div>
 
               <div className="flex-1 mt-4 md:mt-0">
-                {isEditing ? (
-                  <div className="space-y-4">
-                    <input
-                      type="text"
-                      value={editForm.name}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                      className="text-2xl font-bold bg-transparent border-b-2 border-blue-300 focus:border-blue-500 outline-none"
-                      placeholder="Ismingiz"
-                    />
-                    <textarea
-                      value={editForm.bio}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, bio: e.target.value }))}
-                      className="w-full p-3 border border-gray-300 rounded-lg resize-none"
-                      rows={3}
-                      placeholder="O'zingiz haqida qisqacha..."
-                    />
-                  </div>
-                ) : (
-                  <div>
-                    <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
-                    <h2 className="text-lg text-blue-600 font-medium">@{user.username || 'username'}</h2>
-                    <h3 className="text-base text-gray-500 font-medium">Tortbazar mijozi</h3>
-                    <p className="text-gray-600 mt-1">{user.bio || 'Tort sevuvchi mijoz'}</p>
-                    <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                      <div className="flex items-center space-x-1">
-                        <Calendar size={14} />
-                        <span>{new Date(user.joinDate).toLocaleDateString('uz-UZ')} dan a'zo</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Star size={14} className="text-yellow-400 fill-current" />
-                        <span>{stats.averageRating} reyting</span>
-                      </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
+                  <h2 className="text-lg text-blue-600 font-medium">@{user.username || 'username'}</h2>
+                  <h3 className="text-base text-gray-500 font-medium">Tortbazar mijozi</h3>
+                  <p className="text-gray-600 mt-1">{user.bio || 'Tort sevuvchi mijoz'}</p>
+                  <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                    <div className="flex items-center space-x-1">
+                      <Calendar size={14} />
+                      <span>{new Date(user.joinDate).toLocaleDateString('uz-UZ')} dan a'zo</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Star size={14} className="text-yellow-400 fill-current" />
+                      <span>{stats.averageRating} reyting</span>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </div>
@@ -369,162 +998,10 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
           </div>
         </div>
 
-        {/* Contact Information */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Aloqa ma'lumotlari</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Telefon raqam</label>
-              {isEditing ? (
-                <input
-                  type="tel"
-                  value={editForm.phone}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              ) : (
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <Phone size={16} className="text-gray-400" />
-                  <span>{user.phone}</span>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-              {isEditing ? (
-                <input
-                  type="email"
-                  value={editForm.email}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              ) : (
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <Mail size={16} className="text-gray-400" />
-                  <span>{user.email || 'Belgilanmagan'}</span>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Manzil</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={editForm.address}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, address: e.target.value }))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Yashash manzilingiz"
-                />
-              ) : (
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <MapPin size={16} className="text-gray-400" />
-                  <span>{user.address || 'Belgilanmagan'}</span>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Tug'ilgan kun</label>
-              {isEditing ? (
-                <input
-                  type="date"
-                  value={editForm.birthDate}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, birthDate: e.target.value }))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              ) : (
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <Calendar size={16} className="text-gray-400" />
-                  <span>{user.birthDate ? new Date(user.birthDate).toLocaleDateString('uz-UZ') : 'Belgilanmagan'}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Username bo'limi - faqat admin tasdiqlagan foydalanuvchilar uchun */}
-          <div className="mt-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Username
-                </label>
-                <p className="text-xs text-gray-500">
-                  Admin tomonidan tasdiqlangan foydalanuvchilar uchun maxsus
-                </p>
-              </div>
-              {user.isVerified && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  ✓ Tasdiqlangan
-                </span>
-              )}
-            </div>
-
-            {user.isVerified ? (
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-gray-900">
-                      {user.username ? (
-                        <span className="font-mono text-blue-600">@{user.username}</span>
-                      ) : (
-                        <span className="text-gray-500">Username belgilanmagan</span>
-                      )}
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      Username sizning noyob identifikatoringiz
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowUsernameModal(true)}
-                    className="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-                  >
-                    {user.username ? 'O\'zgartirish' : 'Qo\'shish'}
-                  </button>
-                </div>
-
-                {/* Faol username so'rovlari */}
-                {usernameRequests.filter(req => req.status === 'pending').length > 0 && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-yellow-600">⏳</span>
-                      <span className="text-sm font-medium text-yellow-800">
-                        {usernameRequests.filter(req => req.status === 'pending').length} ta so'rov kutilmoqda
-                      </span>
-                    </div>
-                    <p className="text-xs text-yellow-700 mt-1">
-                      Admin tomonidan ko'rib chiqiladi
-                    </p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                <div className="text-center">
-                  <div className="w-12 h-12 mx-auto mb-3 bg-gray-200 rounded-full flex items-center justify-center">
-                    <span className="text-2xl">🔒</span>
-                  </div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">
-                    Username funksiyasi yopiq
-                  </h4>
-                  <p className="text-xs text-gray-600 mb-3">
-                    Username qo'shish uchun avval admin tomonidan tasdiqlanishingiz kerak
-                  </p>
-                  <div className="text-xs text-gray-500">
-                    💡 Admin bilan bog'laning yoki faoliyatingizni oshiring
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Orders and Favorites Management */}
+        {/* Main Tabs */}
         <div className="bg-white rounded-2xl p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Buyurtmalar va Sevimlilar</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Boshqaruv paneli</h3>
             <div className="flex space-x-2">
               <button
                 onClick={() => setActiveTab('orders')}
@@ -545,6 +1022,16 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
                 }`}
               >
                 Sevimlilar ({favoriteCount})
+              </button>
+              <button
+                onClick={() => setActiveTab('settings')}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  activeTab === 'settings' 
+                    ? 'bg-green-500 text-white' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Sozlamalar
               </button>
             </div>
           </div>
@@ -654,6 +1141,34 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
               )}
             </div>
           )}
+
+          {activeTab === 'settings' && (
+            <div>
+              {/* Settings Navigation */}
+              <div className="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg">
+                {settingsTabs.map((tab) => {
+                  const IconComponent = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveSettingsTab(tab.id)}
+                      className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                        activeSettingsTab === tab.id
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <IconComponent size={16} />
+                      <span className="hidden sm:inline">{tab.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Settings Content */}
+              {renderSettingsContent()}
+            </div>
+          )}
         </div>
 
         {/* Achievement Section */}
@@ -689,178 +1204,6 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
                 <div className="text-xs text-gray-600">10+ sevimli</div>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Settings Section */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Sozlamalar</h3>
-
-          {/* Settings Navigation */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-            {/* Profile Settings */}
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-900 mb-3 flex items-center space-x-2">
-                <User size={18} className="text-blue-500" />
-                <span>Profil sozlamalari</span>
-              </h4>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Profilni tahrirlash</span>
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Parolni o'zgartirish</span>
-                  <button className="text-blue-600 hover:text-blue-700">
-                    <Edit2 size={16} />
-                  </button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Username o'zgartirish</span>
-                  <button 
-                    onClick={() => setShowUsernameModal(true)}
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">2FA xavfsizlik</span>
-                  <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300">
-                    <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1"></span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Addresses & Payment */}
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-900 mb-3 flex items-center space-x-2">
-                <MapPin size={18} className="text-green-500" />
-                <span>Manzillar va To'lov</span>
-              </h4>
-              <div className="space-y-3">
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-sm">Asosiy manzil</span>
-                    <button className="text-green-600 hover:text-green-700">
-                      <Edit2 size={14} />
-                    </button>
-                  </div>
-                  <p className="text-xs text-gray-600">{user.address || 'Manzil belgilanmagan'}</p>
-                </div>
-
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-sm">To'lov usuli</span>
-                    <button className="text-green-600 hover:text-green-700">
-                      <Plus size={14} />
-                    </button>
-                  </div>
-                  <p className="text-xs text-gray-600">Plastik karta qo'shish</p>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Avtomatik to'lov</span>
-                  <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-orange-500">
-                    <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-6"></span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Help & Support */}
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-900 mb-3 flex items-center space-x-2">
-                <Phone size={18} className="text-purple-500" />
-                <span>Yordam va Qo'llab-quvvatlash</span>
-              </h4>
-              <div className="space-y-3">
-                <button className="w-full text-left p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
-                  <div className="font-medium text-sm text-purple-900">Tez-tez so'raladigan savollar</div>
-                  <p className="text-xs text-purple-600 mt-1">Eng ko'p so'raladigan savollar va javoblar</p>
-                </button>
-
-                <button className="w-full text-left p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
-                  <div className="font-medium text-sm text-purple-900">Murojaat qilish</div>
-                  <p className="text-xs text-purple-600 mt-1">Qo'llab-quvvatlash xizmatiga murojaat</p>
-                </button>
-
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="font-medium text-sm text-gray-900 mb-2">Bog'lanish ma'lumotlari</div>
-                  <div className="space-y-1 text-xs text-gray-600">
-                    <p>📞 +998 90 123 45 67</p>
-                    <p>📧 support@tortbazar.uz</p>
-                    <p>🕒 Har kuni 9:00-21:00</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Notifications Settings */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <h4 className="font-medium text-gray-900 mb-4 flex items-center space-x-2">
-              <span className="p-2 bg-yellow-100 rounded-lg">
-                <span className="text-yellow-600">🔔</span>
-              </span>
-              <span>Bildirishnoma sozlamalari</span>
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Buyurtma holati</span>
-                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-orange-500">
-                  <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-6"></span>
-                </button>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Aksiyalar va chegirmalar</span>
-                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300">
-                  <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1"></span>
-                </button>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Yangi mahsulotlar</span>
-                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-orange-500">
-                  <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-6"></span>
-                </button>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Email bildirishnomalar</span>
-                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300">
-                  <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1"></span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <h4 className="font-medium text-gray-900 mb-4">Tezkor harakatlar</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <button className="p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors text-center">
-                <div className="text-blue-600 mb-1">📊</div>
-                <div className="text-xs font-medium text-blue-900">Statistika</div>
-              </button>
-              <button className="p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors text-center">
-                <div className="text-green-600 mb-1">💳</div>
-                <div className="text-xs font-medium text-green-900">To'lovlar</div>
-              </button>
-              <button className="p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors text-center">
-                <div className="text-purple-600 mb-1">⭐</div>
-                <div className="text-xs font-medium text-purple-900">Baholar</div>
-              </button>
-              <button className="p-3 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors text-center">
-                <div className="text-orange-600 mb-1">🎁</div>
-                <div className="text-xs font-medium text-orange-900">Bonuslar</div>
-              </button>
-            </div>
           </div>
         </div>
 
