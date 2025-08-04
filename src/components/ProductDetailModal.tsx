@@ -35,6 +35,7 @@ interface ProductDetailModalProps {
   cartQuantity: number;
   isFavorite: boolean;
   favoritesLoading: boolean;
+  onProviderClick?: (providerId: string, providerType: 'baker' | 'shop') => void;
 }
 
 const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
@@ -46,7 +47,8 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   onToggleFavorite,
   cartQuantity,
   isFavorite,
-  favoritesLoading
+  favoritesLoading,
+  onProviderClick
 }) => {
   const [activeTab, setActiveTab] = useState<'details' | 'reviews' | 'provider'>('details');
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -181,6 +183,15 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
     setProviderInfo(mockProviderInfo);
     setProviderProducts(mockProviderProducts);
+  };
+
+  const handleProviderClick = () => {
+    if (!cake || !onProviderClick) return;
+    
+    const providerId = cake.productType === 'baked' ? cake.bakerId : cake.shopId!;
+    const providerType = cake.productType === 'baked' ? 'baker' : 'shop';
+    
+    onProviderClick(providerId, providerType);
   };
 
   const handleSubmitComment = async () => {
@@ -320,9 +331,12 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 </div>
                 <div className="flex items-center space-x-1 text-gray-600">
                   <User size={16} />
-                  <span className="text-sm">
+                  <button 
+                    onClick={() => handleProviderClick()}
+                    className="text-sm hover:text-orange-600 transition-colors cursor-pointer underline-offset-2 hover:underline"
+                  >
                     {cake.productType === 'baked' ? `Oshpaz: ${cake.bakerName}` : `Do'kon: ${cake.shopName}`}
-                  </span>
+                  </button>
                 </div>
               </div>
             </div>

@@ -5,6 +5,8 @@ import { useAuth } from '../hooks/useAuth';
 import { useFavorites } from '../hooks/useFavorites';
 import CheckoutPage from './CheckoutPage';
 import ProductDetailModal from './ProductDetailModal';
+import BakerProfile from './BakerProfile';
+import { useAuth } from '../hooks/useAuth';
 
 const HomePage = () => {
   const { userData, isAuthenticated } = useAuth();
@@ -24,6 +26,8 @@ const HomePage = () => {
   const [filteredCakes, setFilteredCakes] = useState<CakeType[]>([]);
   const [selectedCake, setSelectedCake] = useState<CakeType | null>(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [showBakerProfile, setShowBakerProfile] = useState(false);
+  const [selectedBakerId, setSelectedBakerId] = useState<string | null>(null);
 
   const categories = [
     { name: 'Hammasi', icon: Cake, value: '' },
@@ -431,50 +435,24 @@ const addToCart = (cakeId: string) => {
     return new Intl.NumberFormat('uz-UZ').format(price) + ' so\'m';
   };
 
-  if (loading && cakes.length === 0) {
-    return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <div className="flex items-center justify-center min-h-96">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Tortlar yuklanmoqda...</p>
-          </div>
-        </div>
-      </div>
-    );
+  const handleProviderClick = (bakerId: string) => {
+    setSelectedBakerId(bakerId);
+    setShowBakerProfile(true);
+  };
+
+  if (!isAuthenticated) {
+    return <div>Tizimga kirishingiz kerak</div>;
   }
 
-  if (error) {
+  if (showBakerProfile && selectedBakerId) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button
-            onClick={loadCakes}
-            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-          >
-            Qayta urinish
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  console.log('Render: currentView =', currentView, 'cart keys:', Object.keys(cart).length);
-
-  // CheckoutPage'ni ko'rsatish
-  if (currentView === 'checkout') {
-    console.log('Rendering CheckoutPage with cart:', cart);
-    return (
-      <div key="checkout-page" className="min-h-screen">
-        <CheckoutPage
-          cart={cart}
-          cakes={cakes}
-          onBack={handleBackFromCheckout}
-          onOrderComplete={handleOrderComplete}
-          removeFromCart={removeFromCart}
-        />
-      </div>
+      <BakerProfile 
+        bakerId={selectedBakerId} 
+        onBack={() => {
+          setShowBakerProfile(false);
+          setSelectedBakerId(null);
+        }}
+      />
     );
   }
 
@@ -859,6 +837,7 @@ const addToCart = (cakeId: string) => {
         cartQuantity={selectedCake ? getCartQuantity(selectedCake.id!) : 0}
         isFavorite={selectedCake ? isFavorite(selectedCake.id!) : false}
         favoritesLoading={favoritesLoading}
+        onProviderClick={handleProviderClick}
       />
     </div>
   );
