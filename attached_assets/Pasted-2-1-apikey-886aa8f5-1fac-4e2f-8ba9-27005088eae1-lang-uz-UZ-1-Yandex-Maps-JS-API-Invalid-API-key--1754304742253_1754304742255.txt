@@ -1,0 +1,106 @@
+2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1 (Yandex Maps JS API): Invalid API key
+ymapsInit @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+(anonymous) @ 2.1/?apikey=886aa8f5-1fac-4e2f-8ba9-27005088eae1&lang=uz_UZ:1
+react-dom_client.js?v=c8e5f475:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+firebase.ts:47 ✅ Firebase muvaffaqiyatli ishga tushirildi
+BakerDashboard.tsx:38 Uncaught ReferenceError: Cannot access 'loadData' before initialization
+    at BakerDashboard (BakerDashboard.tsx:38:30)
+    at renderWithHooks (react-dom_client.js?v=c8e5f475:11548:26)
+    at mountIndeterminateComponent (react-dom_client.js?v=c8e5f475:14926:21)
+    at beginWork (react-dom_client.js?v=c8e5f475:15914:22)
+    at HTMLUnknownElement.callCallback2 (react-dom_client.js?v=c8e5f475:3674:22)
+    at Object.invokeGuardedCallbackDev (react-dom_client.js?v=c8e5f475:3699:24)
+    at invokeGuardedCallback (react-dom_client.js?v=c8e5f475:3733:39)
+    at beginWork$1 (react-dom_client.js?v=c8e5f475:19765:15)
+    at performUnitOfWork (react-dom_client.js?v=c8e5f475:19198:20)
+    at workLoopSync (react-dom_client.js?v=c8e5f475:19137:13)
+BakerDashboard @ BakerDashboard.tsx:38
+renderWithHooks @ react-dom_client.js?v=c8e5f475:11548
+mountIndeterminateComponent @ react-dom_client.js?v=c8e5f475:14926
+beginWork @ react-dom_client.js?v=c8e5f475:15914
+callCallback2 @ react-dom_client.js?v=c8e5f475:3674
+invokeGuardedCallbackDev @ react-dom_client.js?v=c8e5f475:3699
+invokeGuardedCallback @ react-dom_client.js?v=c8e5f475:3733
+beginWork$1 @ react-dom_client.js?v=c8e5f475:19765
+performUnitOfWork @ react-dom_client.js?v=c8e5f475:19198
+workLoopSync @ react-dom_client.js?v=c8e5f475:19137
+renderRootSync @ react-dom_client.js?v=c8e5f475:19116
+performConcurrentWorkOnRoot @ react-dom_client.js?v=c8e5f475:18678
+workLoop @ react-dom_client.js?v=c8e5f475:197
+flushWork @ react-dom_client.js?v=c8e5f475:176
+performWorkUntilDeadline @ react-dom_client.js?v=c8e5f475:384
+BakerDashboard.tsx:38 Uncaught ReferenceError: Cannot access 'loadData' before initialization
+    at BakerDashboard (BakerDashboard.tsx:38:30)
+    at renderWithHooks (react-dom_client.js?v=c8e5f475:11548:26)
+    at mountIndeterminateComponent (react-dom_client.js?v=c8e5f475:14926:21)
+    at beginWork (react-dom_client.js?v=c8e5f475:15914:22)
+    at HTMLUnknownElement.callCallback2 (react-dom_client.js?v=c8e5f475:3674:22)
+    at Object.invokeGuardedCallbackDev (react-dom_client.js?v=c8e5f475:3699:24)
+    at invokeGuardedCallback (react-dom_client.js?v=c8e5f475:3733:39)
+    at beginWork$1 (react-dom_client.js?v=c8e5f475:19765:15)
+    at performUnitOfWork (react-dom_client.js?v=c8e5f475:19198:20)
+    at workLoopSync (react-dom_client.js?v=c8e5f475:19137:13)
+BakerDashboard @ BakerDashboard.tsx:38
+renderWithHooks @ react-dom_client.js?v=c8e5f475:11548
+mountIndeterminateComponent @ react-dom_client.js?v=c8e5f475:14926
+beginWork @ react-dom_client.js?v=c8e5f475:15914
+callCallback2 @ react-dom_client.js?v=c8e5f475:3674
+invokeGuardedCallbackDev @ react-dom_client.js?v=c8e5f475:3699
+invokeGuardedCallback @ react-dom_client.js?v=c8e5f475:3733
+beginWork$1 @ react-dom_client.js?v=c8e5f475:19765
+performUnitOfWork @ react-dom_client.js?v=c8e5f475:19198
+workLoopSync @ react-dom_client.js?v=c8e5f475:19137
+renderRootSync @ react-dom_client.js?v=c8e5f475:19116
+recoverFromConcurrentError @ react-dom_client.js?v=c8e5f475:18736
+performConcurrentWorkOnRoot @ react-dom_client.js?v=c8e5f475:18684
+workLoop @ react-dom_client.js?v=c8e5f475:197
+flushWork @ react-dom_client.js?v=c8e5f475:176
+performWorkUntilDeadline @ react-dom_client.js?v=c8e5f475:384
+react-dom_client.js?v=c8e5f475:14032 The above error occurred in the <BakerDashboard> component:
+
+    at BakerDashboard (http://localhost:5173/src/components/dashboards/BakerDashboard.tsx?t=1754304671426:33:24)
+    at main
+    at div
+    at App (http://localhost:5173/src/App.tsx?t=1754304671426:37:39)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ react-dom_client.js?v=c8e5f475:14032
+update.callback @ react-dom_client.js?v=c8e5f475:14052
+callCallback @ react-dom_client.js?v=c8e5f475:11248
+commitUpdateQueue @ react-dom_client.js?v=c8e5f475:11265
+commitLayoutEffectOnFiber @ react-dom_client.js?v=c8e5f475:17093
+commitLayoutMountEffects_complete @ react-dom_client.js?v=c8e5f475:17980
+commitLayoutEffects_begin @ react-dom_client.js?v=c8e5f475:17969
+commitLayoutEffects @ react-dom_client.js?v=c8e5f475:17920
+commitRootImpl @ react-dom_client.js?v=c8e5f475:19353
+commitRoot @ react-dom_client.js?v=c8e5f475:19277
+finishConcurrentRender @ react-dom_client.js?v=c8e5f475:18760
+performConcurrentWorkOnRoot @ react-dom_client.js?v=c8e5f475:18718
+workLoop @ react-dom_client.js?v=c8e5f475:197
+flushWork @ react-dom_client.js?v=c8e5f475:176
+performWorkUntilDeadline @ react-dom_client.js?v=c8e5f475:384
+react-dom_client.js?v=c8e5f475:19413 Uncaught ReferenceError: Cannot access 'loadData' before initialization
+    at BakerDashboard (BakerDashboard.tsx:38:30)
+    at renderWithHooks (react-dom_client.js?v=c8e5f475:11548:26)
+    at mountIndeterminateComponent (react-dom_client.js?v=c8e5f475:14926:21)
+    at beginWork (react-dom_client.js?v=c8e5f475:15914:22)
+    at beginWork$1 (react-dom_client.js?v=c8e5f475:19753:22)
+    at performUnitOfWork (react-dom_client.js?v=c8e5f475:19198:20)
+    at workLoopSync (react-dom_client.js?v=c8e5f475:19137:13)
+    at renderRootSync (react-dom_client.js?v=c8e5f475:19116:15)
+    at recoverFromConcurrentError (react-dom_client.js?v=c8e5f475:18736:28)
+    at performConcurrentWorkOnRoot (react-dom_client.js?v=c8e5f475:18684:30)
+BakerDashboard @ BakerDashboard.tsx:38
+renderWithHooks @ react-dom_client.js?v=c8e5f475:11548
+mountIndeterminateComponent @ react-dom_client.js?v=c8e5f475:14926
+beginWork @ react-dom_client.js?v=c8e5f475:15914
+beginWork$1 @ react-dom_client.js?v=c8e5f475:19753
+performUnitOfWork @ react-dom_client.js?v=c8e5f475:19198
+workLoopSync @ react-dom_client.js?v=c8e5f475:19137
+renderRootSync @ react-dom_client.js?v=c8e5f475:19116
+recoverFromConcurrentError @ react-dom_client.js?v=c8e5f475:18736
+performConcurrentWorkOnRoot @ react-dom_client.js?v=c8e5f475:18684
+workLoop @ react-dom_client.js?v=c8e5f475:197
+flushWork @ react-dom_client.js?v=c8e5f475:176
+performWorkUntilDeadline @ react-dom_client.js?v=c8e5f475:384
