@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Clock, Package } from 'lucide-react';
+import { Plus, Clock, Package, User, LogOut } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useBakerOrders } from '../../hooks/useBakerOrders';
 import { useProductStock } from '../../hooks/useProductStock';
 import { useBakerStats } from '../../hooks/useBakerStats';
 import { useBakerForm } from '../../hooks/useBakerForm';
 import { dataService, Cake, Order } from '../../services/dataService';
+import { useProfileManager } from '../../hooks/useProfileManager';
+import ProfileManager from '../ProfileManager';
 
 // Components
 import { StatsGrid } from '../baker/StatsGrid';
@@ -15,7 +17,8 @@ import { ProductForm } from '../baker/ProductForm';
 import { OrderDetailsModal } from '../baker/OrderDetailsModal';
 
 const BakerDashboard = () => {
-  const { userData } = useAuth();
+  const { userData, logout, updateUser } = useAuth();
+  const { showProfile, profileType, openUserProfile, closeProfile } = useProfileManager();
   const [loading, setLoading] = useState(true);
   const [myCakes, setMyCakes] = useState<Cake[]>([]);
 
@@ -147,21 +150,23 @@ const BakerDashboard = () => {
     }
   };
 
-  if (loading && orders.length === 0 && myCakes.length === 0) {
+  if (!userData) {
     return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <div className="space-y-2">
-            <p className="text-lg font-medium text-gray-700">Ma'lumotlar yuklanmoqda</p>
-            <div className="flex justify-center space-x-1">
-              <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-              <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-              <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500"></div>
       </div>
+    );
+  }
+
+  // Profil ko'rsatilsa, ProfileManager ni render qilish
+  if (showProfile && profileType && userData) {
+    return (
+      <ProfileManager
+        user={userData}
+        profileType={profileType}
+        onBack={closeProfile}
+        onUpdate={updateUser}
+      />
     );
   }
 
@@ -171,6 +176,23 @@ const BakerDashboard = () => {
       <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl p-6 text-white">
         <h2 className="text-2xl font-bold mb-2">Salom, {userData?.name}!</h2>
         <p className="text-orange-100">Tort tayyorlovchi panelingizga xush kelibsiz</p>
+        <div className="flex items-center space-x-4">
+            <button
+              onClick={() => openUserProfile(userData)}
+              className="flex items-center space-x-2 px-4 py-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+            >
+              <User size={16} />
+              <span>Profil</span>
+            </button>
+            <span className="text-gray-600">{userData.name}</span>
+            <button
+              onClick={logout}
+              className="flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <LogOut size={16} />
+              <span>Chiqish</span>
+            </button>
+          </div>
       </div>
 
       {/* Quick Stats */}

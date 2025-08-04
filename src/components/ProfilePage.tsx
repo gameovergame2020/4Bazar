@@ -31,6 +31,25 @@ interface ProfilePageProps {
 }
 
 const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate }) => {
+  // ProfilePage faqat customer rollari uchun
+  if (user.role !== 'customer') {
+    console.warn(`ProfilePage faqat customer rollari uchun mo'ljallangan. Hozirgi rol: ${user.role}`);
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center text-white">
+          <h2 className="text-xl font-bold mb-4">Xatolik!</h2>
+          <p className="mb-4">Bu sahifa faqat mijozlar uchun mo'ljallangan.</p>
+          <button 
+            onClick={() => onNavigate('home')}
+            className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600"
+          >
+            Bosh sahifaga qaytish
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const [activeTab, setActiveTab] = useState('orders');
   const [isOrdersExpanded, setIsOrdersExpanded] = useState(false);
   const [isFavoritesExpanded, setIsFavoritesExpanded] = useState(false);

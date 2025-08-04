@@ -16,6 +16,7 @@ import LoginPage from './components/LoginPage';
 import PaymentAddressPage from './components/PaymentAddressPage';
 import HelpPage from './components/HelpPage';
 import AdvancedSettingsPage from './components/AdvancedSettingsPage';
+import ProfileManager from './components/ProfileManager'; // Assuming ProfileManager component exists
 
 type ActivePage = 'home' | 'restaurants' | 'community' | 'profile' | 'payment-address' | 'help' | 'advanced-settings';
 
@@ -23,8 +24,8 @@ function App() {
   const [activePage, setActivePage] = useState<ActivePage>('home');
   const [showNotifications, setShowNotifications] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  
-  const { userData, isAuthenticated, logout, loading } = useAuth();
+
+  const { userData, isAuthenticated, logout, loading, updateUser } = useAuth();
   const { 
     notifications, 
     unreadCount, 
@@ -72,16 +73,16 @@ function App() {
   const formatNotificationTime = (date: Date) => {
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) return 'Hozir';
     if (diffInMinutes < 60) return `${diffInMinutes} daqiqa oldin`;
-    
+
     const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) return `${diffInHours} soat oldin`;
-    
+
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays < 7) return `${diffInDays} kun oldin`;
-    
+
     return date.toLocaleDateString('uz-UZ');
   };
 
@@ -89,7 +90,7 @@ function App() {
     if (!notification.read) {
       await markAsRead(notification.id);
     }
-    
+
     // Agar actionUrl mavjud bo'lsa, o'sha sahifaga o'tish
     if (notification.actionUrl) {
       // Bu yerda routing logikasi qo'shilishi mumkin
@@ -124,11 +125,16 @@ function App() {
         return <CommunityPage />;
       case 'profile':
         return isAuthenticated ? (
-          <ProfilePage 
-            user={userData} 
-            onLogout={handleLogout}
-            onNavigate={setActivePage}
-          />
+          userData ? (
+            <ProfileManager
+              user={userData}
+              profileType={userData.role as 'customer' | 'baker' | 'shop' | 'courier' | 'admin' | 'operator'}
+              onBack={() => setActivePage('home')}
+              onUpdate={updateUser}
+            />
+          ) : (
+            <p>Foydalanuvchi ma'lumotlari yuklanmoqda...</p>
+          )
         ) : (
           <LoginPage />
         );
@@ -193,7 +199,7 @@ function App() {
             className="fixed inset-0 bg-black/20 z-40"
             onClick={() => setShowNotifications(false)}
           ></div>
-          
+
           {/* Notifications Panel */}
           <div className={`fixed ${isMobile ? 'inset-x-4 top-16' : 'top-16 right-4 w-80'} bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 max-h-96 overflow-hidden`}>
             {/* Header */}
@@ -217,7 +223,7 @@ function App() {
                 </button>
               </div>
             </div>
-            
+
             {/* Notifications List */}
             <div className="max-h-80 overflow-y-auto custom-scrollbar">
               {notificationsLoading ? (
@@ -287,7 +293,7 @@ function App() {
                 </div>
               )}
             </div>
-            
+
             {/* Footer */}
             {notifications.length > 0 && (
               <div className="p-3 border-t border-gray-100 bg-gray-50">

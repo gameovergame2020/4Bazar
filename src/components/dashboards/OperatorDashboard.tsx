@@ -1,5 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useProfileManager } from '../../hooks/useProfileManager';
+import ProfileManager from '../ProfileManager';
 import { useOperatorData } from '../../hooks/useOperatorData';
 import { useOrderManagement } from '../../hooks/useOrderManagement';
 import { useOrderSearch } from '../../hooks/useOrderSearch';

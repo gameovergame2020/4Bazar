@@ -2,11 +2,13 @@
 import { useState } from 'react';
 import { UserData } from '../services/authService';
 
+export type ProfileType = 'customer' | 'baker' | 'shop' | 'courier' | 'admin' | 'operator';
+
 export const useProfileManager = () => {
   const [showProfile, setShowProfile] = useState(false);
-  const [profileType, setProfileType] = useState<'customer' | 'baker' | 'shop' | 'courier' | 'admin' | 'operator' | null>(null);
+  const [profileType, setProfileType] = useState<ProfileType | null>(null);
 
-  const openProfile = (type: 'customer' | 'baker' | 'shop' | 'courier' | 'admin' | 'operator') => {
+  const openProfile = (type: ProfileType) => {
     setProfileType(type);
     setShowProfile(true);
   };
@@ -16,10 +18,17 @@ export const useProfileManager = () => {
     setProfileType(null);
   };
 
+  // Foydalanuvchi rolini aniqlash va tegishli profil ochish
+  const openUserProfile = (user: UserData) => {
+    const userRole = user.role as ProfileType;
+    openProfile(userRole);
+  };
+
   return {
     showProfile,
     profileType,
     openProfile,
-    closeProfile
+    closeProfile,
+    openUserProfile
   };
 };
