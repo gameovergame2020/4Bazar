@@ -102,18 +102,18 @@ class YandexMapsService {
       // API kalitini tekshirish
       const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
       
-      console.log('🔑 API kaliti tekshirilmoqda:', apiKey ? `${apiKey.substring(0, 10)}...` : 'mavjud emas');
+      console.log('🔑 API kaliti tekshirilmoqda:', apiKey ? `${apiKey.substring(0, 10)}...` : 'kalitsiz rejim');
       
-      if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_') || apiKey.trim() === '') {
-        reject(new Error('Yandex Maps API kaliti to\'g\'ri konfiguratsiya qilinmagan. .env faylida VITE_YANDEX_MAPS_API_KEY ni to\'ldiring.'));
-        return;
-      }
+      // API kaliti bo'lmasa ham davom etamiz (cheklangan rejim)
+      const apiKeyParam = (apiKey && apiKey !== 'undefined' && !apiKey.includes('your_') && apiKey.trim() !== '') 
+        ? `&apikey=${apiKey}` 
+        : '';
 
       console.log('🗺️ Yangi Yandex Maps skripti yuklanmoqda...');
 
       // Yangi skript yaratish
       const script = document.createElement('script');
-      script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&load=package.full`;
+      script.src = `https://api-maps.yandex.ru/2.1/?lang=uz_UZ&load=package.full${apiKeyParam}`;
       script.type = 'text/javascript';
       script.async = true;
       script.defer = true;

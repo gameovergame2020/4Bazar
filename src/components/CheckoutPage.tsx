@@ -494,6 +494,30 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     }
   };
 
+  // OpenStreetMap ni ishga tushirish (tekin va cheksiz)
+  const loadOpenStreetMap = async () => {
+    try {
+      console.log('🗺️ OpenStreetMap yuklanmoqda...');
+      setIsLoadingMap(true);
+      setGeocodingError(null);
+
+      // To'g'ridan-to'g'ri OpenStreetMap ishlatamiz
+      initializeOpenStreetMap();
+
+    } catch (error) {
+      console.error('❌ OpenStreetMap yuklashda xato:', error);
+      setGeocodingError('Xaritani yuklashda xato yuz berdi: ' + error.message);
+      setIsLoadingMap(false);
+    }
+  };
+
+// Komponent yuklanganda xaritani ishga tushirish
+  useEffect(() => {
+    if (mapRef.current && !isYmapsLoaded) {
+      loadOpenStreetMap();
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto">
