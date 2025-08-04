@@ -1502,13 +1502,28 @@ class DataService {
       }
 
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        joinDate: doc.data().createdAt?.toDate()?.toISOString() || new Date().toISOString(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        updatedAt: doc.data().updatedAt?.toDate() || new Date()
-      } as UserData));
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name || 'Noma\'lum',
+          email: data.email || '',
+          phone: data.phone || '',
+          role: data.role || 'customer',
+          avatar: data.avatar,
+          joinDate: data.createdAt?.toDate()?.toISOString() || new Date().toISOString(),
+          totalOrders: data.totalOrders,
+          favoriteCount: data.favoriteCount,
+          bakeryName: data.bakeryName,
+          specialties: data.specialties,
+          rating: data.rating,
+          shopName: data.shopName,
+          location: data.location,
+          vehicleType: data.vehicleType,
+          deliveryZone: data.deliveryZone,
+          permissions: data.permissions
+        } as UserData;
+      });
     } catch (error) {
       console.error('Foydalanuvchilarni olishda xatolik:', error);
       throw error;
@@ -1673,13 +1688,28 @@ class DataService {
       );
       
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        joinDate: doc.data().createdAt?.toDate()?.toISOString() || new Date().toISOString(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        updatedAt: doc.data().updatedAt?.toDate() || new Date()
-      } as UserData));
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name || 'Noma\'lum',
+          email: data.email || '',
+          phone: data.phone || '',
+          role: data.role || 'customer',
+          avatar: data.avatar,
+          joinDate: data.createdAt?.toDate()?.toISOString() || new Date().toISOString(),
+          totalOrders: data.totalOrders,
+          favoriteCount: data.favoriteCount,
+          bakeryName: data.bakeryName,
+          specialties: data.specialties,
+          rating: data.rating,
+          shopName: data.shopName,
+          location: data.location,
+          vehicleType: data.vehicleType,
+          deliveryZone: data.deliveryZone,
+          permissions: data.permissions
+        } as UserData;
+      });
     } catch (error) {
       console.error('❌ Bo\'lim xodimlarini olishda xatolik:', error);
       return [];
