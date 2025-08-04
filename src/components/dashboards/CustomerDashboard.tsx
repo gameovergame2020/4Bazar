@@ -178,25 +178,35 @@ const CustomerDashboard = () => {
     if (!cake) return;
 
     const isBakerProduct = cake.productType === 'baked' || (cake.bakerId && !cake.shopId);
-    const currentCartQty = cart[cakeId] || 0;
-
     if (isBakerProduct) {
-      if (cake.available && cake.quantity !== undefined) {
-        // Baker mahsuloti mavjud va quantity belgilangan - qoldiq miqdorigacha cheklash
+      if (cake.available && cake.quantity !== undefined && cake.quantity > 0) {
+        // Baker mahsuloti mavjud va quantity belgilangan - quantity miqdorigacha cheklash
+        const currentCartQty = cart[cakeId] || 0;
+        console.log('Customer dashboard - Baker available product:', {
+          cakeId,
+          quantity: cake.quantity,
+          currentCartQty,
+          canAdd: currentCartQty < cake.quantity
+        });
+
         if (currentCartQty < cake.quantity) {
           setCart(prev => ({
             ...prev,
             [cakeId]: currentCartQty + 1
           }));
+        } else {
+          console.log('Baker mahsulot chegarasiga yetdi:', cake.quantity);
         }
       } else {
         // Buyurtma uchun yoki cheklanmagan miqdor
+        const currentCartQty = cart[cakeId] || 0;
         setCart(prev => ({
           ...prev,
           [cakeId]: currentCartQty + 1
         }));
       }
     } else if (cake.productType === 'ready') {
+      const currentCartQty = cart[cakeId] || 0;
       if (cake.quantity !== undefined) {
         // Shop mahsuloti - miqdor cheklovi
         if (currentCartQty < cake.quantity) {
