@@ -407,21 +407,23 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
       if (error && typeof error === 'object') {
         if (error.message?.includes('API kaliti noto\'g\'ri')) {
-          errorMessage = 'Yandex Maps API kaliti noto\'g\'ri yoki mavjud emas. .env faylini tekshiring.';
+          errorMessage = '🔑 Yandex Maps API kaliti noto\'g\'ri yoki mavjud emas. Developer Console da yangi kalit oling.';
         } else if (error.message === 'scriptError' || error.message?.includes('scriptError')) {
-          errorMessage = 'API kaliti noto\'g\'ri yoki internetga ulanish muammosi. API kalitini tekshiring.';
+          errorMessage = '🔑 API kaliti muammosi: noto\'g\'ri, muddati tugagan yoki tarmoq xatosi. Yandex Developer Console ni tekshiring.';
         } else if (error.message?.includes('Invalid API key')) {
-          errorMessage = 'API kaliti noto\'g\'ri. Yangi API kaliti oling va .env faylida yangilang.';
+          errorMessage = '🔑 API kaliti noto\'g\'ri. Yandex Developer Console dan yangi API kaliti oling.';
+        } else if (error.message?.includes('quota') || error.message?.includes('limit')) {
+          errorMessage = '📊 API cheklovi tugadi. Yandex Developer Console da tarif rejangizni tekshiring.';
         } else if (error.message === 'Geocoding timeout' || error.message?.includes('timeout')) {
-          errorMessage = 'Xizmat vaqti tugadi. Internetni tekshiring va qaytadan urinib ko\'ring.';
+          errorMessage = '⏱️ Xizmat vaqti tugadi. Internetni tekshiring va qaytadan urinib ko\'ring.';
         } else if (error.message === 'Noto\'g\'ri koordinatalar') {
-          errorMessage = 'Tanlangan koordinatalar noto\'g\'ri';
+          errorMessage = '📍 Tanlangan koordinatalar noto\'g\'ri';
         } else if (error.message?.includes('API kaliti noto\'g\'ri konfiguratsiya')) {
           errorMessage = error.message;
         } else if (error.message) {
           errorMessage = `Xato: ${error.message}`;
         }
-      }
+      }</errorMessage>
 
       setGeocodingError(errorMessage);
 

@@ -102,6 +102,8 @@ class YandexMapsService {
       // API kalitini tekshirish
       const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
       
+      console.log('🔑 API kaliti tekshirilmoqda:', apiKey ? `${apiKey.substring(0, 10)}...` : 'mavjud emas');
+      
       if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_') || apiKey.trim() === '') {
         reject(new Error('Yandex Maps API kaliti to\'g\'ri konfiguratsiya qilinmagan. .env faylida VITE_YANDEX_MAPS_API_KEY ni to\'ldiring.'));
         return;
@@ -139,7 +141,8 @@ class YandexMapsService {
         clearTimeout(timeoutId);
         script.remove();
         console.error('❌ Skript yuklash xatosi:', error);
-        reject(new Error('Yandex Maps skriptini yuklashda tarmoq xatosi. API kalitini tekshiring.'));
+        console.error('❌ API URL:', script.src);
+        reject(new Error('Yandex Maps API kaliti noto\'g\'ri yoki tarmoq xatosi. .env faylida API kalitini tekshiring yoki yangi kalit oling.'));
       };
 
       document.head.appendChild(script);
@@ -158,8 +161,10 @@ class YandexMapsService {
 
     // API kalitini tekshirish
     const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
+    console.log('🔍 Geocoding uchun API kaliti:', apiKey ? `${apiKey.substring(0, 10)}...` : 'mavjud emas');
+    
     if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_')) {
-      throw new Error('API key noto\'g\'ri konfiguratsiya qilingan');
+      throw new Error('API kaliti noto\'g\'ri konfiguratsiya qilingan. Yangi API kaliti oling va .env faylida yangilang.');
     }
 
     return new Promise((resolve, reject) => {
@@ -193,13 +198,17 @@ class YandexMapsService {
           console.error('Geocoding API xatosi:', error);
           
           // Xato turini aniqlash
+          console.error('🔍 Geocoding xato tafsilotlari:', error);
+          
           if (error && typeof error === 'object') {
             if (error.message === 'scriptError' || error.message?.includes('scriptError')) {
-              reject(new Error('API kaliti noto\'g\'ri yoki internetga ulanish muammosi'));
-            } else if (error.message?.includes('Invalid API key')) {
-              reject(new Error('API kaliti noto\'g\'ri'));
+              reject(new Error('API kaliti noto\'g\'ri, muddati tugagan yoki tarmoq muammosi. Yandex Developer Console da API kalitini tekshiring.'));
+            } else if (error.message?.includes('Invalid API key') || error.message?.includes('invalid_key')) {
+              reject(new Error('API kaliti noto\'g\'ri. Yandex Developer Console dan yangi API kaliti oling.'));
             } else if (error.message?.includes('timeout')) {
               reject(new Error('So\'rov vaqti tugadi'));
+            } else if (error.message?.includes('quota') || error.message?.includes('limit')) {
+              reject(new Error('API cheklovi tugadi. Yandex Developer Console da tarif rejani tekshiring.'));
             } else {
               reject(new Error(`Geocoding xatosi: ${error.message || 'Noma\'lum xato'}`));
             }
