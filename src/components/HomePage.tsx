@@ -1,14 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Star, Heart, Clock, ChefHat, Gift, Cake, Cookie, ShoppingCart, Plus, Minus, ShoppingBasket } from 'lucide-react';
+import { 
+  Search, 
+  Star, 
+  Heart, 
+  Clock, 
+  ChefHat, 
+  Gift, 
+  MapPin, 
+  Filter,
+  User,
+  ShoppingCart,
+  Plus,
+  Minus,
+  X
+} from 'lucide-react';
 import { dataService, Cake as CakeType } from '../services/dataService';
 import { useAuth } from '../hooks/useAuth';
 import { useFavorites } from '../hooks/useFavorites';
+import { useProfileManager } from '../hooks/useProfileManager';
 import CheckoutPage from './CheckoutPage';
 import ProductDetailModal from './ProductDetailModal';
 import BakerProfile from './BakerProfile';
+import ProfileManager from './ProfileManager';
 
 const HomePage = () => {
-  const { userData, isAuthenticated } = useAuth();
+  const { userData, isAuthenticated, updateUser } = useAuth();
   const { 
     favoriteIds, 
     isFavorite, 
@@ -27,6 +43,8 @@ const HomePage = () => {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [showBakerProfile, setShowBakerProfile] = useState(false);
   const [selectedBakerId, setSelectedBakerId] = useState<string | null>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const { showProfile, profileType, openProfile, closeProfile } = useProfileManager();
 
   const categories = [
     { name: 'Hammasi', icon: Cake, value: '' },
@@ -265,7 +283,7 @@ const addToCart = (cakeId: string) => {
       alert('Savatga qo\'shish uchun avval tizimga kirishingiz kerak!');
       return;
     }
-    
+
     console.log('Adding to cart:', cakeId);
     const cake = cakes.find(c => c.id === cakeId);
     if (!cake) return;
@@ -330,7 +348,7 @@ const addToCart = (cakeId: string) => {
       alert('Savatni boshqarish uchun avval tizimga kirishingiz kerak!');
       return;
     }
-    
+
     setCart(prev => {
       const newCart = { ...prev };
       if (newCart[cakeId] > 1) {
@@ -449,7 +467,7 @@ const addToCart = (cakeId: string) => {
     setShowBakerProfile(true);
   };
 
-  
+
 
   if (showBakerProfile && selectedBakerId) {
     return (
@@ -459,6 +477,17 @@ const addToCart = (cakeId: string) => {
           setShowBakerProfile(false);
           setSelectedBakerId(null);
         }}
+      />
+    );
+  }
+
+  if (showProfile && profileType && userData) {
+    return (
+      <ProfileManager
+        user={userData}
+        profileType={profileType}
+        onBack={closeProfile}
+        onUpdate={updateUser}
       />
     );
   }

@@ -85,6 +85,18 @@ export const useAuth = () => {
     }
   };
 
+  const updateUser = async (updates: Partial<UserData>) => {
+    if (user) {
+      try {
+        const updatedUser = { ...user, ...updates };
+        setUser(updatedUser);
+        localStorage.setItem('tort_bazar_user', JSON.stringify(updatedUser));
+      } catch (error) {
+        console.error('Foydalanuvchini yangilashda xatolik:', error);
+      }
+    }
+  };
+
   return {
     user,
     userData,
@@ -94,6 +106,7 @@ export const useAuth = () => {
     register,
     logout,
     updateUserData,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    updateUser
   };
 };
