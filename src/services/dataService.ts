@@ -1098,25 +1098,24 @@ class DataService {
           console.log('🔄 Pre-order edi, quantity qaytarilmaydi');
         }
         
-        // MUHIM: Available holatini quantity asosida belgilash
-        // Baker mahsulotlari uchun available holatini to'g'ri belgilash
-        const isBakerProduct = cake && (cake.productType === 'baked' || (cake.bakerId && !cake.shopId));
-        
-        if (isBakerProduct) {
-          // Baker mahsulotlari: quantity > 0 bo'lsa "Hozir mavjud", aks holda "Buyurtma uchun"
+        // MUHIM: Available holatini quantity asosida to'g'ri belgilash
+        if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
+          // Baker mahsulotlari uchun: quantity > 0 bo'lsa "Hozir mavjud"
+          updateData.available = newQuantity > 0;
+          
           if (newQuantity > 0) {
-            updateData.available = true; // "Hozir mavjud"
             console.log('🟢 Baker mahsuloti "Hozir mavjud" holatiga o\'tkaziladi:', { 
               cakeId, 
               newQuantity, 
-              newAmount 
+              newAmount,
+              available: true
             });
           } else {
-            updateData.available = false; // "Buyurtma uchun"
             console.log('🔵 Baker mahsuloti "Buyurtma uchun" holatida qoladi:', { 
               cakeId, 
               newQuantity, 
-              newAmount 
+              newAmount,
+              available: false
             });
           }
         } else {
