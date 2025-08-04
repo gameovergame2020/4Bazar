@@ -102,7 +102,7 @@ departments', departmentId), {
             if (retryCount <= maxRetries) {
               const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000);
               console.log(`🔄 Cakes subscription qayta urinish... (${retryCount}/${maxRetries})`);
-              
+
               setTimeout(() => {
                 if (isActive) {
                   createSubscription();
@@ -141,12 +141,12 @@ departments', departmentId), {
     let isSubscriptionActive = true;
     let retryCount = 0;
     const maxRetries = 3;
-    
+
     const createSubscription = () => {
       if (!isSubscriptionActive) return null;
-      
+
       let q;
-      
+
       try {
         if (filters?.customerId) {
           console.log('🔄 Real-time subscription: Customer ID bo\'yicha', filters.customerId);
@@ -170,14 +170,14 @@ departments', departmentId), {
         return onSnapshot(q, 
           (querySnapshot) => {
             if (!isSubscriptionActive) return;
-            
+
             try {
               const filterText = filters?.customerId ? `Customer ID (${filters.customerId})` : 'Umumiy';
               console.log(`📥 Real-time Orders (${filterText}): ${querySnapshot.docs.length} ta hujjat keldi`);
-              
+
               const orders: Order[] = [];
               const changedDocs = querySnapshot.docChanges();
-              
+
               // Change log
               changedDocs.forEach((change) => {
                 if (change.type === 'modified') {
@@ -189,12 +189,12 @@ departments', departmentId), {
               querySnapshot.docs.forEach((doc) => {
                 try {
                   const data = doc.data();
-                  
+
                   // Customer filter bo'lsa, yana bir marta tekshirish
                   if (filters?.customerId && data.customerId !== filters.customerId) {
                     return; // Skip this order
                   }
-                  
+
                   const order: Order = {
                     id: doc.id,
                     orderUniqueId: data.orderUniqueId,
@@ -236,15 +236,15 @@ departments', departmentId), {
           }, 
           (error) => {
             if (!isSubscriptionActive) return;
-            
+
             console.error('❌ Real-time orders subscription xatosi:', error);
             retryCount++;
-            
+
             if (retryCount <= maxRetries) {
               // Retry with exponential backoff
               const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000);
               console.log(`🔄 Orders subscription qayta urinish... (${retryCount}/${maxRetries}) - ${retryDelay}ms kutish`);
-              
+
               setTimeout(() => {
                 if (isSubscriptionActive) {
                   try {

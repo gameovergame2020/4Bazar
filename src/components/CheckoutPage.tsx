@@ -455,6 +455,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         deliveryAddress: deliveryAddress.trim(),
         paymentMethod: userInfo.paymentMethod,
         paymentType: userInfo.paymentType,
+        // fromStock dataService tomonidan avtomatik aniqlanadi
         notes: `To'lov usuli: ${
           userInfo.paymentMethod === 'cash' ? 'Naqd pul' :
           userInfo.paymentMethod === 'card' ? 
@@ -553,6 +554,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         deliveryAddress: deliveryAddress,
         paymentMethod: userInfo.paymentMethod,
         paymentType: finalPaymentType,
+        // fromStock dataService tomonidan avtomatik aniqlanadi
         notes: `To'lov usuli: ${
           userInfo.paymentMethod === 'cash' ? 'Naqd pul' :
           userInfo.paymentMethod === 'card' ? 
