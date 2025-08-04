@@ -323,32 +323,45 @@ class ProductService {
             statusChange: newQuantity > 0 ? '"Buyurtma uchun" -> "Hozir mavjud"' : 'Mavjud emas'
           });
         } else {
-          // "Buyurtma uchun" dan bekor qilindi - FAQAT amount kamayadi va rejectAmount oshadi
-          // Quantity va inStockQuantity HECH QACHON o'zgartirilmaydi
+          // "Buyurtma uchun" dan rad etilindi - amount kamayadi va rejectAmount oshadi
           const currentAmount = cake.amount || 0;
-          const newAmount = Math.max(0, currentAmount - orderQuantity);
-          updateData.amount = newAmount;
-          
-          // Bekor qilingan miqdorni rejectAmount ga qo'shish
           const currentRejectAmount = cake.rejectAmount || 0;
-          updateData.rejectAmount = currentRejectAmount + orderQuantity;
+          
+          // Amount dan kamayib rejectAmount ga o'tish
+          const actualReduction = Math.min(orderQuantity, currentAmount);
+          const newAmount = Math.max(0, currentAmount - actualReduction);
+          const newRejectAmount = currentRejectAmount + actualReduction;
+          
+          updateData.amount = newAmount;
+          updateData.rejectAmount = newRejectAmount;
           
           // CRITICAL: quantity, inStockQuantity va available holatini o'zgartirmaslik
           // "Buyurtma uchun" mahsulotlar virtual buyurtma, real zaxira emas
           
-          console.log('🔄 Baker "Buyurtma uchun" bekor qilindi - amount kamaydi, rejectAmount oshdi:', {
+          console.log('🚫 Baker "Buyurtma uchun" RAD ETILDI - amount -> rejectAmount:', {
             oldAmount: currentAmount,
             newAmount,
             oldRejectAmount: currentRejectAmount,
-            newRejectAmount: updateData.rejectAmount,
+            newRejectAmount,
             orderQuantity,
+            actualReduction,
             amountReduction: currentAmount - newAmount,
-            rejectAmountIncrease: orderQuantity,
+            rejectAmountIncrease: actualReduction,
             quantityUNTOUCHED: cake.quantity || 0,
             availableUNTOUCHED: cake.available,
             inStockUNTOUCHED: cake.inStockQuantity || 0,
-            rule: 'BUYURTMA UCHUN bekor qilinganda amount kamayadi, rejectAmount oshadi'
+            rule: 'RAD ETILGAN: amount kamaydi va rejectAmount oshadi'
           });
+          
+          // Agar amount kamaysa, bu rad etilgan buyurtma ekanligini ko'rsatish
+          if (actualReduction > 0) {
+            updateData.lastRejection = {
+              rejectedQuantity: actualReduction,
+              rejectedAt: Timestamp.now(),
+              reason: 'order_rejected_by_operator'
+            };
+            console.log('📝 Rad etish ma\'lumoti qo\'shildi:', updateData.lastRejection);
+          }
         }
         
       } else if (cake.productType === 'ready') {
@@ -375,8 +388,16 @@ class ProductService {
             statusChange: newQuantity > 0 ? 'Tugagan -> Mavjud' : 'Tugagan'
           });
         } else {
-          // Shop mahsulotlari uchun fromStock false bo'lishi mumkin emas
-          console.warn('⚠️ Shop mahsulot uchun fromStock: false - bu noto\'g\'ri holat');
+          // Shop mahsulotlari uchun rad etish holati - rejectAmount ga qo'shish
+          const currentRejectAmount = cake.rejectAmount || 0;
+          updateData.rejectAmount = currentRejectAmount + orderQuantity;
+          
+          console.log('🚫 Shop mahsulot RAD ETILDI - rejectAmount oshdi:', {
+            oldRejectAmount: currentRejectAmount,
+            newRejectAmount: updateData.rejectAmount,
+            rejectedQuantity: orderQuantity,
+            rule: 'Shop mahsulot rad etilganda faqat rejectAmount oshadi'
+          });
         }
       }
 
@@ -394,7 +415,7 @@ class ProductService {
         updateData.updatedAt = Timestamp.now();
         
         await this.updateCake(cakeId, updateData);
-        console.log('✅ Operator bekor qilish: mahsulot muvaffaqiyatli yangilandi:', updateData);
+        console.log('✅ Operator rad etish/bekor qilish: mahsulot muvaffaqiyatli yangilandi:', updateData);
         
         // Status o'zgarishi haqida aniq log
         if (updateData.available === true && !cake.available) {
@@ -403,29 +424,119 @@ class ProductService {
           console.log('🔴 OPERATOR BEKOR QILISH: Mahsulot "Mavjud emas" holatiga o\'tdi');
         }
 
-        // MUHIM: Operator bekor qilish uchun maxsus force update
+        // Rad etish holati uchun maxsus log
+        if (!fromStock && updateData.rejectAmount) {
+          console.log('🚫 OPERATOR RAD ETISH: amount kamaydi, rejectAmount oshdi');
+        }
+
+        // MUHIM: Operator amaliyoti uchun maxsus force update
         try {
-          const operatorRevertData = {
+          const operatorActionData = {
             ...updateData,
-            operatorReverted: true,
-            operatorRevertedAt: Timestamp.now(),
-            lastOperatorAction: 'order_cancelled',
+            operatorProcessed: true,
+            operatorProcessedAt: Timestamp.now(),
+            lastOperatorAction: fromStock ? 'order_cancelled' : 'order_rejected',
             forceUpdate: Date.now(),
-            statusChangeReason: 'operator_cancelled_order'
+            statusChangeReason: fromStock ? 'operator_cancelled_order' : 'operator_rejected_order'
           };
           
-          await this.updateCake(cakeId, operatorRevertData);
-          console.log('🔄 Operator bekor qilish: Real-time yangilanish trigger qilindi');
+          await this.updateCake(cakeId, operatorActionData);
+          console.log('🔄 Operator amaliyoti: Real-time yangilanish trigger qilindi');
           
         } catch (triggerError) {
-          console.warn('⚠️ Operator bekor qilish: Real-time trigger da xato:', triggerError);
+          console.warn('⚠️ Operator amaliyoti: Real-time trigger da xato:', triggerError);
         }
       } else {
-        console.warn('⚠️ Operator bekor qilish: Yangilanishi kerak bo\'lgan ma\'lumotlar topilmadi');
+        console.warn('⚠️ Operator amaliyoti: Yangilanishi kerak bo\'lgan ma\'lumotlar topilmadi');
       }
 
     } catch (error) {
-      console.error('❌ Operator buyurtma bekor qilishda xatolik:', error);
+      console.error('❌ Operator buyurtma rad etish/bekor qilishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Buyurtmani rad etish (faqat "Buyurtma uchun" mahsulotlar uchun)
+  async rejectOrderQuantity(cakeId: string, orderQuantity: number, rejectionReason?: string): Promise<void> {
+    try {
+      console.log('🚫 Buyurtma rad etilmoqda:', { cakeId, orderQuantity, rejectionReason });
+      
+      const cake = await this.getCakeById(cakeId);
+      if (!cake) {
+        console.error('❌ Mahsulot topilmadi:', cakeId);
+        throw new Error('Mahsulot topilmadi');
+      }
+
+      // Faqat Baker mahsulotlari va "Buyurtma uchun" holatida rad etish mumkin
+      if (cake.productType !== 'baked' && !cake.bakerId) {
+        throw new Error('Faqat Baker mahsulotlarini rad etish mumkin');
+      }
+
+      console.log('📦 Rad etish oldidan mahsulot holati:', {
+        productType: cake.productType,
+        available: cake.available,
+        quantity: cake.quantity,
+        amount: cake.amount,
+        inStockQuantity: cake.inStockQuantity,
+        rejectAmount: cake.rejectAmount
+      });
+
+      const currentAmount = cake.amount || 0;
+      const currentRejectAmount = cake.rejectAmount || 0;
+      
+      // Amount dan kamayib rejectAmount ga o'tish
+      const actualRejection = Math.min(orderQuantity, currentAmount);
+      
+      if (actualRejection <= 0) {
+        console.warn('⚠️ Rad etish uchun yetarli amount mavjud emas');
+        throw new Error('Rad etish uchun yetarli buyurtma miqdori mavjud emas');
+      }
+
+      const updateData: any = {
+        amount: Math.max(0, currentAmount - actualRejection),
+        rejectAmount: currentRejectAmount + actualRejection,
+        updatedAt: Timestamp.now(),
+        lastRejection: {
+          rejectedQuantity: actualRejection,
+          rejectedAt: Timestamp.now(),
+          reason: rejectionReason || 'operator_rejected',
+          rejectionType: 'manual_rejection'
+        }
+      };
+
+      console.log('🚫 RAD ETISH amaliyoti:', {
+        oldAmount: currentAmount,
+        newAmount: updateData.amount,
+        oldRejectAmount: currentRejectAmount,
+        newRejectAmount: updateData.rejectAmount,
+        actualRejection,
+        rejectionReason,
+        rule: 'Amount kamaydi, rejectAmount oshadi'
+      });
+
+      await this.updateCake(cakeId, updateData);
+
+      // Real-time yangilanish uchun force update
+      try {
+        const rejectionTriggerData = {
+          ...updateData,
+          manuallyRejected: true,
+          rejectionTriggeredAt: Timestamp.now(),
+          forceUpdate: Date.now(),
+          statusChangeReason: 'manual_order_rejection'
+        };
+        
+        await this.updateCake(cakeId, rejectionTriggerData);
+        console.log('🔄 Rad etish: Real-time yangilanish trigger qilindi');
+        
+      } catch (triggerError) {
+        console.warn('⚠️ Rad etish: Real-time trigger da xato:', triggerError);
+      }
+
+      console.log('✅ Buyurtma muvaffaqiyatli rad etildi');
+
+    } catch (error) {
+      console.error('❌ Buyurtmani rad etishda xatolik:', error);
       throw error;
     }
   }
