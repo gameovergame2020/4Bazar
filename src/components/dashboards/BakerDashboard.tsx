@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Package, Clock, TrendingUp, Users, Star, Edit, Trash2, Phone, MapPin, X, Save, ShoppingBasket } from 'lucide-react';
+import { Plus, Package, Clock, TrendingUp, Users, Star, Edit, Trash2, Eye, EyeOff, CheckCircle, XCircle, Phone, MapPin, Calendar, DollarSign, Camera, Upload, Save, X, ShoppingBasket, Minus } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { dataService, Cake, Order } from '../../services/dataService';
 import { notificationService } from '../../services/notificationService';
@@ -225,9 +225,7 @@ const BakerDashboard = () => {
         rating: 0,
         reviewCount: 0,
         available: cakeForm.available && quantity !== undefined && quantity > 0,
-        ingredients: typeof cakeForm.ingredients === 'string'
-          ? cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i)
-          : [],
+        ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
         discount: parseFloat(cakeForm.discount) || 0,
         amount: 0
       };
@@ -244,7 +242,7 @@ const BakerDashboard = () => {
 
       await dataService.addCake(newCake);
 
-      // Form va modal holatini tozalash
+      // Reset form
       setCakeForm({
         name: '',
         description: '',
@@ -256,7 +254,6 @@ const BakerDashboard = () => {
         quantity: '',
         discount: ''
       });
-      setEditingCake(null);
       setShowAddCakeForm(false);
 
       // Reload data
@@ -301,9 +298,7 @@ const BakerDashboard = () => {
         image: imageUrl,
         category: cakeForm.category,
         available: cakeForm.available && quantity !== undefined && quantity > 0,
-        ingredients: typeof cakeForm.ingredients === 'string'
-          ? cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i)
-          : [],
+        ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
         discount: parseFloat(cakeForm.discount) || 0
       };
 
@@ -319,7 +314,8 @@ const BakerDashboard = () => {
 
       await dataService.updateCake(editingCake.id!, updates);
 
-      // Form va modal holatini tozalash
+      // Reset form
+      setEditingCake(null);
       setCakeForm({
         name: '',
         description: '',
@@ -327,12 +323,10 @@ const BakerDashboard = () => {
         category: 'birthday',
         ingredients: '',
         image: null,
-        available: false,
+        available: true,
         quantity: '',
         discount: ''
       });
-      setEditingCake(null);
-      setShowAddCakeForm(false);
 
       // Reload data
       await loadData();
@@ -448,16 +442,15 @@ const BakerDashboard = () => {
   };
 
   const startEditCake = (cake: Cake) => {
-    console.log('🔧 Tahrirlash boshlandi:', cake);
     setEditingCake(cake);
     setCakeForm({
-      name: cake.name || '',
-      description: cake.description || '',
-      price: cake.price?.toString() || '',
-      category: cake.category || 'birthday',
-      ingredients: cake.ingredients || '',
+      name: cake.name,
+      description: cake.description,
+      price: cake.price.toString(),
+      category: cake.category,
+      ingredients: cake.ingredients.join(', '),
       image: null,
-      available: cake.available || false,
+      available: cake.available,
       quantity: cake.quantity?.toString() || '0',
       discount: cake.discount?.toString() || '0'
     });
@@ -465,7 +458,7 @@ const BakerDashboard = () => {
   };
 
   const cancelEdit = () => {
-    console.log('❌ Form bekor qilindi');
+    setEditingCake(null);
     setCakeForm({
       name: '',
       description: '',
@@ -477,7 +470,6 @@ const BakerDashboard = () => {
       quantity: '',
       discount: ''
     });
-    setEditingCake(null);
     setShowAddCakeForm(false);
   };
 
@@ -675,7 +667,7 @@ const BakerDashboard = () => {
                   Batafsil
                 </button>
                 <div className="flex space-x-2">
-
+                  
                   {order.status === 'accepted' && (
                     <button
                       onClick={() => handleOrderStatusUpdate(order.id!, 'preparing')}
@@ -763,7 +755,8 @@ const BakerDashboard = () => {
                       cake.quantity !== undefined && cake.quantity <= 0 
                         ? 'text-red-600' 
                         : cake.quantity !== undefined && cake.quantity <= 5 
-                          ? 'text-orange-600'                           : 'text-green-600'
+                          ? 'text-orange-600' 
+                          : 'text-green-600'
                     }`}>
                       {cake.quantity !== undefined ? `${cake.quantity} ta` : 'Cheksiz'}
                     </span>
