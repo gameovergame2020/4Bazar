@@ -1,5 +1,24 @@
 
-import { UserData } from '../authService';
+// UserData interface
+export interface UserData {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: 'customer' | 'baker' | 'shop' | 'courier' | 'operator' | 'admin';
+  avatar?: string;
+  joinDate: string;
+  totalOrders?: number;
+  favoriteCount?: number;
+  bakeryName?: string;
+  specialties?: string[];
+  rating?: number;
+  shopName?: string;
+  location?: string;
+  vehicleType?: string;
+  deliveryZone?: string;
+  permissions?: string[];
+}
 
 // Tortlar uchun interface
 export interface Cake {
@@ -90,5 +109,3 @@ export interface SupportResponse {
   message: string;
   createdAt: Date;
 }
-
-export { UserData };

@@ -10,26 +10,7 @@ import {
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import { UserRole } from '../types/user';
-
-export interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  role: UserRole;
-  avatar?: string;
-  joinDate: string;
-  totalOrders?: number;
-  favoriteCount?: number;
-  bakeryName?: string;
-  specialties?: string[];
-  rating?: number;
-  shopName?: string;
-  location?: string;
-  vehicleType?: string;
-  deliveryZone?: string;
-  permissions?: string[];
-}
+import { UserData } from './shared/types';
 
 class AuthService {
   // Telefon raqam bilan ro'yhatdan o'tish (email o'rniga telefon ishlatamiz)
