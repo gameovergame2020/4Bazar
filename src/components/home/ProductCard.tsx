@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Star, Heart, Plus, Minus, ShoppingBasket } from 'lucide-react';
 import { Cake } from '../../services/dataService';
@@ -39,7 +38,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           className="w-full h-40 sm:h-48 object-cover cursor-pointer"
           onClick={() => onProductClick(cake)}
           onError={(e) => {
-            e.currentTarget.src = 'https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg?auto=compress&cs=tinysrgb&w=400';
+            e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzBDMTE4IDcwIDExMCA3OCA4MCA5MEM4MCA5MCAxMDAgMTEwIDEzMCAxMjBIMTcwQzIwMCAxMTAgMjIwIDkwIDIyMCA5MEMyMTAgNzggMTgyIDcwIDE1MCA3MFoiIGZpbGw9IiNEMUQ1REIiLz4KPHA+VG9ydCBSYXptaSAvcD4KPC9zdmc+';
           }}
         />
         <button 

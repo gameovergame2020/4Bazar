@@ -52,7 +52,7 @@ const CartModal: React.FC<CartModalProps> = ({
                     alt={product.name}
                     className="w-12 h-12 object-cover rounded-lg"
                     onError={(e) => {
-                      e.currentTarget.src = 'https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg?auto=compress&cs=tinysrgb&w=150';
+                      e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MEMzNS44MTcgNDAgMzIgNDMuODE3IDMyIDUzVjk3QzMyIDEwNi4xODMgMzUuODE3IDExMCA0NSAxMTBIOTVDMTA0LjE4MyAxMTAgMTA4IDEwNi4xODMgMTA4IDk3VjUzQzEwOCA0My44MTcgMTA0LjE4MyA0MCA5NSA0MEg3NVoiIGZpbGw9IiNEMUQ1REIiLz4KPHA+Tm8gSW1hZ2U8L3A+Cjwvc3ZnPgo=';
                     }}
                   />
                   <div className="flex-1 min-w-0">
