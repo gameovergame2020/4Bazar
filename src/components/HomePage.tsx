@@ -261,6 +261,11 @@ const HomePage = () => {
     .slice(0, 4);
 
 const addToCart = (cakeId: string) => {
+    if (!isAuthenticated) {
+      alert('Savatga qo\'shish uchun avval tizimga kirishingiz kerak!');
+      return;
+    }
+    
     console.log('Adding to cart:', cakeId);
     const cake = cakes.find(c => c.id === cakeId);
     if (!cake) return;
@@ -321,6 +326,11 @@ const addToCart = (cakeId: string) => {
   };
 
   const removeFromCart = (cakeId: string) => {
+    if (!isAuthenticated) {
+      alert('Savatni boshqarish uchun avval tizimga kirishingiz kerak!');
+      return;
+    }
+    
     setCart(prev => {
       const newCart = { ...prev };
       if (newCart[cakeId] > 1) {
@@ -439,9 +449,7 @@ const addToCart = (cakeId: string) => {
     setShowBakerProfile(true);
   };
 
-  if (!isAuthenticated) {
-    return <div>Tizimga kirishingiz kerak</div>;
-  }
+  
 
   if (showBakerProfile && selectedBakerId) {
     return (
@@ -537,12 +545,12 @@ const addToCart = (cakeId: string) => {
                     onClick={() => handleToggleFavorite(cake)}
                     disabled={favoritesLoading}
                     className={`absolute top-3 sm:top-4 right-3 sm:right-4 p-1.5 sm:p-2 rounded-full transition-all ${
-                      isFavorite(cake.id!) 
+                      isAuthenticated && isFavorite(cake.id!) 
                         ? 'bg-pink-500 text-white shadow-lg hover:bg-pink-600' 
                         : 'bg-white/80 text-gray-600 hover:bg-white hover:text-pink-500'
                     } ${favoritesLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    <Heart size={16} className={isFavorite(cake.id!) ? 'fill-current' : ''} />
+                    <Heart size={16} className={isAuthenticated && isFavorite(cake.id!) ? 'fill-current' : ''} />
                   </button>
                   {cake.discount && cake.discount > 0 && (
                     <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
@@ -640,20 +648,24 @@ const addToCart = (cakeId: string) => {
                         className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors text-sm flex items-center space-x-1 ${
                           cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : cake.productType === 'baked'
-                              ? cake.available 
-                                ? 'bg-orange-500 text-white hover:bg-orange-600'
-                                : 'bg-blue-500 text-white hover:bg-blue-600'
-                              : 'bg-orange-500 text-white hover:bg-orange-600'
+                            : !isAuthenticated
+                              ? 'bg-blue-500 text-white hover:bg-blue-600'
+                              : cake.productType === 'baked'
+                                ? cake.available 
+                                  ? 'bg-orange-500 text-white hover:bg-orange-600'
+                                  : 'bg-blue-500 text-white hover:bg-blue-600'
+                                : 'bg-orange-500 text-white hover:bg-orange-600'
                         }`}
                       >
                         <ShoppingBasket size={14} />
                         <span>
-                          {cake.productType === 'baked' ? 
-                            cake.available ? 'Savatga qo\'shish' : 'Buyurtma berish'
-                            : cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
-                              ? 'Tugagan' 
-                              : 'Savatchaga qo\'shish'
+                          {!isAuthenticated 
+                            ? 'Tizimga kirish'
+                            : cake.productType === 'baked' ? 
+                              cake.available ? 'Savatga qo\'shish' : 'Buyurtma berish'
+                              : cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
+                                ? 'Tugagan' 
+                                : 'Savatchaga qo\'shish'
                           }
                         </span>
                       </button>
@@ -775,20 +787,24 @@ const addToCart = (cakeId: string) => {
                         className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-colors text-sm flex items-center space-x-1 ${
                           cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : cake.productType === 'baked'
-                              ? cake.available 
-                                ? 'bg-orange-500 text-white hover:bg-orange-600'
-                                : 'bg-blue-500 text-white hover:bg-blue-600'
-                              : 'bg-orange-500 text-white hover:bg-orange-600'
+                            : !isAuthenticated
+                              ? 'bg-blue-500 text-white hover:bg-blue-600'
+                              : cake.productType === 'baked'
+                                ? cake.available 
+                                  ? 'bg-orange-500 text-white hover:bg-orange-600'
+                                  : 'bg-blue-500 text-white hover:bg-blue-600'
+                                : 'bg-orange-500 text-white hover:bg-orange-600'
                         }`}
                       >
                         <ShoppingBasket size={14} />
                         <span className="hidden sm:inline">
-                          {cake.productType === 'baked' ? 
-                            cake.available ? 'Savatga' : 'Buyurtma'
-                            : cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
-                              ? 'Tugagan' 
-                              : 'Savatchaga'
+                          {!isAuthenticated 
+                            ? 'Kirish'
+                            : cake.productType === 'baked' ? 
+                              cake.available ? 'Savatga' : 'Buyurtma'
+                              : cake.productType === 'ready' && (!cake.available || (cake.quantity !== undefined && cake.quantity <= 0))
+                                ? 'Tugagan' 
+                                : 'Savatchaga'
                           }
                         </span>
                       </button>
@@ -801,8 +817,8 @@ const addToCart = (cakeId: string) => {
         </div>
       )}
 
-      {/* Cart Icon - Only Visible When Cart Has Items */}
-      {Object.keys(cart).length > 0 && (
+      {/* Cart Icon - Only Visible When Cart Has Items and User is Authenticated */}
+      {isAuthenticated && Object.keys(cart).length > 0 && (
         <div 
           className="fixed bottom-6 right-6 z-[9999]"
           style={{ zIndex: 9999 }}
