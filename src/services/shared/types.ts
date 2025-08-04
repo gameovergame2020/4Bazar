@@ -1,4 +1,3 @@
-
 // UserData interface
 export interface UserData {
   id: string;
@@ -49,7 +48,7 @@ export interface Cake {
 export interface Order {
   id?: string;
   orderUniqueId?: string; // Har bir buyurtma uchun bir martalik noyob ID
-  customerId?: string; // Foydalanuvchi ID
+  customerId: string; // Foydalanuvchi ID
   customerName: string;
   customerPhone: string;
   cakeId: string; // Mahsulot uchun bir martalik noyob ID
@@ -67,6 +66,7 @@ export interface Order {
   deliveryTime?: Date;
   createdAt: Date;
   updatedAt: Date;
+  rated?: boolean; // Mijoz tomonidan baholangan yoki yo'q
 }
 
 // Sharhlar uchun interface
@@ -75,9 +75,19 @@ export interface Review {
   userId: string;
   userName: string;
   cakeId: string;
+  orderId?: string;
   rating: number;
   comment: string;
   createdAt: Date;
+  updatedAt?: Date;
+}
+
+export interface ReviewInput {
+  userId: string;
+  userName: string;
+  rating: number;
+  comment: string;
+  orderId?: string;
 }
 
 // Qo'llab-quvvatlash so'rovlari uchun interface

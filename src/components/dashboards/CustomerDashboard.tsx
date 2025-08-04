@@ -29,6 +29,11 @@ const CustomerDashboard = () => {
   const [productFilter, setProductFilter] = useState<'all' | 'baked' | 'ready'>('all');
   const [selectedCake, setSelectedCake] = useState<Cake | null>(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [orderToRate, setOrderToRate] = useState<Order | null>(null);
+  const [rating, setRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
   
   const { 
     favorites: userFavorites, 
@@ -348,6 +353,77 @@ const CustomerDashboard = () => {
     setSelectedCake(null);
   };
 
+  const handleRateOrder = (order: Order) => {
+    setOrderToRate(order);
+    setShowRatingModal(true);
+    setRating(5);
+    setReviewComment('');
+  };
+
+  const handleSubmitRating = async () => {
+    if (!orderToRate || !userData) return;
+
+    setSubmittingReview(true);
+    try {
+      // Find the cake to get more details
+      const cake = cakes.find(c => c.id === orderToRate.cakeId);
+      
+      // Add review to the product
+      await dataService.addReview(orderToRate.cakeId, {
+        userId: userData.id!.toString(),
+        userName: userData.name || 'Foydalanuvchi',
+        rating: rating,
+        comment: reviewComment.trim(),
+        orderId: orderToRate.id
+      });
+
+      // Close modal and reset state
+      setShowRatingModal(false);
+      setOrderToRate(null);
+      setRating(5);
+      setReviewComment('');
+      
+      alert('Baho va izohingiz muvaffaqiyatli qo\'shildi!');
+      
+      // Refresh data to show updated rating
+      await loadData();
+    } catch (error) {
+      console.error('Baho berishda xatolik:', error);
+      alert('Baho berishda xatolik yuz berdi. Iltimos qayta urinib ko\'ring.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const handleCloseRatingModal = () => {
+    setShowRatingModal(false);
+    setOrderToRate(null);
+    setRating(5);
+    setReviewComment('');
+  };
+
+  const renderStars = (currentRating: number, interactive = false, onStarClick?: (rating: number) => void) => {
+    return (
+      <div className="flex space-x-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            onClick={() => interactive && onStarClick && onStarClick(star)}
+            disabled={!interactive}
+            className={`${interactive ? 'cursor-pointer hover:scale-110' : 'cursor-default'} transition-transform`}
+          >
+            <Star
+              size={20}
+              className={`${
+                star <= currentRating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+              }`}
+            />
+          </button>
+        ))}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
@@ -445,9 +521,26 @@ const CustomerDashboard = () => {
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-gray-900">{formatPrice(order.totalPrice)}</p>
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                    {getStatusText(order.status)}
-                  </span>
+                  <div className="flex flex-col items-end space-y-2">
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                      {getStatusText(order.status)}
+                    </span>
+                    {order.status === 'delivered' && !order.rated && (
+                      <button
+                        onClick={() => handleRateOrder(order)}
+                        className="bg-yellow-500 text-white px-3 py-1 rounded-lg text-xs hover:bg-yellow-600 transition-colors flex items-center space-x-1"
+                      >
+                        <Star size={12} />
+                        <span>Baho berish</span>
+                      </button>
+                    )}
+                    {order.status === 'delivered' && order.rated && (
+                      <div className="flex items-center space-x-1">
+                        <Star size={12} className="text-yellow-400 fill-current" />
+                        <span className="text-xs text-gray-500">Baholangan</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -738,6 +831,69 @@ const CustomerDashboard = () => {
         isFavorite={selectedCake ? isFavorite(selectedCake.id!) : false}
         favoritesLoading={favoritesLoading}
       />
+
+      {/* Rating Modal */}
+      {showRatingModal && orderToRate && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Mahsulotni baholang</h3>
+              <p className="text-gray-600">{orderToRate.cakeName}</p>
+            </div>
+
+            {/* Rating Stars */}
+            <div className="text-center mb-6">
+              <p className="text-sm font-medium text-gray-700 mb-3">Bahongizni bering:</p>
+              {renderStars(rating, true, setRating)}
+            </div>
+
+            {/* Review Comment */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Izohingiz (ixtiyoriy)
+              </label>
+              <textarea
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+                placeholder="Mahsulot haqida fikringizni yozing..."
+                className="w-full p-3 border border-gray-300 rounded-lg resize-none h-24 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                maxLength={500}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {reviewComment.length}/500 belgi
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex space-x-3">
+              <button
+                onClick={handleCloseRatingModal}
+                disabled={submittingReview}
+                className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-xl font-medium hover:bg-gray-300 transition-colors disabled:opacity-50"
+              >
+                Bekor qilish
+              </button>
+              <button
+                onClick={handleSubmitRating}
+                disabled={submittingReview}
+                className="flex-1 bg-orange-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              >
+                {submittingReview ? (
+                  <>
+                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                    <span>Yuborilmoqda...</span>
+                  </>
+                ) : (
+                  <>
+                    <Star size={16} />
+                    <span>Baho berish</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
