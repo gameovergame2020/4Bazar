@@ -842,6 +842,17 @@ const BakerDashboard = () => {
                   <span className="font-medium text-blue-600">{cake.amount || 0} ta</span>
                 </div>
                 
+                {/* Sotilgan/band qilingan miqdor */}
+                <div className="text-sm mb-2">
+                  <span className="text-gray-600">Sotilgan/band: </span>
+                  <span className="font-medium text-orange-600">{cake.inStockQuantity || 0} ta</span>
+                  {(cake.inStockQuantity || 0) > 0 && (
+                    <span className="text-xs text-gray-500 ml-1">
+                      (yetkazilmagan)
+                    </span>
+                  )}
+                </div>
+                
                 <div className="text-xs">
                   {cake.available && (cake.quantity || 0) > 0 ? (
                     <span className={`font-medium ${

@@ -1031,6 +1031,7 @@ class DataService {
         available: cake.available,
         quantity: cake.quantity,
         amount: cake.amount,
+        inStockQuantity: cake.inStockQuantity,
         orderQuantity
       });
 
@@ -1046,6 +1047,9 @@ class DataService {
           const newQuantity = currentQuantity - orderQuantity;
           updateData.quantity = newQuantity;
           
+          // inStockQuantity ni oshirish (sotilgan mahsulotlar kuzatuvi)
+          updateData.inStockQuantity = (cake.inStockQuantity || 0) + orderQuantity;
+          
           // Agar quantity 0 bo'lsa, avtomatik "Buyurtma uchun" ga o'tish
           if (newQuantity === 0) {
             updateData.available = false;
@@ -1058,16 +1062,16 @@ class DataService {
           console.log('✅ Baker "Hozir mavjud" dan olindi:', {
             oldQuantity: currentQuantity,
             newQuantity,
+            inStockQuantity: updateData.inStockQuantity,
             available: updateData.available
           });
         } else {
           // "Hozir mavjud" yetmaydi - "Buyurtma uchun" dan olish
+          // Amount ni oshirish (buyurtma qilingan miqdor)
+          updateData.amount = (cake.amount || 0) + orderQuantity;
           fromStock = false;
-          console.log('🔄 Baker "Buyurtma uchun" dan olindi');
+          console.log('🔄 Baker "Buyurtma uchun" dan olindi, amount oshirildi:', updateData.amount);
         }
-        
-        // Amount ni har doim oshirish (buyurtma qilingan umumiy miqdor)
-        updateData.amount = (cake.amount || 0) + orderQuantity;
         
       } else if (cake.productType === 'ready') {
         // Shop mahsulotlari - faqat "Hozir mavjud" dan
@@ -1075,6 +1079,9 @@ class DataService {
         const newQuantity = Math.max(0, currentQuantity - orderQuantity);
         
         updateData.quantity = newQuantity;
+        
+        // inStockQuantity ni oshirish (sotilgan mahsulotlar kuzatuvi)
+        updateData.inStockQuantity = (cake.inStockQuantity || 0) + orderQuantity;
         
         // Agar quantity 0 bo'lsa, mahsulot mavjud emas
         if (newQuantity === 0) {
@@ -1089,6 +1096,7 @@ class DataService {
         console.log('✅ Shop mahsulot sotildi:', {
           oldQuantity: currentQuantity,
           newQuantity,
+          inStockQuantity: updateData.inStockQuantity,
           available: updateData.available
         });
       }
@@ -1122,42 +1130,58 @@ class DataService {
         productType: cake.productType,
         available: cake.available,
         quantity: cake.quantity,
-        amount: cake.amount
+        amount: cake.amount,
+        inStockQuantity: cake.inStockQuantity
       });
 
       const updateData: any = {};
 
       // Baker mahsulotlari uchun
       if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
-        // Amount ni kamaytirish (buyurtma qilingan miqdor kamayadi)
-        const newAmount = Math.max(0, (cake.amount || 0) - orderQuantity);
-        updateData.amount = newAmount;
         
-        // Agar fromStock bo'lsa, quantity ga qaytarish
         if (fromStock) {
+          // "Hozir mavjud" dan sotilgan mahsulot bekor qilindi
+          // inStockQuantity dan olib tashlab, quantity ga qaytarish
+          const newInStockQuantity = Math.max(0, (cake.inStockQuantity || 0) - orderQuantity);
           const newQuantity = (cake.quantity || 0) + orderQuantity;
+          
+          updateData.inStockQuantity = newInStockQuantity;
           updateData.quantity = newQuantity;
           
           // Quantity > 0 bo'lsa, avtomatik "Hozir mavjud" ga o'tish
           if (newQuantity > 0) {
             updateData.available = true;
-            console.log('✅ Baker mahsulot "Buyurtma uchun" dan "Hozir mavjud" ga qaytdi');
+            console.log('✅ Baker mahsulot "Hozir mavjud" holatiga qaytdi');
           }
           
-          console.log('🔄 Baker zaxiriga qaytarildi:', {
+          console.log('🔄 "Hozir mavjud" dan bekor qilindi:', {
             oldQuantity: cake.quantity || 0,
             newQuantity,
-            oldAvailable: cake.available,
+            oldInStock: cake.inStockQuantity || 0,
+            newInStock: newInStockQuantity,
             newAvailable: updateData.available
           });
         } else {
-          console.log('🔄 Pre-order edi, quantity ga qaytarilmaydi');
+          // "Buyurtma uchun" dan tasdiqlanib amount ga o'tgan mahsulot bekor qilindi
+          // Amount ni kamaytirish, lekin quantity ga qaytarmaydi
+          const newAmount = Math.max(0, (cake.amount || 0) - orderQuantity);
+          updateData.amount = newAmount;
+          
+          console.log('🔄 "Buyurtma uchun" dan bekor qilindi (quantity ga qaytmaydi):', {
+            oldAmount: cake.amount || 0,
+            newAmount,
+            quantityUnchanged: cake.quantity || 0
+          });
         }
         
       } else if (cake.productType === 'ready') {
-        // Shop mahsulotlari uchun quantity ni qaytarish
+        // Shop mahsulotlari - faqat "Hozir mavjud" dan sotiladi
         if (fromStock) {
+          // inStockQuantity dan olib tashlab, quantity ga qaytarish
+          const newInStockQuantity = Math.max(0, (cake.inStockQuantity || 0) - orderQuantity);
           const newQuantity = (cake.quantity || 0) + orderQuantity;
+          
+          updateData.inStockQuantity = newInStockQuantity;
           updateData.quantity = newQuantity;
           
           // Quantity > 0 bo'lsa, avtomatik mavjud ga o'tish
@@ -1169,6 +1193,8 @@ class DataService {
           console.log('🔄 Shop zaxiriga qaytarildi:', {
             oldQuantity: cake.quantity || 0,
             newQuantity,
+            oldInStock: cake.inStockQuantity || 0,
+            newInStock: newInStockQuantity,
             newAvailable: updateData.available
           });
         }

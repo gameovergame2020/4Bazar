@@ -343,6 +343,7 @@ const ShopDashboard = () => {
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Kategoriya</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Narx</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Qoldi</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Sotilgan</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Holat</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">Amallar</th>
               </tr>
@@ -414,6 +415,14 @@ const ShopDashboard = () => {
                           min="0"
                         />
                         <span className="text-sm text-gray-500">ta</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="text-sm">
+                        <span className="font-medium text-orange-600">{product.inStockQuantity || 0} ta</span>
+                        {(product.inStockQuantity || 0) > 0 && (
+                          <div className="text-xs text-gray-500">yetkazilmagan</div>
+                        )}
                       </div>
                     </td>
                     <td className="py-3 px-4">
