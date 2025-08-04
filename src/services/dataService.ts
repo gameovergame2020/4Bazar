@@ -278,7 +278,7 @@ class DataService {
   // BUYURTMALAR BILAN ISHLASH
 
   // Yangi buyurtma yaratish
-  async createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  async createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ docId: string; orderUniqueId: string }> {
     try {
       // 8 belgilik alphanumeric noyob buyurtma ID yaratish
       const uniqueOrderId = await this.generateUniqueOrderId();
@@ -327,7 +327,7 @@ class DataService {
         console.log('✅ fromStock field buyurtmaga qo\'shildi');
       }
       
-      return docRef.id;
+      return { docId: docRef.id, orderUniqueId: uniqueOrderId };
     } catch (error) {
       console.error('Buyurtma yaratishda xatolik:', error);
       throw error;

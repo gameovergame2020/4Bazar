@@ -592,6 +592,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       });
       setOrderConfirmed(true);
 
+      // Savatni tozalash
+      Object.keys(cart).forEach(cakeId => {
+        removeFromCart(cakeId);
+      });
+
       try {
         const { notificationService } = await import('../services/notificationService');
         await notificationService.createNotification({
@@ -785,7 +790,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
                             year: 'numeric', 
                             month: 'long', 
                             day: 'numeric' 
-                          })} soat {userInfo.customDeliveryTime}
+                          })} soat {userInfo.customDeliveryTime || 'tanlanmagan'}`
                         </span>
                       </p>
                     </div>
