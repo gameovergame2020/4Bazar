@@ -1072,14 +1072,17 @@ class DataService {
           });
         } else {
           // "Hozir mavjud" yetmaydi - "Buyurtma uchun" dan olish
-          // Amount ni oshirish (buyurtma qilingan miqdor - real mahsulot emas)
-          updateData.amount = (cake.amount || 0) + orderQuantity;
+          // Amount ni MAJBURIY oshirish (buyurtma qilingan miqdor - real mahsulot emas)
+          const currentAmount = cake.amount || 0;
+          updateData.amount = currentAmount + orderQuantity;
           fromStock = false;
-          console.log('🔄 Baker "Buyurtma uchun" dan olindi, amount oshirildi (real mahsulot emas, faqat buyurtma soni):', {
-            oldAmount: cake.amount || 0,
+          console.log('🔄 Baker "Buyurtma uchun" dan olindi, amount MAJBURIY oshirildi:', {
+            oldAmount: currentAmount,
             newAmount: updateData.amount,
+            orderQuantity,
+            amountIncrease: updateData.amount - currentAmount,
             quantityUnchanged: cake.quantity || 0,
-            rule: 'amount - faqat buyurtma soni, quantity - real mavjud mahsulot'
+            rule: 'amount buyurtma qilinganda majburiy oshadi, quantity o\'zgartirilmaydi'
           });
         }
         
@@ -1173,20 +1176,23 @@ class DataService {
           });
         } else {
           // "Buyurtma uchun" dan tasdiqlanib amount ga o'tgan mahsulot bekor qilindi
-          // Faqat amount ni kamaytirish, quantity ga HECH QACHON qaytarmaydi
-          const newAmount = Math.max(0, (cake.amount || 0) - orderQuantity);
+          // Faqat amount ni MAJBURIY kamaytirish, quantity ga HECH QACHON qaytarmaydi
+          const currentAmount = cake.amount || 0;
+          const newAmount = Math.max(0, currentAmount - orderQuantity);
           updateData.amount = newAmount;
           
           // MUHIM: quantity va available holatini o'zgartirmaydi
           // amount faqat buyurtma sonini ko'rsatadi, mavjud mahsulot emas
           
-          console.log('🔄 Baker "Buyurtma uchun" (amount) dan bekor qilindi - quantity o\'zgartirilmaydi:', {
-            oldAmount: cake.amount || 0,
+          console.log('🔄 Baker "Buyurtma uchun" (amount) dan bekor qilindi - amount MAJBURIY kamaytirildi:', {
+            oldAmount: currentAmount,
             newAmount,
+            orderQuantity,
+            amountReduction: currentAmount - newAmount,
             quantityUnchanged: cake.quantity || 0,
             availableUnchanged: cake.available,
             inStockUnchanged: cake.inStockQuantity || 0,
-            rule: 'amount bekor qilinganda quantity ga qo\'shilmaydi'
+            rule: 'amount bekor qilinganda faqat amount kamayadi, quantity o\'zgartirilmaydi'
           });
         }
         
