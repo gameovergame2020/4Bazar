@@ -16,7 +16,8 @@ import {
   X,
   Award,
   Target,
-  TrendingUp
+  TrendingUp,
+  Plus
 } from 'lucide-react';
 import { UserData } from '../../services/authService';
 import { dataService } from '../../services/dataService';
@@ -575,6 +576,169 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
                 <div className="text-xs text-gray-600">10+ sevimli</div>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Settings Section */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Sozlamalar</h3>
+          
+          {/* Settings Navigation */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* Profile Settings */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-gray-900 mb-3 flex items-center space-x-2">
+                <User size={18} className="text-blue-500" />
+                <span>Profil sozlamalari</span>
+              </h4>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Profilni tahrirlash</span>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <Edit2 size={16} />
+                  </button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Parolni o'zgartirish</span>
+                  <button className="text-blue-600 hover:text-blue-700">
+                    <Edit2 size={16} />
+                  </button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">2FA xavfsizlik</span>
+                  <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300">
+                    <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1"></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Addresses & Payment */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-gray-900 mb-3 flex items-center space-x-2">
+                <MapPin size={18} className="text-green-500" />
+                <span>Manzillar va To'lov</span>
+              </h4>
+              <div className="space-y-3">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-sm">Asosiy manzil</span>
+                    <button className="text-green-600 hover:text-green-700">
+                      <Edit2 size={14} />
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-600">{user.address || 'Manzil belgilanmagan'}</p>
+                </div>
+                
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-sm">To'lov usuli</span>
+                    <button className="text-green-600 hover:text-green-700">
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-600">Plastik karta qo'shish</p>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Avtomatik to'lov</span>
+                  <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-orange-500">
+                    <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-6"></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Help & Support */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-gray-900 mb-3 flex items-center space-x-2">
+                <Phone size={18} className="text-purple-500" />
+                <span>Yordam va Qo'llab-quvvatlash</span>
+              </h4>
+              <div className="space-y-3">
+                <button className="w-full text-left p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                  <div className="font-medium text-sm text-purple-900">Tez-tez so'raladigan savollar</div>
+                  <p className="text-xs text-purple-600 mt-1">Eng ko'p so'raladigan savollar va javoblar</p>
+                </button>
+                
+                <button className="w-full text-left p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                  <div className="font-medium text-sm text-purple-900">Murojaat qilish</div>
+                  <p className="text-xs text-purple-600 mt-1">Qo'llab-quvvatlash xizmatiga murojaat</p>
+                </button>
+
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="font-medium text-sm text-gray-900 mb-2">Bog'lanish ma'lumotlari</div>
+                  <div className="space-y-1 text-xs text-gray-600">
+                    <p>📞 +998 90 123 45 67</p>
+                    <p>📧 support@tortbazar.uz</p>
+                    <p>🕒 Har kuni 9:00-21:00</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Notifications Settings */}
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <h4 className="font-medium text-gray-900 mb-4 flex items-center space-x-2">
+              <span className="p-2 bg-yellow-100 rounded-lg">
+                <span className="text-yellow-600">🔔</span>
+              </span>
+              <span>Bildirishnoma sozlamalari</span>
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Buyurtma holati</span>
+                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-orange-500">
+                  <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-6"></span>
+                </button>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Aksiyalar va chegirmalar</span>
+                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300">
+                  <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1"></span>
+                </button>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Yangi mahsulotlar</span>
+                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-orange-500">
+                  <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-6"></span>
+                </button>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Email bildirishnomalar</span>
+                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300">
+                  <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <h4 className="font-medium text-gray-900 mb-4">Tezkor harakatlar</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <button className="p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors text-center">
+                <div className="text-blue-600 mb-1">📊</div>
+                <div className="text-xs font-medium text-blue-900">Statistika</div>
+              </button>
+              <button className="p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors text-center">
+                <div className="text-green-600 mb-1">💳</div>
+                <div className="text-xs font-medium text-green-900">To'lovlar</div>
+              </button>
+              <button className="p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors text-center">
+                <div className="text-purple-600 mb-1">⭐</div>
+                <div className="text-xs font-medium text-purple-900">Baholar</div>
+              </button>
+              <button className="p-3 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors text-center">
+                <div className="text-orange-600 mb-1">🎁</div>
+                <div className="text-xs font-medium text-orange-900">Bonuslar</div>
+              </button>
+            </div>
           </div>
         </div>
 
