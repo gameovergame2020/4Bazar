@@ -1372,11 +1372,12 @@ const AdminDashboard = () => {
               <div>
                 <h4 className="font-medium text-gray-900 mb-3">Xavfsizlik</h4>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between                    <span className="text-gray-600">2FA majburiy</span>
-                    <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300">
-                      <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1"></span>
-                    </button>
-                  </div>
+                  <div className="flex items-center justify-between">
+                      <span className="text-gray-600">2FA majburiy</span>
+                      <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300">
+                        <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1"></span>
+                      </button>
+                    </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600">Session timeout</span>
                     <select className="px-3 py-1 border border-gray-300 rounded text-sm">
