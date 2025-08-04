@@ -175,23 +175,47 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       // API kalitini tekshirish
       const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
       if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_')) {
+        console.error('❌ API kaliti mavjud emas');
         setGeocodingError('Yandex Maps API kaliti mavjud emas. .env faylida VITE_YANDEX_MAPS_API_KEY ni to\'ldiring.');
+        
+        // API kalitisiz ham xaritani ko'rsatish (faqat statik)
+        await initSimpleMap();
+        return;
+      }
+
+      console.log('✅ API kaliti topildi');
+
+      // Yandex Maps servisini static import qilish
+      let yandexMapsService;
+      try {
+        const serviceModule = await import('../services/yandexMapsService');
+        yandexMapsService = serviceModule.yandexMapsService || serviceModule.default;
+        console.log('✅ yandexMapsService yuklandi');
+      } catch (importError) {
+        console.error('❌ yandexMapsService import xatosi:', importError);
+        setGeocodingError('Xarita xizmatini yuklashda xato. Sahifani qayta yuklang.');
         return;
       }
 
       // Yandex Maps ni yuklash
       await yandexMapsService.loadYandexMaps();
       setIsYmapsLoaded(true);
-      console.log('✅ Yandex Maps service yuklandi');
+      console.log('✅ Yandex Maps API yuklandi');
 
       // ymaps.ready() ni kutish
       await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('ymaps.ready() timeout'));
+        }, 10000);
+
         if (!window.ymaps) {
+          clearTimeout(timeout);
           reject(new Error('window.ymaps mavjud emas'));
           return;
         }
 
         window.ymaps.ready(() => {
+          clearTimeout(timeout);
           console.log('✅ Yandex Maps API tayyor');
           resolve();
         });
@@ -218,6 +242,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         } catch (mapError) {
           console.error('❌ Xarita yaratishda xato:', mapError);
           setGeocodingError('Xaritani yaratishda xato yuz berdi: ' + mapError.message);
+          await initSimpleMap();
         }
       }
 
@@ -230,6 +255,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           errorMessage = 'API kaliti noto\'g\'ri. .env faylida VITE_YANDEX_MAPS_API_KEY ni tekshiring.';
         } else if (error.message.includes('network') || error.message.includes('fetch')) {
           errorMessage = 'Internet aloqasi muammosi. Qaytadan urinib ko\'ring.';
+        } else if (error.message.includes('timeout')) {
+          errorMessage = 'Xarita yuklash vaqti tugadi. Qaytadan urinib ko\'ring.';
         } else {
           errorMessage = `Xato: ${error.message}`;
         }
@@ -238,6 +265,34 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       setGeocodingError(errorMessage);
       setIsYmapsLoaded(false);
       setIsMapInitialized(false);
+      
+      // Fallback - oddiy xarita
+      await initSimpleMap();
+    }
+  };
+
+  // Oddiy xarita (API kalitisiz)
+  const initSimpleMap = async () => {
+    try {
+      if (mapRef.current && !mapInstanceRef.current) {
+        // Oddiy div bilan xarita taqlidi
+        mapRef.current.innerHTML = `
+          <div style="width: 100%; height: 300px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                      display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; 
+                      border-radius: 12px; text-align: center; padding: 20px;">
+            <div>
+              <div style="font-size: 24px; margin-bottom: 10px;">🗺️</div>
+              <div>Xarita yuklanmoqda...</div>
+              <div style="font-size: 12px; margin-top: 10px; opacity: 0.8;">
+                ${geocodingError || 'Bir necha soniyadan keyin qaytadan urinib ko\'ring'}
+              </div>
+            </div>
+          </div>
+        `;
+        setIsMapInitialized(true);
+      }
+    } catch (error) {
+      console.error('❌ Oddiy xarita yaratishda xato:', error);
     }
   };
 
