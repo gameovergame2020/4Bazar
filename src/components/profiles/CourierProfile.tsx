@@ -432,6 +432,86 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
           </div>
         </div>
 
+        {/* Active Deliveries */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Faol yetkazishlar</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+              <div>
+                <p className="font-medium text-gray-900">Buyurtma #12345</p>
+                <p className="text-sm text-gray-600">Chilonzor tumani - 15:30 gacha</p>
+                <p className="text-xs text-orange-600 mt-1">3.2 km qoldi</p>
+              </div>
+              <div className="text-right">
+                <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
+                  Yetkazilmoqda
+                </span>
+                <p className="text-sm text-gray-600 mt-1">15K so'm</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+              <div>
+                <p className="font-medium text-gray-900">Buyurtma #12346</p>
+                <p className="text-sm text-gray-600">Yunusobod tumani - 16:00 gacha</p>
+                <p className="text-xs text-blue-600 mt-1">Navbatda</p>
+              </div>
+              <div className="text-right">
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                  Navbatda
+                </span>
+                <p className="text-sm text-gray-600 mt-1">15K so'm</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Today's Route */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Bugungi marshrut</h3>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-gray-900">Boshlanish nuqtasi</p>
+                <p className="text-sm text-gray-600">09:00 - Markaziy ombor</p>
+              </div>
+              <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Tugallandi</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-gray-900">1-yetkazish</p>
+                <p className="text-sm text-gray-600">10:30 - Chilonzor (3.2 km)</p>
+              </div>
+              <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Tugallandi</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-gray-900">2-yetkazish</p>
+                <p className="text-sm text-gray-600">12:00 - Yunusobod (5.1 km)</p>
+              </div>
+              <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">Jarayonda</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-gray-900">3-yetkazish</p>
+                <p className="text-sm text-gray-600">14:00 - Sergeli (7.8 km)</p>
+              </div>
+              <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">Kutilmoqda</span>
+            </div>
+          </div>
+        </div>
+
         {/* Achievement Section */}
         <div className="bg-white rounded-2xl p-6 border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Yutuqlar</h3>

@@ -429,6 +429,61 @@ const OperatorProfile: React.FC<OperatorProfileProps> = ({ user, onBack, onUpdat
           </div>
         </div>
 
+        {/* Recent Support Activity */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">So'nggi murojaatlar</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">Buyurtma #12345 muammosi</p>
+                <p className="text-sm text-gray-600">Mijoz: +998901234567 - 15 daqiqa oldin</p>
+              </div>
+              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+                Kutilmoqda
+              </span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">To'lov muammosi hal qilindi</p>
+                <p className="text-sm text-gray-600">Mijoz: +998905678901 - 1 soat oldin</p>
+              </div>
+              <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                Hal qilindi
+              </span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">Yetkazish manzili o'zgartirildi</p>
+                <p className="text-sm text-gray-600">Buyurtma #12340 - 2 soat oldin</p>
+              </div>
+              <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                Bajarildi
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* System Alerts */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tizim ogohlantirishlari</h3>
+          <div className="space-y-3">
+            <div className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg">
+              <AlertCircle size={20} className="text-red-600 mt-0.5" />
+              <div>
+                <p className="font-medium text-red-900">3 ta to'lanmagan buyurtma</p>
+                <p className="text-sm text-red-700">24 soatdan ortiq vaqt o'tgan</p>
+              </div>
+            </div>
+            <div className="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg">
+              <AlertCircle size={20} className="text-yellow-600 mt-0.5" />
+              <div>
+                <p className="font-medium text-yellow-900">Baker javob bermayapti</p>
+                <p className="text-sm text-yellow-700">ID: baker_123 - 2 soat javobsiz</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Achievement Section */}
         <div className="bg-white rounded-2xl p-6 border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Yutuqlar</h3>

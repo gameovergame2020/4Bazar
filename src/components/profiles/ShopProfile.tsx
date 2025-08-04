@@ -400,6 +400,98 @@ const ShopProfile: React.FC<ShopProfileProps> = ({ user, onBack, onUpdate }) => 
           </div>
         </div>
 
+        {/* Inventory Status */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Zaxira holati</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                  <Package size={20} className="text-red-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Shokoladli tort</p>
+                  <p className="text-sm text-red-600">Tugamoqda - 2 ta qoldi</p>
+                </div>
+              </div>
+              <button className="text-sm text-red-600 hover:text-red-700 font-medium">
+                To'ldirish
+              </button>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                  <Package size={20} className="text-yellow-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Mevali tort</p>
+                  <p className="text-sm text-yellow-600">Kam - 4 ta qoldi</p>
+                </div>
+              </div>
+              <button className="text-sm text-yellow-600 hover:text-yellow-700 font-medium">
+                To'ldirish
+              </button>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Package size={20} className="text-green-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Vanil tort</p>
+                  <p className="text-sm text-green-600">Yetarli - 15 ta</p>
+                </div>
+              </div>
+              <span className="text-sm text-green-600 font-medium">Yaxshi</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Sales Analytics */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Sotuv analitikasi</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-medium text-gray-700 mb-3">Eng ko'p sotilgan</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Shokoladli tort</span>
+                  <span className="font-medium">28 ta</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Mevali tort</span>
+                  <span className="font-medium">19 ta</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Vanil tort</span>
+                  <span className="font-medium">15 ta</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h4 className="font-medium text-gray-700 mb-3">Haftalik daromad</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Dushanba</span>
+                  <span className="font-medium">1.2M</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Seshanba</span>
+                  <span className="font-medium">980K</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Chorshanba</span>
+                  <span className="font-medium">1.5M</span>
+                </div>
+                <div className="flex justify-between items-center text-green-600">
+                  <span className="text-sm font-medium">Bugun</span>
+                  <span className="font-bold">2.1M</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Achievement Section */}
         <div className="bg-white rounded-2xl p-6 border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Yutuqlar</h3>

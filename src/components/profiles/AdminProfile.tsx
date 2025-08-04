@@ -395,6 +395,75 @@ const AdminProfile: React.FC<AdminProfileProps> = ({ user, onBack, onUpdate }) =
           </div>
         </div>
 
+        {/* System Monitoring */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tizim monitoringi</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <span className="text-green-800 font-medium">Server holati</span>
+                <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">Faol</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <span className="text-blue-800 font-medium">Ma'lumotlar bazasi</span>
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">Normal</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                <span className="text-purple-800 font-medium">API holati</span>
+                <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">Ishlayapti</span>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-gray-700">Server yuklanganligi</span>
+                  <span className="text-gray-900 font-medium">45%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-blue-500 h-2 rounded-full" style={{ width: '45%' }}></div>
+                </div>
+              </div>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-gray-700">Xotira ishlatilishi</span>
+                  <span className="text-gray-900 font-medium">67%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '67%' }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent User Actions */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">So'nggi foydalanuvchi harakatlari</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">Yangi baker ro'yxatdan o'tdi</p>
+                <p className="text-sm text-gray-600">baker@example.com - 10 daqiqa oldin</p>
+              </div>
+              <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Yangi</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">Do'kon yangilandi</p>
+                <p className="text-sm text-gray-600">Sweet Shop - mahsulot qo'shildi</p>
+              </div>
+              <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">Yangilash</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">Shikoyat keldi</p>
+                <p className="text-sm text-gray-600">Buyurtma #12345 - sifat muammosi</p>
+              </div>
+              <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Shikoyat</span>
+            </div>
+          </div>
+        </div>
+
         {isEditing && (
           <div className="flex justify-end space-x-4">
             <button

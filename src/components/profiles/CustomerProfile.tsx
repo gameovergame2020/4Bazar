@@ -50,11 +50,82 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
     avatar: null as File | null
   });
 
-  const { favoriteCount } = useFavorites(user.id);
+  const { favoriteCount, favorites, loadFavorites, removeFromFavorites } = useFavorites(user.id);
+  const [userOrders, setUserOrders] = useState<Order[]>([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('orders');
+  const [isOrdersExpanded, setIsOrdersExpanded] = useState(false);
+  const [isFavoritesExpanded, setIsFavoritesExpanded] = useState(false);
 
   useEffect(() => {
     loadStats();
+    loadUserOrders();
+    loadFavorites();
   }, [user.id]);
+
+  const loadUserOrders = async () => {
+    setIsLoadingOrders(true);
+    try {
+      const orders = await dataService.getOrdersByCustomerId(user.id);
+      setUserOrders(orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+    } catch (error) {
+      console.error('Buyurtmalarni yuklashda xatolik:', error);
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  };
+
+  const handleCancelOrder = async (orderId: string) => {
+    setCancellingOrderId(orderId);
+    try {
+      await dataService.updateOrderStatus(orderId, 'cancelled');
+      await loadUserOrders();
+    } catch (error) {
+      console.error('Buyurtmani bekor qilishda xatolik:', error);
+      alert('Buyurtmani bekor qilishda xatolik yuz berdi');
+    } finally {
+      setCancellingOrderId(null);
+    }
+  };
+
+  const handleRemoveFromFavorites = async (cakeId: string) => {
+    try {
+      await removeFromFavorites(cakeId);
+    } catch (error) {
+      console.error('Sevimlilardan o\'chirishda xatolik:', error);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'accepted': return 'bg-blue-100 text-blue-800';
+      case 'preparing': return 'bg-orange-100 text-orange-800';
+      case 'ready': return 'bg-green-100 text-green-800';
+      case 'delivering': return 'bg-purple-100 text-purple-800';
+      case 'delivered': return 'bg-green-100 text-green-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'pending': return 'Kutilmoqda';
+      case 'accepted': return 'Qabul qilindi';
+      case 'preparing': return 'Tayyorlanmoqda';
+      case 'ready': return 'Tayyor';
+      case 'delivering': return 'Yetkazilmoqda';
+      case 'delivered': return 'Yetkazildi';
+      case 'cancelled': return 'Bekor qilindi';
+      default: return 'Noma\'lum';
+    }
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('uz-UZ').format(price) + ' so\'m';
+  };
 
   const loadStats = async () => {
     try {
@@ -334,6 +405,141 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
               )}
             </div>
           </div>
+        </div>
+
+        {/* Orders and Favorites Management */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Buyurtmalar va Sevimlilar</h3>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setActiveTab('orders')}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  activeTab === 'orders' 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Buyurtmalar ({userOrders.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('favorites')}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  activeTab === 'favorites' 
+                    ? 'bg-pink-500 text-white' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Sevimlilar ({favoriteCount})
+              </button>
+            </div>
+          </div>
+
+          {activeTab === 'orders' && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-medium text-gray-900">Mening buyurtmalarim</h4>
+                <button
+                  onClick={() => setIsOrdersExpanded(!isOrdersExpanded)}
+                  className="text-sm text-blue-600 hover:text-blue-700"
+                >
+                  {isOrdersExpanded ? 'Yashirish' : 'Barchasini ko\'rish'}
+                </button>
+              </div>
+
+              {isLoadingOrders ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+                  <p className="text-gray-500 mt-2">Buyurtmalar yuklanmoqda...</p>
+                </div>
+              ) : userOrders.length === 0 ? (
+                <div className="text-center py-8">
+                  <ShoppingBag size={48} className="text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">Hozircha buyurtmalaringiz yo'q</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {(isOrdersExpanded ? userOrders : userOrders.slice(0, 3)).map((order) => (
+                    <div key={order.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h5 className="font-medium text-gray-900">{order.cakeName}</h5>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                              {getStatusText(order.status)}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">{order.note}</p>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-500">
+                              {new Date(order.createdAt).toLocaleDateString('uz-UZ')}
+                            </span>
+                            <span className="font-medium text-gray-900">
+                              {formatPrice(order.totalPrice)}
+                            </span>
+                          </div>
+                        </div>
+                        {order.status === 'pending' && (
+                          <button
+                            onClick={() => handleCancelOrder(order.id)}
+                            disabled={cancellingOrderId === order.id}
+                            className="ml-4 px-3 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50 disabled:opacity-50"
+                          >
+                            {cancellingOrderId === order.id ? 'Bekor qilinmoqda...' : 'Bekor qilish'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'favorites' && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-medium text-gray-900">Sevimli tortlarim</h4>
+                <button
+                  onClick={() => setIsFavoritesExpanded(!isFavoritesExpanded)}
+                  className="text-sm text-pink-600 hover:text-pink-700"
+                >
+                  {isFavoritesExpanded ? 'Yashirish' : 'Barchasini ko\'rish'}
+                </button>
+              </div>
+
+              {favorites.length === 0 ? (
+                <div className="text-center py-8">
+                  <Heart size={48} className="text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">Sevimli tortlaringiz yo'q</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(isFavoritesExpanded ? favorites : favorites.slice(0, 4)).map((cake) => (
+                    <div key={cake.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex space-x-3">
+                        <img
+                          src={cake.image || 'https://via.placeholder.com/80x80'}
+                          alt={cake.name}
+                          className="w-20 h-20 rounded-lg object-cover"
+                        />
+                        <div className="flex-1">
+                          <h5 className="font-medium text-gray-900 mb-1">{cake.name}</h5>
+                          <p className="text-sm text-gray-600 mb-2">{formatPrice(cake.price)}</p>
+                          <button
+                            onClick={() => handleRemoveFromFavorites(cake.id!)}
+                            className="text-xs text-red-600 hover:text-red-700"
+                          >
+                            Sevimlilardan o'chirish
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Achievement Section */}

@@ -431,6 +431,31 @@ const BakerProfile: React.FC<BakerProfileProps> = ({ user, onBack, onUpdate }) =
           </div>
         </div>
 
+        {/* Recent Activity & Notifications */}
+        <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">So'nggi faoliyat</h3>
+          <div className="space-y-4">
+            {orders.slice(0, 5).map((order) => (
+              <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="font-medium text-gray-900">#{order.id.slice(-6)} - {order.cakeName}</p>
+                  <p className="text-sm text-gray-600">
+                    {new Date(order.createdAt).toLocaleDateString('uz-UZ')} - {formatPrice(order.totalPrice)}
+                  </p>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                  {getStatusText(order.status)}
+                </span>
+              </div>
+            ))}
+            {orders.length === 0 && (
+              <div className="text-center py-4">
+                <p className="text-gray-500">Hozircha faoliyat yo'q</p>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Achievement Section */}
         <div className="bg-white rounded-2xl p-6 border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Yutuqlar</h3>
