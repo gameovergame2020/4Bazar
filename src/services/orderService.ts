@@ -273,7 +273,7 @@ class OrderService {
 
       const orderData = orderDoc.data() as Order;
       
-      console.log('🚫 Foydalanuvchi buyurtmani bekor qildi:', {
+      console.log('🚫 Buyurtma bekor qilindi:', {
         orderId,
         cakeId: orderData.cakeId,
         quantity: orderData.quantity,
@@ -284,12 +284,21 @@ class OrderService {
       // Buyurtma holatini cancelled ga o'zgartirish
       await this.updateOrderStatus(orderId, 'cancelled');
 
-      // Mahsulot quantity'ni qaytarish
+      // Mahsulot quantity/amount ni qaytarish
       try {
-        await productService.revertOrderQuantity(orderData.cakeId, orderData.quantity, orderData.fromStock || false);
-        console.log('✅ Foydalanuvchi buyurtmani bekor qildi, mahsulot soni qaytarildi');
+        // fromStock qiymati bo'yicha to'g'ri qaytarish
+        const fromStockValue = orderData.fromStock !== undefined ? orderData.fromStock : false;
+        
+        if (fromStockValue) {
+          console.log('📦 "Hozir mavjud" dan bekor qilingan - quantity qaytariladi');
+        } else {
+          console.log('📦 "Buyurtma uchun" dan bekor qilingan - FAQAT amount kamayadi');
+        }
+        
+        await productService.revertOrderQuantity(orderData.cakeId, orderData.quantity, fromStockValue);
+        console.log('✅ Buyurtma bekor qilindi, mahsulot holati to\'g\'ri yangilandi');
       } catch (revertError) {
-        console.error('❌ Mahsulot sonini qaytarishda xato:', revertError);
+        console.error('❌ Mahsulot holatini qaytarishda xato:', revertError);
         // Xatoga qaramay order status ni cancelled qilib qo'yamiz
       }
     } catch (error) {
