@@ -225,7 +225,9 @@ const BakerDashboard = () => {
         rating: 0,
         reviewCount: 0,
         available: cakeForm.available && quantity !== undefined && quantity > 0,
-        ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
+        ingredients: typeof cakeForm.ingredients === 'string' 
+          ? cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i)
+          : [],
         discount: parseFloat(cakeForm.discount) || 0,
         amount: 0
       };
@@ -298,7 +300,9 @@ const BakerDashboard = () => {
         image: imageUrl,
         category: cakeForm.category,
         available: cakeForm.available && quantity !== undefined && quantity > 0,
-        ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
+        ingredients: typeof cakeForm.ingredients === 'string' 
+          ? cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i)
+          : [],
         discount: parseFloat(cakeForm.discount) || 0
       };
 
@@ -757,8 +761,7 @@ const BakerDashboard = () => {
                       cake.quantity !== undefined && cake.quantity <= 0 
                         ? 'text-red-600' 
                         : cake.quantity !== undefined && cake.quantity <= 5 
-                          ? 'text-orange-600' 
-                          : 'text-green-600'
+                          ? 'text-orange-600'                           : 'text-green-600'
                     }`}>
                       {cake.quantity !== undefined ? `${cake.quantity} ta` : 'Cheksiz'}
                     </span>
