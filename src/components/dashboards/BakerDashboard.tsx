@@ -244,7 +244,7 @@ const BakerDashboard = () => {
 
       await dataService.addCake(newCake);
 
-      // Reset form
+      // Form va modal holatini tozalash
       setCakeForm({
         name: '',
         description: '',
@@ -256,6 +256,7 @@ const BakerDashboard = () => {
         quantity: '',
         discount: ''
       });
+      setEditingCake(null);
       setShowAddCakeForm(false);
 
       // Reload data
@@ -318,8 +319,7 @@ const BakerDashboard = () => {
 
       await dataService.updateCake(editingCake.id!, updates);
 
-      // Reset form
-      setEditingCake(null);
+      // Form va modal holatini tozalash
       setCakeForm({
         name: '',
         description: '',
@@ -327,10 +327,12 @@ const BakerDashboard = () => {
         category: 'birthday',
         ingredients: '',
         image: null,
-        available: true,
+        available: false,
         quantity: '',
         discount: ''
       });
+      setEditingCake(null);
+      setShowAddCakeForm(false);
 
       // Reload data
       await loadData();
