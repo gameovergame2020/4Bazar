@@ -41,6 +41,7 @@ const HomePage = () => {
     favoriteIds, 
     isFavorite, 
     toggleFavorite, 
+    loadFavorites,
     loading: favoritesLoading 
   } = useFavorites(userData?.id?.toString());
   const [searchQuery, setSearchQuery] = useState('');
