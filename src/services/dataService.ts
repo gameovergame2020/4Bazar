@@ -466,7 +466,33 @@ class DataService {
   // Buyurtmani bekor qilish
   async cancelOrder(orderId: string): Promise<void> {
     try {
+      // Buyurtma ma'lumotlarini olish
+      const orderDoc = await getDoc(doc(db, 'orders', orderId));
+      if (!orderDoc.exists()) {
+        throw new Error('Buyurtma topilmadi');
+      }
+
+      const orderData = orderDoc.data() as Order;
+      
+      console.log('🚫 Foydalanuvchi buyurtmani bekor qildi:', {
+        orderId,
+        cakeId: orderData.cakeId,
+        quantity: orderData.quantity,
+        cakeName: orderData.cakeName,
+        fromStock: orderData.fromStock
+      });
+
+      // Buyurtma holatini cancelled ga o'zgartirish
       await this.updateOrderStatus(orderId, 'cancelled');
+
+      // Mahsulot quantity'ni qaytarish
+      try {
+        await this.revertOrderQuantity(orderData.cakeId, orderData.quantity, orderData.fromStock || false);
+        console.log('✅ Foydalanuvchi buyurtmani bekor qildi, mahsulot soni qaytarildi');
+      } catch (revertError) {
+        console.error('❌ Mahsulot sonini qaytarishda xato:', revertError);
+        // Xatoga qaramay order status ni cancelled qilib qo'yamiz
+      }
     } catch (error) {
       console.error('Buyurtmani bekor qilishda xatolik:', error);
       throw error;

@@ -264,6 +264,37 @@ const CustomerDashboard = () => {
     }
   };
 
+  const handleCancelOrder = async (orderId: string) => {
+    if (!confirm('Buyurtmani bekor qilishni xohlaysizmi?')) return;
+
+    try {
+      setLoading(true);
+
+      console.log('🚫 Foydalanuvchi buyurtmani bekor qilmoqda:', orderId);
+
+      await dataService.cancelOrder(orderId);
+
+      console.log('✅ Buyurtma muvaffaqiyatli bekor qilindi');
+
+      // Real-time subscription orqali data avtomatik yangilanadi
+      // Lekin qo'shimcha trigger uchun loadData chaqiramiz
+      setTimeout(async () => {
+        try {
+          await loadData();
+        } catch (loadError) {
+          console.warn('⚠️ Ma\'lumotlarni qayta yuklashda xato:', loadError);
+        }
+      }, 1000);
+
+      alert('Buyurtma muvaffaqiyatli bekor qilindi');
+    } catch (error) {
+      console.error('Buyurtmani bekor qilishda xatolik:', error);
+      alert('Buyurtmani bekor qilishda xatolik yuz berdi');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
