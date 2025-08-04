@@ -31,7 +31,19 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   onClose,
   onBackToHome
 }) => {
-  if (!isVisible || !orderDetails) return null;
+  console.log('🎯 OrderConfirmationModal render:', {
+    isVisible,
+    hasOrderDetails: !!orderDetails,
+    orderDetails,
+    totalPrice
+  });
+
+  if (!isVisible || !orderDetails) {
+    console.log('❌ Modal ko\'rsatilmayapti:', { isVisible, hasOrderDetails: !!orderDetails });
+    return null;
+  }
+
+  console.log('✅ Modal ko\'rsatilmoqda!');
 
   // CSS animatsiyalari uchun style tag qo'shish
   const animationStyles = `
@@ -186,7 +198,10 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
           {/* Action Buttons */}
           <div className="space-y-3">
             <button
-              onClick={onBackToHome}
+              onClick={() => {
+                console.log('📋 Buyurtmalar sahifasiga o\'tish...');
+                onBackToHome();
+              }}
               className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 px-6 rounded-2xl font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
             >
               📋 Buyurtmalar

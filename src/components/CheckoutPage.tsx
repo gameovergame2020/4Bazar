@@ -671,39 +671,52 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       console.log('✅ Buyurtma yaratildi, Firebase ID:', orderResult.docId);
       console.log('🆔 Buyurtma raqami:', orderResult.orderUniqueId);
 
-      const operatorPhone = '+998 90 123 45 67';
+      // Buyurtma muvaffaqiyatli yaratilgandan keyin modal oynani ko'rsatish
+      if (orderResult && orderResult.orderUniqueId) {
+        const operatorPhone = '+998 90 123 45 67';
 
-      setOrderDetails({ 
-        orderId: orderResult.orderUniqueId,
-        operatorPhone 
-      });
-      setOrderConfirmed(true);
-
-      Object.keys(cart).forEach(cakeId => {
-        removeFromCart(cakeId);
-      });
-
-      try {
-        const { notificationService } = await import('../services/notificationService');
-        await notificationService.createNotification({
-          userId: 'operator-1',
-          type: 'order',
-          title: 'Yangi buyurtma!',
-          message: `${userInfo.name} tomonidan yangi buyurtma: ${cartProducts.map(p => p.name).join(', ')}`,
-          data: { 
-            orderId: orderResult.docId, 
-            orderUniqueId: orderResult.orderUniqueId,
-            customerName: userInfo.name,
-            customerPhone: userInfo.phone,
-            totalPrice 
-          },
-          read: false,
-          priority: 'high',
-          actionUrl: `/operator/orders/${orderResult.docId}`
+        console.log('🎉 Tasdiqlash oynasi ko\'rsatilmoqda...');
+        
+        setOrderDetails({ 
+          orderId: orderResult.orderUniqueId,
+          operatorPhone 
         });
-        console.log('📢 Operator bildirishnomasi yuborildi');
-      } catch (notifError) {
-        console.warn('⚠️ Operator bildirishnomasi yuborishda xato:', notifError);
+        
+        // Modal ko'rsatishdan oldin state'ni yangilash
+        setTimeout(() => {
+          setOrderConfirmed(true);
+          console.log('✅ OrderConfirmed state: true ga o\'zgartirildi');
+        }, 100);
+
+        // Cart'ni tozalash
+        Object.keys(cart).forEach(cakeId => {
+          removeFromCart(cakeId);
+        });
+
+        try {
+          const { notificationService } = await import('../services/notificationService');
+          await notificationService.createNotification({
+            userId: 'operator-1',
+            type: 'order',
+            title: 'Yangi buyurtma!',
+            message: `${userInfo.name} tomonidan yangi buyurtma: ${cartProducts.map(p => p.name).join(', ')}`,
+            data: { 
+              orderId: orderResult.docId, 
+              orderUniqueId: orderResult.orderUniqueId,
+              customerName: userInfo.name,
+              customerPhone: userInfo.phone,
+              totalPrice 
+            },
+            read: false,
+            priority: 'high',
+            actionUrl: `/operator/orders/${orderResult.docId}`
+          });
+          console.log('📢 Operator bildirishnomasi yuborildi');
+        } catch (notifError) {
+          console.warn('⚠️ Operator bildirishnomasi yuborishda xato:', notifError);
+        }
+      } else {
+        throw new Error('Buyurtma yaratilmadi yoki ID qaytarilmadi');
       }
 
     } catch (error) {
@@ -768,16 +781,26 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       />
 
       {/* Buyurtma tasdiqlash modali */}
+      {(() => {
+        console.log('🔍 Modal render tekshiruvi:', {
+          orderConfirmed,
+          orderDetails,
+          totalPrice
+        });
+        return null;
+      })()}
       <OrderConfirmationModal
         isVisible={orderConfirmed}
         orderDetails={orderDetails}
         totalPrice={totalPrice}
         userInfo={userInfo}
         onClose={() => {
+          console.log('❌ Modal yopilmoqda...');
           setOrderConfirmed(false);
           setOrderDetails(null);
         }}
         onBackToHome={() => {
+          console.log('🏠 Bosh sahifaga qaytish...');
           setOrderConfirmed(false);
           setOrderDetails(null);
           onOrderComplete();
