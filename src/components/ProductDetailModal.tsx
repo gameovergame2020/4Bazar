@@ -466,7 +466,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           {activeTab === 'reviews' && (
             <div className="space-y-6">
               {/* Add Review */}
-              {isAuthenticated ? (
+              {isAuthenticated && hasDeliveredOrder ? (
                 <div className="border border-gray-200 rounded-lg p-4">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Izoh qoldiring</h3>
                   <div className="space-y-3">
@@ -501,13 +501,20 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     </button>
                   </div>
                 </div>
-              ) : (
+              ) : isAuthenticated && !hasDeliveredOrder ? (
+                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                  <div className="text-center">
+                    <p className="text-gray-600 mb-2">Izoh qoldirish uchun mahsulotni sotib olib, qabul qilib olishingiz kerak</p>
+                    <p className="text-sm text-gray-500">Faqat yetkazib berilgan buyurtmalar uchun sharh yozish mumkin</p>
+                  </div>
+                </div>
+              ) : !isAuthenticated ? (
                 <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                   <div className="text-center">
                     <p className="text-gray-600">Izoh qoldirish uchun tizimga kiring</p>
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Reviews List */}
               <div className="space-y-4">
