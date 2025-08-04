@@ -549,8 +549,8 @@ const addToCart = (cakeId: string) => {
                           ? `Hozir mavjud: ${cake.quantity} ta`
                           : cake.available && (cake.quantity === undefined || cake.quantity === 0)
                             ? 'Buyurtma uchun (miqdor cheklanmagan)'
-                            : !cake.available && (cake as any).orderedQuantity !== undefined && (cake as any).orderedQuantity > 0
-                              ? `Buyurtmada: ${(cake as any).orderedQuantity} ta`
+                            : !cake.available
+                              ? `Buyurtma uchun: ${cake.amount || 0} ta`
                               : 'Buyurtma uchun'
                         : cake.quantity !== undefined 
                           ? `Qoldi: ${cake.quantity} ta`
@@ -678,8 +678,8 @@ const addToCart = (cakeId: string) => {
                             ? `Hozir mavjud: ${cake.quantity} ta`
                             : cake.available && (cake.quantity === undefined || cake.quantity === 0)
                               ? 'Buyurtma uchun (miqdor cheklanmagan)'
-                              : !cake.available && (cake as any).orderedQuantity !== undefined && (cake as any).orderedQuantity > 0
-                                ? `Buyurtmada: ${(cake as any).orderedQuantity} ta`
+                              : !cake.available
+                                ? `Buyurtma uchun: ${cake.amount || 0} ta`
                                 : 'Buyurtma uchun'
                           : cake.quantity !== undefined 
                             ? `Qoldi: ${cake.quantity} ta`

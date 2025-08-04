@@ -522,7 +522,7 @@ const CustomerDashboard = () => {
                     : cake.quantity !== undefined 
                       ? `Qoldi: ${cake.quantity} ta`
                       : 'Miqdor: cheklanmagan'
-                  }
+                  }</p>
                 </p>
 
                 <div className="flex items-center justify-between">
