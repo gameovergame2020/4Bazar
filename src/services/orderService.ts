@@ -287,12 +287,20 @@ class OrderService {
       // Mahsulot quantity/amount ni qaytarish
       try {
         // fromStock qiymati bo'yicha to'g'ri qaytarish
-        const fromStockValue = orderData.fromStock !== undefined ? orderData.fromStock : false;
+        const fromStockValue = orderData.fromStock === true;
+        
+        console.log('🔍 Buyurtma bekor qilish detallari:', {
+          orderId,
+          fromStock: orderData.fromStock,
+          fromStockValue,
+          cakeId: orderData.cakeId,
+          quantity: orderData.quantity
+        });
         
         if (fromStockValue) {
           console.log('📦 "Hozir mavjud" dan bekor qilingan - quantity qaytariladi');
         } else {
-          console.log('📦 "Buyurtma uchun" dan bekor qilingan - FAQAT amount kamayadi');
+          console.log('📦 "Buyurtma uchun" dan bekor qilingan - amount kamayadi, rejectAmount oshadi');
         }
         
         await productService.revertOrderQuantity(orderData.cakeId, orderData.quantity, fromStockValue);

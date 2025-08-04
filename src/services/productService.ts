@@ -328,32 +328,30 @@ class ProductService {
 
           // Amount dan kamayib rejectAmount ga o'tish
           const actualReduction = Math.min(orderQuantity, currentAmount);
-          const newAmount = Math.max(0, currentAmount - actualReduction);
-          const newRejectAmount = currentRejectAmount + actualReduction;
-
-          updateData.amount = newAmount;
-          updateData.rejectAmount = newRejectAmount;
-
-          // CRITICAL: quantity, inStockQuantity va available holatini o'zgartirmaslik
-          // "Buyurtma uchun" mahsulotlar virtual buyurtma, real zaxira emas
-
-          console.log('🚫 OPERATOR BEKOR QILISH "Buyurtma uchun" - amount kamaydi, rejectAmount oshadi:', {
-            oldAmount: currentAmount,
-            newAmount,
-            oldRejectAmount: currentRejectAmount,
-            newRejectAmount,
-            orderQuantity,
-            actualReduction,
-            amountReduction: currentAmount - newAmount,
-            rejectAmountIncrease: actualReduction,
-            quantityUNTOUCHED: cake.quantity || 0,
-            availableUNTOUCHED: cake.available,
-            inStockUNTOUCHED: cake.inStockQuantity || 0,
-            rule: 'OPERATOR BEKOR QILISH: amount kamaydi va rejectAmount oshadi'
-          });
-
-          // Operator bekor qilish ma'lumotini saqlash
+          
           if (actualReduction > 0) {
+            const newAmount = Math.max(0, currentAmount - actualReduction);
+            const newRejectAmount = currentRejectAmount + actualReduction;
+
+            updateData.amount = newAmount;
+            updateData.rejectAmount = newRejectAmount;
+
+            console.log('🚫 OPERATOR BEKOR QILISH "Buyurtma uchun" - amount kamaydi, rejectAmount oshadi:', {
+              oldAmount: currentAmount,
+              newAmount,
+              oldRejectAmount: currentRejectAmount,
+              newRejectAmount,
+              orderQuantity,
+              actualReduction,
+              amountReduction: currentAmount - newAmount,
+              rejectAmountIncrease: actualReduction,
+              quantityUNTOUCHED: cake.quantity || 0,
+              availableUNTOUCHED: cake.available,
+              inStockUNTOUCHED: cake.inStockQuantity || 0,
+              rule: 'OPERATOR BEKOR QILISH: amount kamaydi va rejectAmount oshadi'
+            });
+
+            // Operator bekor qilish ma'lumotini saqlash
             updateData.lastRejection = {
               rejectedQuantity: actualReduction,
               rejectedAt: Timestamp.now(),
@@ -361,6 +359,12 @@ class ProductService {
               operatorAction: 'cancelled_from_order_management'
             };
             console.log('📝 Operator bekor qilish ma\'lumoti qo\'shildi:', updateData.lastRejection);
+          } else {
+            console.warn('⚠️ Amount qiymati yetarli emas yoki 0:', {
+              currentAmount,
+              orderQuantity,
+              actualReduction
+            });
           }
         }
 

@@ -39,12 +39,14 @@ export const useOrderManagement = (orders: Order[], setOrders: React.Dispatch<Re
           await dataService.updateOrderStatus(orderId, 'cancelled');
           
           // MUHIM: Mahsulot miqdorini qaytarish va inStockQuantity ni to'g'ri boshqarish
-          const fromStockStatus = order.fromStock !== undefined ? order.fromStock : true;
+          const fromStockStatus = order.fromStock === true;
           
           console.log('🔄 Operator bekor qilish: mahsulot quantity va inStockQuantity ni qaytarish:', {
             cakeId: order.cakeId,
             orderQuantity: order.quantity,
-            fromStock: fromStockStatus
+            originalFromStock: order.fromStock,
+            fromStockStatus,
+            willTransferToReject: !fromStockStatus
           });
           
           await dataService.revertOrderQuantity(order.cakeId, order.quantity, fromStockStatus);
