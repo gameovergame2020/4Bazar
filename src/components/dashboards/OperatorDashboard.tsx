@@ -617,12 +617,31 @@ const OperatorDashboard = () => {
           orderId,
           cakeId: order.cakeId,
           quantity: order.quantity,
-          cakeName: order.cakeName
+          cakeName: order.cakeName,
+          fromStock: order.fromStock
         });
 
         try {
-          await dataService.revertOrderQuantity(order.cakeId, order.quantity);
+          await dataService.revertOrderQuantity(order.cakeId, order.quantity, order.fromStock || false);
           console.log('✅ Mahsulot soni muvaffaqiyatli qaytarildi');
+          
+          // Real-time yangilanishni kuchaytirish uchun qo'shimcha trigger
+          setTimeout(async () => {
+            try {
+              const updatedCake = await dataService.getCakeById(order.cakeId);
+              if (updatedCake) {
+                console.log('🔄 Mahsulot holati tekshirildi:', {
+                  id: updatedCake.id,
+                  name: updatedCake.name,
+                  available: updatedCake.available,
+                  quantity: updatedCake.quantity
+                });
+              }
+            } catch (checkError) {
+              console.warn('⚠️ Mahsulot holati tekshirishda xato:', checkError);
+            }
+          }, 1000);
+          
         } catch (revertError) {
           console.error('❌ Mahsulot sonini qaytarishda xato:', revertError);
           // Xatoga qaramay order status ni yangilashni davom ettiramiz

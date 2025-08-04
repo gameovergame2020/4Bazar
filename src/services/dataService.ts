@@ -1192,11 +1192,27 @@ class DataService {
             ...updateData,
             lastModified: new Date().getTime(),
             forceUpdate: new Date().toISOString(),
-            revertedAt: Timestamp.now()
+            revertedAt: Timestamp.now(),
+            statusChangeId: Math.random().toString(36).substr(2, 9) // Random ID for forcing updates
           };
           
           await this.updateCake(cakeId, forceUpdateData);
           console.log('🔄 Force update muvaffaqiyatli amalga oshirildi');
+          
+          // Qo'shimcha verification update
+          setTimeout(async () => {
+            try {
+              const verificationData = {
+                verified: true,
+                verificationTime: Timestamp.now()
+              };
+              await this.updateCake(cakeId, verificationData);
+              console.log('✅ Verification update amalga oshirildi');
+            } catch (verifyError) {
+              console.warn('⚠️ Verification update da xato:', verifyError);
+            }
+          }, 500);
+          
         } catch (triggerError) {
           console.warn('⚠️ Real-time trigger da xato:', triggerError);
         }
