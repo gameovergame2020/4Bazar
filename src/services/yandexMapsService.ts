@@ -42,12 +42,12 @@ class YandexMapsService {
         return;
       } catch (error) {
         console.warn(`❌ Yandex Maps yuklash urinishi ${attempt + 1} muvaffaqiyatsiz:`, error);
-        
+
         if (attempt === this.maxRetries) {
           this.isLoading = false;
           throw new Error(`Yandex Maps ${this.maxRetries + 1} marta urinildi, lekin yuklanmadi`);
         }
-        
+
         // Har bir urinish orasida kutish
         await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
       }
@@ -70,7 +70,7 @@ class YandexMapsService {
       const existingScript = document.querySelector('script[src*="api-maps.yandex.ru"]');
       if (existingScript) {
         console.log('🔄 Mavjud Yandex Maps skripti topildi, yuklanishini kutmoqda...');
-        
+
         // Mavjud skript allaqachon yuklangan bo'lishi mumkin
         if (window.ymaps && window.ymaps.ready) {
           window.ymaps.ready(() => resolve());
@@ -101,19 +101,19 @@ class YandexMapsService {
 
       // API kalitini tekshirish
       const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
-      
-      console.log('🔑 API kaliti tekshirilmoqda:', apiKey ? `${apiKey.substring(0, 10)}...` : 'kalitsiz rejim');
-      
-      // API kaliti bo'lmasa ham davom etamiz (cheklangan rejim)
-      const apiKeyParam = (apiKey && apiKey !== 'undefined' && !apiKey.includes('your_') && apiKey.trim() !== '') 
-        ? `&apikey=${apiKey}` 
-        : '';
+
+      console.log('🔑 API kaliti tekshirilmoqda:', apiKey ? `${apiKey.substring(0, 10)}...` : 'mavjud emas');
+
+      if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_') || apiKey.trim() === '') {
+        reject(new Error('Yandex Maps API kaliti to\'g\'ri konfiguratsiya qilinmagan. .env faylida VITE_YANDEX_MAPS_API_KEY ni to\'ldiring.'));
+        return;
+      }
 
       console.log('🗺️ Yangi Yandex Maps skripti yuklanmoqda...');
 
       // Yangi skript yaratish
       const script = document.createElement('script');
-      script.src = `https://api-maps.yandex.ru/2.1/?lang=uz_UZ&load=package.full${apiKeyParam}`;
+      script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&load=package.full`;
       script.type = 'text/javascript';
       script.async = true;
       script.defer = true;
@@ -126,7 +126,7 @@ class YandexMapsService {
       script.onload = () => {
         clearTimeout(timeoutId);
         console.log('✅ Yandex Maps skripti muvaffaqiyatli yuklandi');
-        
+
         if (window.ymaps && window.ymaps.ready) {
           window.ymaps.ready(() => {
             console.log('✅ ymaps.ready() muvaffaqiyatli bajarildi');
@@ -162,7 +162,7 @@ class YandexMapsService {
     // API kalitini tekshirish
     const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
     console.log('🔍 Geocoding uchun API kaliti:', apiKey ? `${apiKey.substring(0, 10)}...` : 'mavjud emas');
-    
+
     if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_')) {
       throw new Error('API kaliti noto\'g\'ri konfiguratsiya qilingan. Yangi API kaliti oling va .env faylida yangilang.');
     }
@@ -196,10 +196,10 @@ class YandexMapsService {
         }).catch((error: any) => {
           clearTimeout(timeout);
           console.error('Geocoding API xatosi:', error);
-          
+
           // Xato turini aniqlash
           console.error('🔍 Geocoding xato tafsilotlari:', error);
-          
+
           if (error && typeof error === 'object') {
             if (error.message === 'scriptError' || error.message?.includes('scriptError')) {
               reject(new Error('API kaliti noto\'g\'ri, muddati tugagan yoki tarmoq muammosi. Yandex Developer Console da API kalitini tekshiring.'));
