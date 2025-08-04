@@ -378,15 +378,6 @@ const BakerDashboard = () => {
             const newAmount = Math.max(0, (cake.amount || 0) - order.quantity);
             updateData.amount = newAmount;
 
-            // Faqat stock dan olingan buyurtmalar uchun quantity ni qaytarish
-            if (order.fromStock) {
-              const newQuantity = (cake.quantity || 0) + order.quantity;
-              updateData.quantity = newQuantity;
-              console.log(`🔄 Stock qaytarildi: quantity ${cake.quantity || 0} -> ${newQuantity}`);
-            } else {
-              console.log(`ℹ️ Pre-order bekor qilindi, stock qaytarilmadi`);
-            }
-
             // Agar mahsulot "hozir mavjud" holatida bo'lsa, quantity ni qaytarish
             if (cake.available && cake.quantity !== undefined) {
               const newQuantity = cake.quantity + order.quantity;
