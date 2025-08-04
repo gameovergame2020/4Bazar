@@ -11,7 +11,7 @@ export const useAuth = () => {
   useEffect(() => {
     const unsubscribe = authService.onAuthStateChange(async (firebaseUser) => {
       setUser(firebaseUser);
-      
+
       if (firebaseUser) {
         try {
           const data = await authService.getUserData(firebaseUser.uid);
@@ -23,7 +23,7 @@ export const useAuth = () => {
       } else {
         setUserData(null);
       }
-      
+
       setLoading(false);
     });
 
@@ -45,13 +45,13 @@ export const useAuth = () => {
     }
   };
 
-  const register = async (phone: string, password: string, name: string, role: any = 'customer') => {
+  const register = async (phone: string, password: string, name: string, role: string = 'customer', birthDate?: string) => {
     try {
       setError(null);
       setLoading(true);
-      const data = await authService.registerWithPhone(phone, password, name, role);
-      setUserData(data);
-      return data;
+      const userData = await authService.register(phone, password, name, role, birthDate);
+      setUserData(userData);
+      return userData;
     } catch (err: any) {
       setError(err.message || 'Ro\'yhatdan o\'tishda xatolik');
       throw err;
@@ -74,7 +74,7 @@ export const useAuth = () => {
 
   const updateUserData = async (updates: Partial<UserData>) => {
     if (!userData) return;
-    
+
     try {
       setError(null);
       await authService.updateUserData(userData.id, updates);

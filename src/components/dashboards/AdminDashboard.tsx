@@ -69,7 +69,7 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [selectedTab, setSelectedTab] = useState<'overview' | 'users' | 'orders' | 'system' | 'settings' | 'statistics' | 'departments'>('overview');
-  
+
   // Bo'limlar uchun formalar
   const [showDepartmentForm, setShowDepartmentForm] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
@@ -591,6 +591,7 @@ const AdminDashboard = () => {
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Foydalanuvchi</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Email</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Telefon</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">Tug'ilgan kun</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Rol</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Qo'shildi</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Amallar</th>
@@ -611,6 +612,9 @@ const AdminDashboard = () => {
                     </td>
                     <td className="py-3 px-4 text-gray-700">{user.email}</td>
                     <td className="py-3 px-4 text-gray-700">{user.phone}</td>
+                    <td className="py-3 px-4 text-gray-700">
+                      {user.birthDate ? new Date(user.birthDate).toLocaleDateString('uz-UZ') : 'Ko\'rsatilmagan'}
+                    </td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
                         {getRoleText(user.role)}
@@ -1015,9 +1019,9 @@ const AdminDashboard = () => {
                       {dept.status === 'active' ? 'Faol' : 'Nofaol'}
                     </span>
                   </div>
-                  
+
                   <p className="text-sm text-gray-600 mb-3">{dept.description}</p>
-                  
+
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-600">Xodimlar:</span>

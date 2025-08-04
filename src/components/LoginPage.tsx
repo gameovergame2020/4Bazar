@@ -12,6 +12,7 @@ const LoginPage: React.FC = () => {
     phone: '',
     password: '',
     confirmPassword: '',
+    birthDate: '',
   });
   const [errors, setErrors] = useState<{[key: string]: string}>({});
 
@@ -49,6 +50,17 @@ const LoginPage: React.FC = () => {
       newErrors.name = 'Ism kiritish majburiy';
     }
 
+    if (!isLogin && !formData.birthDate) {
+      newErrors.birthDate = 'Tug\'ilgan kun kiritish majburiy';
+    } else if (!isLogin && formData.birthDate) {
+      const birthDate = new Date(formData.birthDate);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      if (age < 13) {
+        newErrors.birthDate = 'Yoshingiz kamida 13 dan yuqori bo\'lishi kerak';
+      }
+    }
+
     if (!isLogin && formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Parollar mos kelmaydi';
     }
@@ -66,7 +78,7 @@ const LoginPage: React.FC = () => {
       if (isLogin) {
         await login(formData.phone, formData.password);
       } else {
-        await register(formData.phone, formData.password, formData.name, 'customer');
+        await register(formData.phone, formData.password, formData.name, 'customer', formData.birthDate);
       }
     } catch (err) {
       // Error handled by useAuth hook
@@ -80,6 +92,7 @@ const LoginPage: React.FC = () => {
       phone: '',
       password: '',
       confirmPassword: '',
+      birthDate: '',
     });
     setErrors({});
   };
@@ -124,6 +137,30 @@ const LoginPage: React.FC = () => {
                 </div>
                 {errors.name && (
                   <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                )}
+              </div>
+            )}
+
+            {/* Birth Date field (only for registration) */}
+            {!isLogin && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tug'ilgan kun
+                </label>
+                <div className="relative">
+                  <input
+                    type="date"
+                    name="birthDate"
+                    value={formData.birthDate}
+                    onChange={handleInputChange}
+                    max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors ${
+                      errors.birthDate ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  />
+                </div>
+                {errors.birthDate && (
+                  <p className="mt-1 text-sm text-red-600">{errors.birthDate}</p>
                 )}
               </div>
             )}
