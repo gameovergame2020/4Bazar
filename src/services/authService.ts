@@ -162,7 +162,130 @@ class AuthService {
     }
   }
 
-  // Username yangilash
+  // Username o'zgartirish so'rovi yuborish (Admin tasdig'ini kutadi)
+  async requestUsernameChange(userId: string, newUsername: string): Promise<boolean> {
+    try {
+      // Yangi username formatini tekshirish
+      if (!/^[a-z0-9_]{3,20}$/.test(newUsername)) {
+        throw new Error('Username faqat kichik harflar, raqamlar va _ belgisidan iborat bo\'lishi kerak (3-20 ta belgi)');
+      }
+
+      // Username mavjudligini tekshirish
+      if (await this.isUsernameExists(newUsername)) {
+        throw new Error('Bu username allaqachon band');
+      }
+
+      // Username o'zgartirish so'rovini saqlash
+      const requestData = {
+        userId,
+        currentUsername: (await this.getUserData(userId))?.username || '',
+        requestedUsername: newUsername,
+        status: 'pending',
+        requestedAt: new Date().toISOString(),
+        approvedBy: null,
+        approvedAt: null
+      };
+
+      await setDoc(doc(db, 'usernameRequests', `${userId}_${Date.now()}`), requestData);
+
+      return true;
+    } catch (error) {
+      console.error('Username o\'zgartirish so\'rovida xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Admin tomonidan username o'zgartirishni tasdiqlash
+  async approveUsernameChange(requestId: string, adminId: string): Promise<boolean> {
+    try {
+      const requestDoc = await getDoc(doc(db, 'usernameRequests', requestId));
+      
+      if (!requestDoc.exists()) {
+        throw new Error('So\'rov topilmadi');
+      }
+
+      const requestData = requestDoc.data();
+      
+      if (requestData.status !== 'pending') {
+        throw new Error('Bu so\'rov allaqachon ko\'rib chiqilgan');
+      }
+
+      // Username hali ham mavjud emasligini tekshirish
+      if (await this.isUsernameExists(requestData.requestedUsername)) {
+        throw new Error('Bu username allaqachon band');
+      }
+
+      // Foydalanuvchi username-ini yangilash
+      await updateDoc(doc(db, 'users', requestData.userId), {
+        username: requestData.requestedUsername
+      });
+
+      // So'rov holatini yangilash
+      await updateDoc(doc(db, 'usernameRequests', requestId), {
+        status: 'approved',
+        approvedBy: adminId,
+        approvedAt: new Date().toISOString()
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Username tasdiqalaganda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Admin tomonidan username o'zgartirishni rad etish
+  async rejectUsernameChange(requestId: string, adminId: string, reason?: string): Promise<boolean> {
+    try {
+      await updateDoc(doc(db, 'usernameRequests', requestId), {
+        status: 'rejected',
+        rejectedBy: adminId,
+        rejectedAt: new Date().toISOString(),
+        rejectionReason: reason || 'Admin tomonidan rad etildi'
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Username rad qilishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Kutilayotgan username so'rovlarini olish
+  async getPendingUsernameRequests(): Promise<any[]> {
+    try {
+      const requestsRef = collection(db, 'usernameRequests');
+      const q = query(requestsRef, where('status', '==', 'pending'));
+      const querySnapshot = await getDocs(q);
+      
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('So\'rovlarni olishda xatolik:', error);
+      return [];
+    }
+  }
+
+  // Foydalanuvchining username so'rovlarini olish
+  async getUserUsernameRequests(userId: string): Promise<any[]> {
+    try {
+      const requestsRef = collection(db, 'usernameRequests');
+      const q = query(requestsRef, where('userId', '==', userId));
+      const querySnapshot = await getDocs(q);
+      
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })).sort((a, b) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime());
+    } catch (error) {
+      console.error('Foydalanuvchi so\'rovlarini olishda xatolik:', error);
+      return [];
+    }
+  }
+
+  // Username yangilash (faqat admin uchun)
   async updateUsername(userId: string, newUsername: string): Promise<boolean> {
     try {
       // Yangi username formatini tekshirish

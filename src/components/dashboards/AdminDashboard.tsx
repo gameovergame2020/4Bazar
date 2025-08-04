@@ -5,7 +5,8 @@ import { useProfileManager } from '../../hooks/useProfileManager';
 import ProfileManager from '../ProfileManager';
 import SettingsPage from '../SettingsPage';
 import { dataService, Order, Cake } from '../../services/dataService';
-import { UserData } from '../../services/authService';
+import { authService } from '../../services/authService';
+import { UserData } from '../../services/shared/types';
 
 interface SystemMetrics {
   totalUsers: number;
@@ -52,8 +53,8 @@ const AdminDashboard = () => {
   const [cakes, setCakes] = useState<Cake[]>([]);
   const [users, setUsers] = useState<UserData[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'users' | 'orders' | 'system' | 'settings' | 'statistics' | 'departments'>('overview');
-    const [showSettings, setShowSettings] = useState(false);
+  const [selectedTab, setSelectedTab] = useState<'overview' | 'users' | 'orders' | 'system' | 'settings' | 'statistics' | 'departments' | 'username-requests'>('overview');
+  const [showSettings, setShowSettings] = useState(false);
 
   // Bo'limlar uchun formalar
   const [showDepartmentForm, setShowDepartmentForm] = useState(false);
@@ -95,6 +96,9 @@ const AdminDashboard = () => {
     admins: 0
   });
 
+  const [usernameRequests, setUsernameRequests] = useState<any[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
+
   useEffect(() => {
     if (userData?.id) {
       loadData();
@@ -102,7 +106,7 @@ const AdminDashboard = () => {
     }
   }, [userData]);
 
-    const { openUserProfile } = useProfileManager();
+  const { openUserProfile } = useProfileManager();
 
   const loadData = async () => {
     try {
@@ -293,7 +297,7 @@ const AdminDashboard = () => {
         description: departmentForm.description.trim(),
         color: departmentForm.color,
         managerId: departmentForm.managerId || undefined,
-        managerName: departmentForm.managerId ? 
+        managerName: departmentForm.managerId ?
           users.find(u => u.id === departmentForm.managerId)?.name : undefined,
         memberCount: 0,
         permissions: departmentForm.permissions,
@@ -332,6 +336,44 @@ const AdminDashboard = () => {
         console.error('Bo\'limni o\'chirishda xato:', error);
         alert('Xatolik yuz berdi');
       }
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadUsernameRequests = async () => {
+    try {
+      setLoadingRequests(true);
+      const requests = await authService.getPendingUsernameRequests();
+      setUsernameRequests(requests);
+    } catch (error) {
+      console.error('Username so\'rovlarini yuklashda xatolik:', error);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  const handleApproveUsername = async (requestId: string) => {
+    try {
+      await authService.approveUsernameChange(requestId, userData.id);
+      await loadUsernameRequests();
+      alert('Username tasdiqlandi!');
+    } catch (error) {
+      console.error('Username tasdiqashda xatolik:', error);
+      alert('Xatolik yuz berdi');
+    }
+  };
+
+  const handleRejectUsername = async (requestId: string, reason?: string) => {
+    try {
+      await authService.rejectUsernameChange(requestId, userData.id, reason);
+      await loadUsernameRequests();
+      alert('Username rad etildi!');
+    } catch (error) {
+      console.error('Username rad qilishda xatolik:', error);
+      alert('Xatolik yuz berdi');
     }
   };
 
@@ -387,6 +429,7 @@ const AdminDashboard = () => {
           {[
             { id: 'overview', label: 'Umumiy ko\'rinish', icon: BarChart3 },
             { id: 'users', label: 'Foydalanuvchilar', icon: Users },
+            { id: 'username-requests', label: 'Username so\'rovlari', icon: UserCheck },
             { id: 'departments', label: 'Bo\'limlar', icon: Globe },
             { id: 'orders', label: 'Buyurtmalar', icon: Package },
             { id: 'statistics', label: 'Statistika', icon: PieChart },
@@ -397,7 +440,7 @@ const AdminDashboard = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setSelectedTab(tab.id as 'overview' | 'users' | 'orders' | 'system' | 'settings' | 'statistics' | 'departments')}
+                onClick={() => setSelectedTab(tab.id as 'overview' | 'users' | 'orders' | 'system' | 'settings' | 'statistics' | 'departments' | 'username-requests')}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
                   selectedTab === tab.id
                     ? 'bg-red-500 text-white'
@@ -561,7 +604,7 @@ const AdminDashboard = () => {
               <div className="space-y-3">
                 {cakes.slice(0, 5).map((cake) => (
                   <div key={cake.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
-                    <img 
+                    <img
                       src={cake.image}
                       alt={cake.name}
                       className="w-12 h-12 rounded-lg object-cover"
@@ -639,7 +682,7 @@ const AdminDashboard = () => {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex space-x-2">
-                        <button 
+                        <button
                           className="p-1 text-blue-600 hover:text-blue-700"
                           title="Ko'rish"
                           onClick={() => {
@@ -649,7 +692,7 @@ const AdminDashboard = () => {
                         >
                           <Eye size={16} />
                         </button>
-                        <button 
+                        <button
                           className="p-1 text-green-600 hover:text-green-700"
                           title="Rolni o'zgartirish"
                           onClick={() => {
@@ -661,14 +704,14 @@ const AdminDashboard = () => {
                         >
                           <Edit size={16} />
                         </button>
-                        <button 
+                        <button
                           className="p-1 text-yellow-600 hover:text-yellow-700"
                           title={user.blocked ? "Blokdan chiqarish" : "Bloklash"}
                           onClick={() => handleBlockUser(user.id, user.blocked || false)}
                         >
                           <Lock size={16} />
                         </button>
-                        <button 
+                        <button
                           className="p-1 text-red-600 hover:text-red-700"
                           title="O'chirish"
                           onClick={() => handleDeleteUser(user.id, user.name)}
@@ -682,6 +725,105 @@ const AdminDashboard = () => {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {selectedTab === 'username-requests' && (
+        <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-gray-900">Username o'zgartirish so'rovlari</h3>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={loadUsernameRequests}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Yangilash
+              </button>
+              <span className="text-sm text-gray-600">
+                Kutilayotgan: {usernameRequests.length} ta
+              </span>
+            </div>
+          </div>
+
+          {loadingRequests ? (
+            <div className="text-center py-12">
+              <div className="animate-spin w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-gray-500">So'rovlar yuklanmoqda...</p>
+            </div>
+          ) : usernameRequests.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🆔</div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">So'rovlar yo'q</h3>
+              <p className="text-gray-500">Hozircha username o'zgartirish so'rovlari yo'q</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {usernameRequests.map((request) => (
+                <div key={request.id} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                          <User size={20} className="text-gray-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900">Username o'zgartirish so'rovi</h4>
+                          <p className="text-sm text-gray-600">
+                            So'rov vaqti: {new Date(request.requestedAt).toLocaleDateString('uz-UZ')} {new Date(request.requestedAt).toLocaleTimeString('uz-UZ')}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Joriy username:
+                            </label>
+                            <div className="text-sm text-gray-900 font-mono bg-white px-3 py-2 rounded border">
+                              @{request.currentUsername || 'belgilanmagan'}
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Yangi username:
+                            </label>
+                            <div className="text-sm text-gray-900 font-mono bg-white px-3 py-2 rounded border">
+                              @{request.requestedUsername}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => handleApproveUsername(request.id)}
+                          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
+                        >
+                          ✓ Tasdiqlash
+                        </button>
+                        <button
+                          onClick={() => {
+                            const reason = prompt('Rad etish sababini kiriting (ixtiyoriy):');
+                            handleRejectUsername(request.id, reason || undefined);
+                          }}
+                          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm"
+                        >
+                          ✗ Rad etish
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="ml-4">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        Kutilmoqda
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -911,8 +1053,8 @@ const AdminDashboard = () => {
                   <span className="font-medium text-gray-900">{metrics.serverLoad}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-500 h-2 rounded-full" 
+                  <div
+                    className="bg-blue-500 h-2 rounded-full"
                     style={{ width: `${metrics.serverLoad}%` }}
                   ></div>
                 </div>
@@ -992,7 +1134,7 @@ const AdminDashboard = () => {
           <div className="bg-white rounded-2xl p-6 border border-gray-100">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Bo'limlar boshqaruvi</h3>
-              <button 
+              <button
                 onClick={() => {
                   setEditingDepartment(null);
                   setDepartmentForm({
@@ -1021,7 +1163,7 @@ const AdminDashboard = () => {
                 <div key={dept.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-shadow">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-3">
-                      <div 
+                      <div
                         className="w-4 h-4 rounded-full"
                         style={{ backgroundColor: dept.color }}
                       ></div>
@@ -1062,7 +1204,7 @@ const AdminDashboard = () => {
                   </div>
 
                   <div className="flex space-x-2 mt-4 pt-3 border-t border-gray-100">
-                    <button 
+                    <button
                       onClick={() => {
                         setEditingDepartment(dept);
                         setDepartmentForm({
@@ -1082,7 +1224,7 @@ const AdminDashboard = () => {
                     >
                       Tahrirlash
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDeleteDepartment(dept.id!, dept.name)}
                       className="flex-1 bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
                     >
@@ -1169,7 +1311,7 @@ const AdminDashboard = () => {
               <h2 className="text-xl font-semibold text-gray-900">
                 {editingDepartment ? 'Bo\'limni tahrirlash' : 'Yangi bo\'lim qo\'shish'}
               </h2>
-              <button 
+              <button
                 onClick={() => setShowDepartmentForm(false)}
                 className="text-gray-400 hover:text-gray-600"
               >
@@ -1243,177 +1385,4 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Joylashuv */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Joylashuv</label>
-                  <input
-                    type="text"
-                    value={departmentForm.location}
-                    onChange={(e) => setDepartmentForm({...departmentForm, location: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Masalan: 2-qavat, 201-xona"
-                  />
-                </div>
-
-                {/* Telefon */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
-                  <input
-                    type="tel"
-                    value={departmentForm.phone}
-                    onChange={(e) => setDepartmentForm({...departmentForm, phone: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="+998 99 123 45 67"
-                  />
-                </div>
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input
-                  type="email"
-                  value={departmentForm.email}
-                  onChange={(e) => setDepartmentForm({...departmentForm, email: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="department@company.com"
-                />
-              </div>
-
-              {/* Ruxsatlar */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Ruxsatlar</label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {[
-                    'create_orders', 'manage_users', 'view_analytics', 
-                    'manage_products', 'financial_access', 'system_settings'
-                  ].map((permission) => (
-                    <label key={permission} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={departmentForm.permissions.includes(permission)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setDepartmentForm({
-                              ...departmentForm, 
-                              permissions: [...departmentForm.permissions, permission]
-                            });
-                          } else {
-                            setDepartmentForm({
-                              ...departmentForm, 
-                              permissions: departmentForm.permissions.filter(p => p !== permission)
-                            });
-                          }
-                        }}
-                        className="rounded border-gray-300"
-                      />
-                      <span className="text-sm text-gray-600">
-                        {permission === 'create_orders' ? 'Buyurtma yaratish' :
-                         permission === 'manage_users' ? 'Foydalanuvchilar' :
-                         permission === 'view_analytics' ? 'Analitika' :
-                         permission === 'manage_products' ? 'Mahsulotlar' :
-                         permission === 'financial_access' ? 'Moliya' :
-                         'Tizim sozlamalari'}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex space-x-4 mt-6 pt-4 border-t border-gray-200">
-              <button
-                onClick={() => setShowDepartmentForm(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Bekor qilish
-              </button>
-              <button
-                onClick={handleSaveDepartment}
-                disabled={!departmentForm.name.trim()}
-                className="flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {editingDepartment ? 'Yangilash' : 'Saqlash'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Settings Tab */}
-      {selectedTab === 'settings' && (
-        <div className="bg-white rounded-2xl p-6 border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">Tizim sozlamalari</h3>
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-medium text-gray-900 mb-3">Umumiy sozlamalar</h4>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Ro'yhatdan o'tishga ruxsat</span>
-                    <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-green-500">
-                      <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-6"></span>
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Email tasdiqlash</span>
-                    <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300">
-                      <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1"></span>
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Maintenance rejimi</span>
-                    <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300">
-                      <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1"></span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-medium text-gray-900 mb-3">Xavfsizlik</h4>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                      <span className="text-gray-600">2FA majburiy</span>
-                      <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300">
-                        <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1"></span>
-                      </button>
-                    </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Session timeout</span>
-                    <select className="px-3 py-1 border border-gray-300 rounded text-sm">
-                      <option>30 daqiqa</option>
-                      <option>1 soat</option>
-                      <option>2 soat</option>
-                    </select>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">IP whitelist</span>
-                    <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300">
-                      <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1"></span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-6 border-t border-gray-200">
-              <button className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors">
-                O'zgarishlarni saqlash
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-        {/* Settings Modal */}
-        {showSettings && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-2xl p-6 w-full max-w-2xl m-4 max-h-[90vh] overflow-y-auto">
-                    <SettingsPage onClose={() => setShowSettings(false)} />
-                </div>
-            </div>
-        )}
-    </div>
-  );
-};
-
-export default AdminDashboard;
+                Completing the AdminDashboard component with username request handling and UI elements.

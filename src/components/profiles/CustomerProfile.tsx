@@ -18,7 +18,7 @@ import {
   TrendingUp,
   Plus
 } from 'lucide-react';
-import { UserData } from '../../services/authService';
+import { UserData, authService } from '../../services/authService';
 import { dataService } from '../../services/dataService';
 import { useFavorites } from '../../hooks/useFavorites';
 
@@ -50,6 +50,11 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
     avatar: null as File | null
   });
 
+  const [showUsernameModal, setShowUsernameModal] = useState(false);
+  const [newUsername, setNewUsername] = useState('');
+  const [usernameRequests, setUsernameRequests] = useState<any[]>([]);
+  const [loadingUsernameRequest, setLoadingUsernameRequest] = useState(false);
+
   const { favoriteCount, favorites, loadFavorites, removeFromFavorites } = useFavorites(user.id);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
@@ -62,7 +67,37 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
     loadStats();
     loadUserOrders();
     loadFavorites();
+    loadUsernameRequests();
   }, [user.id]);
+
+  const loadUsernameRequests = async () => {
+    try {
+      const requests = await authService.getUserUsernameRequests(user.id);
+      setUsernameRequests(requests);
+    } catch (error) {
+      console.error('Username so\'rovlarini yuklashda xatolik:', error);
+    }
+  };
+
+  const handleUsernameRequest = async () => {
+    if (!newUsername.trim()) {
+      alert('Username kiriting');
+      return;
+    }
+
+    setLoadingUsernameRequest(true);
+    try {
+      await authService.requestUsernameChange(user.id, newUsername.toLowerCase().trim());
+      setShowUsernameModal(false);
+      setNewUsername('');
+      await loadUsernameRequests();
+      alert('Username o\'zgartirish so\'rovi yuborildi! Admin tasdiqini kuting.');
+    } catch (error: any) {
+      alert(error.message || 'Xatolik yuz berdi');
+    } finally {
+      setLoadingUsernameRequest(false);
+    }
+  };
 
   const loadUserOrders = async () => {
     setIsLoadingOrders(true);
@@ -610,6 +645,15 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Username o'zgartirish</span>
+                  <button 
+                    onClick={() => setShowUsernameModal(true)}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <Edit2 size={16} />
+                  </button>
+                </div>
+                <div className="flex items-center justify-between">
                   <span className="text-gray-600">2FA xavfsizlik</span>
                   <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300">
                     <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1"></span>
@@ -760,7 +804,101 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
             </button>
           </div>
         )}
+
+        {/* Username Requests Section */}
+        {usernameRequests.length > 0 && (
+          <div className="bg-white rounded-2xl p-6 border border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Username o'zgartirish so'rovlarim</h3>
+            <div className="space-y-3">
+              {usernameRequests.map((request) => (
+                <div key={request.id} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        @{request.currentUsername} → @{request.requestedUsername}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {new Date(request.requestedAt).toLocaleDateString('uz-UZ')}
+                      </div>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      request.status === 'approved' ? 'bg-green-100 text-green-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {request.status === 'pending' ? 'Kutilmoqda' :
+                       request.status === 'approved' ? 'Tasdiqlandi' : 'Rad etildi'}
+                    </span>
+                  </div>
+                  {request.status === 'rejected' && request.rejectionReason && (
+                    <div className="mt-2 text-sm text-red-600">
+                      Sabab: {request.rejectionReason}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Username Change Modal */}
+      {showUsernameModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md m-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Username o'zgartirish</h3>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Joriy username: <span className="font-mono">@{user.username || 'belgilanmagan'}</span>
+              </label>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Yangi username
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">@</span>
+                <input
+                  type="text"
+                  value={newUsername}
+                  onChange={(e) => setNewUsername(e.target.value.replace(/[^a-z0-9_]/g, ''))}
+                  className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="yangi_username"
+                  maxLength={20}
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Faqat kichik harflar, raqamlar va _ belgisi. 3-20 ta belgi.
+              </p>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
+              <p className="text-sm text-yellow-800">
+                <strong>Diqqat:</strong> Username o'zgartirish uchun admin tasdigi kerak. 
+                So'rovingiz admin tomonidan ko'rib chiqiladi.
+              </p>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowUsernameModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Bekor qilish
+              </button>
+              <button
+                onClick={handleUsernameRequest}
+                disabled={loadingUsernameRequest || !newUsername.trim()}
+                className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
+              >
+                {loadingUsernameRequest ? 'Yuborilmoqda...' : 'So\'rov yuborish'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
