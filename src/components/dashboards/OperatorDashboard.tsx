@@ -714,6 +714,8 @@ const OperatorDashboard = () => {
     }
   };
 
+  const [ticketFilter, setTicketFilter] = useState('all');
+
   return (
     <div className="space-y-6 pb-6">
       {/* Welcome Banner */}
@@ -827,8 +829,7 @@ const OperatorDashboard = () => {
           <h3 className="text-lg font-semibold text-gray-900">Qo'llab-quvvatlash so'rovlari</h3>
           <div className="flex items-center space-x-3">
             <div className="relative">
-              <Search```text
-size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Qidirish..."
