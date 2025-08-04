@@ -1078,6 +1078,8 @@ class DataService {
 
       const updateData: any = {};
 
+      let newQuantity = cake.quantity || 0; // Initialize newQuantity with current quantity
+
       // Baker mahsulotlari uchun
       if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
         // Amount ni kamaytirish (operator rad etganda buyurtma qilingan miqdor kamayadi)
@@ -1086,7 +1088,7 @@ class DataService {
         
         // Quantity ni faqat stock dan olingan bo'lsa qaytarish
         if (fromStock) {
-          const newQuantity = (cake.quantity || 0) + orderQuantity;
+          newQuantity = (cake.quantity || 0) + orderQuantity;
           updateData.quantity = newQuantity;
           console.log('🔄 Stock dan olingan mahsulot, quantity qaytariladi:', {
             oldQuantity: cake.quantity || 0,
@@ -1138,7 +1140,7 @@ class DataService {
       } else if (cake.productType === 'ready') {
         // Shop mahsulotlari uchun quantity ni oshirish (doim stock dan bo'lgani uchun)
         if (fromStock) {
-          const newQuantity = (cake.quantity || 0) + orderQuantity;
+          newQuantity = (cake.quantity || 0) + orderQuantity;
           updateData.quantity = newQuantity;
           updateData.available = newQuantity > 0;
         }
