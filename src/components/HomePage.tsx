@@ -2,10 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Search, Star, Heart, Clock, ChefHat, Gift, Cake, Cookie, ShoppingCart, Plus, Minus, ShoppingBasket } from 'lucide-react';
 import { dataService, Cake as CakeType } from '../services/dataService';
 import { useAuth } from '../hooks/useAuth';
+import { useFavorites } from '../hooks/useFavorites';
 import CheckoutPage from './CheckoutPage';
 
 const HomePage = () => {
   const { userData, isAuthenticated } = useAuth();
+  const { 
+    favoriteIds, 
+    isFavorite, 
+    toggleFavorite, 
+    loading: favoritesLoading 
+  } = useFavorites(userData?.id?.toString());
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Hammasi');
   const [cakes, setCakes] = useState<CakeType[]>([]);
@@ -325,6 +332,25 @@ const addToCart = (cakeId: string) => {
     setCart({});
   };
 
+  const handleToggleFavorite = async (cake: CakeType) => {
+    if (!isAuthenticated) {
+      alert('Sevimlilar ro\'yxatiga qo\'shish uchun avval tizimga kirishingiz kerak!');
+      return;
+    }
+
+    try {
+      await toggleFavorite(cake.id!, {
+        name: cake.name,
+        image: cake.image,
+        price: cake.price,
+        shopName: cake.productType === 'baked' ? cake.bakerName : cake.shopName
+      });
+    } catch (error) {
+      console.error('Sevimlilar bilan ishlashda xatolik:', error);
+      alert('Xatolik yuz berdi. Iltimos qayta urinib ko\'ring.');
+    }
+  };
+
   const handleCheckout = () => {
     console.log('Checkout clicked, cart:', cart, 'keys length:', Object.keys(cart).length);
 
@@ -516,8 +542,16 @@ const addToCart = (cakeId: string) => {
                       e.currentTarget.src = 'https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg?auto=compress&cs=tinysrgb&w=400';
                     }}
                   />
-                  <button className="absolute top-3 sm:top-4 right-3 sm:right-4 p-1.5 sm:p-2 bg-white/80 rounded-full hover:bg-white transition-colors">
-                    <Heart size={16} className="text-gray-600" />
+                  <button 
+                    onClick={() => handleToggleFavorite(cake)}
+                    disabled={favoritesLoading}
+                    className={`absolute top-3 sm:top-4 right-3 sm:right-4 p-1.5 sm:p-2 rounded-full transition-all ${
+                      isFavorite(cake.id!) 
+                        ? 'bg-pink-500 text-white shadow-lg hover:bg-pink-600' 
+                        : 'bg-white/80 text-gray-600 hover:bg-white hover:text-pink-500'
+                    } ${favoritesLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <Heart size={16} className={isFavorite(cake.id!) ? 'fill-current' : ''} />
                   </button>
                   {cake.discount && cake.discount > 0 && (
                     <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">

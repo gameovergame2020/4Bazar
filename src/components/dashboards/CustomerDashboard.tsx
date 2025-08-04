@@ -24,8 +24,16 @@ const CustomerDashboard = () => {
   const [cakes, setCakes] = useState<Cake[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [cart, setCart] = useState<{[key: string]: number}>({});
-  const [favorites, setFavorites] = useState<string[]>([]);
   const [productFilter, setProductFilter] = useState<'all' | 'baked' | 'ready'>('all');
+  
+  const { 
+    favorites: userFavorites, 
+    favoriteIds, 
+    isFavorite, 
+    toggleFavorite: handleToggleFavorite, 
+    loading: favoritesLoading,
+    favoriteCount 
+  } = useFavorites(userData?.id?.toString());
 
   useEffect(() => {
     if (userData) {
@@ -252,12 +260,18 @@ const CustomerDashboard = () => {
     });
   };
 
-  const toggleFavorite = (cakeId: string) => {
-    setFavorites(prev => 
-      prev.includes(cakeId) 
-        ? prev.filter(id => id !== cakeId)
-        : [...prev, cakeId]
-    );
+  const handleFavoriteToggle = async (cake: Cake) => {
+    try {
+      await handleToggleFavorite(cake.id!, {
+        name: cake.name,
+        image: cake.image,
+        price: cake.price,
+        shopName: cake.productType === 'baked' ? cake.bakerName : cake.shopName
+      });
+    } catch (error) {
+      console.error('Sevimlilar bilan ishlashda xatolik:', error);
+      alert('Xatolik yuz berdi. Iltimos qayta urinib ko\'ring.');
+    }
   };
 
   const formatPrice = (price: number) => {
@@ -332,7 +346,7 @@ const CustomerDashboard = () => {
   }
 
   const recentOrders = orders.slice(0, 5);
-  const favoriteCakes = cakes.filter(cake => favorites.includes(cake.id!));
+  const favoriteCakes = cakes.filter(cake => isFavorite(cake.id!));
   const totalCartItems = Object.values(cart).reduce((sum, count) => sum + count, 0);
 
   // Filter cakes based on selected product type
@@ -369,7 +383,7 @@ const CustomerDashboard = () => {
               <Heart size={20} className="text-pink-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{favorites.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{favoriteCount}</p>
               <p className="text-sm text-gray-600">Sevimlilar</p>
             </div>
           </div>
@@ -481,14 +495,15 @@ const CustomerDashboard = () => {
                     className="w-full h-32 rounded-lg object-cover"
                   />
                   <button
-                    onClick={() => toggleFavorite(cake.id!)}
+                    onClick={() => handleFavoriteToggle(cake)}
+                    disabled={favoritesLoading}
                     className={`absolute top-2 right-2 p-2 rounded-full transition-colors ${
-                      favorites.includes(cake.id!) 
+                      isFavorite(cake.id!) 
                         ? 'bg-pink-500 text-white' 
                         : 'bg-white text-gray-400 hover:text-pink-500'
-                    }`}
+                    } ${favoritesLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    <Heart size={16} className={favorites.includes(cake.id!) ? 'fill-current' : ''} />
+                    <Heart size={16} className={isFavorite(cake.id!) ? 'fill-current' : ''} />
                   </button>
                   {cake.discount && cake.discount > 0 && (
                     <div className="absolute top-2 left-2">
