@@ -1048,11 +1048,11 @@ class DataService {
         const currentQuantity = cake.quantity || 0;
         
         if (currentQuantity >= orderQuantity) {
-          // "Hozir mavjud" dan olish mumkin
+          // "Hozir mavjud" dan olish mumkin - FAQAT inStockQuantity oshadi
           const newQuantity = currentQuantity - orderQuantity;
           updateData.quantity = newQuantity;
           
-          // inStockQuantity ni oshirish (sotilgan mahsulotlar kuzatuvi)
+          // FAQAT inStockQuantity ni oshirish (sotilgan mahsulotlar kuzatuvi)
           updateData.inStockQuantity = (cake.inStockQuantity || 0) + orderQuantity;
           
           // Agar quantity 0 bo'lsa, avtomatik "Buyurtma uchun" ga o'tish
@@ -1064,36 +1064,38 @@ class DataService {
           }
           
           fromStock = true;
-          console.log('✅ Baker "Hozir mavjud" dan olindi:', {
+          console.log('✅ Baker "Hozir mavjud" dan olindi - FAQAT inStockQuantity oshirildi:', {
             oldQuantity: currentQuantity,
             newQuantity,
             inStockQuantity: updateData.inStockQuantity,
-            available: updateData.available
+            available: updateData.available,
+            amountUNTOUCHED: cake.amount || 0,
+            rule: 'Hozir mavjud dan buyurtma - faqat inStockQuantity oshadi'
           });
         } else {
-          // "Hozir mavjud" yetmaydi - "Buyurtma uchun" dan olish
-          // Amount ni MAJBURIY oshirish (buyurtma qilingan miqdor - real mahsulot emas)
+          // "Hozir mavjud" yetmaydi - "Buyurtma uchun" dan olish - FAQAT amount oshadi
           const currentAmount = cake.amount || 0;
           updateData.amount = currentAmount + orderQuantity;
           fromStock = false;
-          console.log('🔄 Baker "Buyurtma uchun" dan olindi, amount MAJBURIY oshirildi:', {
+          console.log('🔄 Baker "Buyurtma uchun" dan olindi - FAQAT amount oshirildi:', {
             oldAmount: currentAmount,
             newAmount: updateData.amount,
             orderQuantity,
             amountIncrease: updateData.amount - currentAmount,
             quantityUnchanged: cake.quantity || 0,
-            rule: 'amount buyurtma qilinganda majburiy oshadi, quantity o\'zgartirilmaydi'
+            inStockQuantityUNTOUCHED: cake.inStockQuantity || 0,
+            rule: 'Buyurtma uchun - faqat amount oshadi, inStockQuantity tegmaydi'
           });
         }
         
       } else if (cake.productType === 'ready') {
-        // Shop mahsulotlari - faqat "Hozir mavjud" dan
+        // Shop mahsulotlari - faqat "Hozir mavjud" dan - FAQAT inStockQuantity oshadi
         const currentQuantity = cake.quantity || 0;
         const newQuantity = Math.max(0, currentQuantity - orderQuantity);
         
         updateData.quantity = newQuantity;
         
-        // inStockQuantity ni oshirish (sotilgan mahsulotlar kuzatuvi)
+        // FAQAT inStockQuantity ni oshirish (sotilgan mahsulotlar kuzatuvi)
         updateData.inStockQuantity = (cake.inStockQuantity || 0) + orderQuantity;
         
         // Agar quantity 0 bo'lsa, mahsulot mavjud emas
@@ -1106,11 +1108,13 @@ class DataService {
         
         fromStock = true; // Shop mahsulotlari doim stock dan
         
-        console.log('✅ Shop mahsulot sotildi:', {
+        console.log('✅ Shop mahsulot sotildi - FAQAT inStockQuantity oshirildi:', {
           oldQuantity: currentQuantity,
           newQuantity,
           inStockQuantity: updateData.inStockQuantity,
-          available: updateData.available
+          available: updateData.available,
+          amountUNTOUCHED: cake.amount || 0,
+          rule: 'Shop mahsulot - faqat inStockQuantity oshadi, amount tegmaydi'
         });
       }
 
