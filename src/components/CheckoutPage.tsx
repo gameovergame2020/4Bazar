@@ -255,12 +255,23 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         throw new Error('Noto\'g\'ri koordinatalar');
       }
 
+      // API kalitini tekshirish
+      const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
+      if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_')) {
+        throw new Error('API kaliti noto\'g\'ri konfiguratsiya qilingan. .env faylida VITE_YANDEX_MAPS_API_KEY ni to\'g\'ri to\'ldiring.');
+      }
+
       // Yandex Maps servisini tekshirish
       const { yandexMapsService } = await import('../services/yandexMapsService');
       
       if (!yandexMapsService.isYmapsReady()) {
         console.warn('⚠️ Yandex Maps hali tayyor emas, qayta yuklash...');
-        await yandexMapsService.loadYandexMaps();
+        try {
+          await yandexMapsService.loadYandexMaps();
+        } catch (loadError) {
+          console.error('Yandex Maps yuklashda xato:', loadError);
+          throw new Error('Yandex Maps xizmatini yuklashda xato yuz berdi');
+        }
       }
 
       if (!yandexMapsService.isYmapsReady()) {
@@ -313,16 +324,18 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       let errorMessage = 'Manzilni aniqlashda xato yuz berdi';
 
       if (error && typeof error === 'object') {
-        if (error.message === 'scriptError' || error.message?.includes('scriptError')) {
-          errorMessage = 'Xarita API xizmati bilan aloqa xatosi. Internetni tekshiring va sahifani yangilang';
-        } else if (error.message === 'Geocoding timeout') {
-          errorMessage = 'Xizmat javob bermadi. Qaytadan urinib ko\'ring';
+        if (error.message?.includes('API kaliti noto\'g\'ri')) {
+          errorMessage = 'Yandex Maps API kaliti noto\'g\'ri yoki mavjud emas. .env faylini tekshiring.';
+        } else if (error.message === 'scriptError' || error.message?.includes('scriptError')) {
+          errorMessage = 'API kaliti noto\'g\'ri yoki internetga ulanish muammosi. API kalitini tekshiring.';
+        } else if (error.message?.includes('Invalid API key')) {
+          errorMessage = 'API kaliti noto\'g\'ri. Yangi API kaliti oling va .env faylida yangilang.';
+        } else if (error.message === 'Geocoding timeout' || error.message?.includes('timeout')) {
+          errorMessage = 'Xizmat vaqti tugadi. Internetni tekshiring va qaytadan urinib ko\'ring.';
         } else if (error.message === 'Noto\'g\'ri koordinatalar') {
           errorMessage = 'Tanlangan koordinatalar noto\'g\'ri';
-        } else if (error.message?.includes('timeout')) {
-          errorMessage = 'Xizmat vaqti tugadi. Internetni tekshiring';
-        } else if (error.message?.includes('API key')) {
-          errorMessage = 'API kaliti bilan muammo. Administratorga murojaat qiling';
+        } else if (error.message?.includes('API kaliti noto\'g\'ri konfiguratsiya')) {
+          errorMessage = error.message;
         } else if (error.message) {
           errorMessage = `Xato: ${error.message}`;
         }

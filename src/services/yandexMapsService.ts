@@ -135,25 +135,61 @@ class YandexMapsService {
       throw new Error('Yandex Maps hali tayyor emas');
     }
 
+    // API kalitini tekshirish
+    const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
+    if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_')) {
+      throw new Error('API key noto\'g\'ri konfiguratsiya qilingan');
+    }
+
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('Geocoding timeout'));
       }, options.timeout || 10000);
 
       try {
-        window.ymaps.geocode(query, {
+        // Geocoding so'rovini bajarish
+        const geocodePromise = window.ymaps.geocode(query, {
           ...options,
           timeout: options.timeout || 10000
-        }).then((result: any) => {
+        });
+
+        // Promise mavjudligini tekshirish
+        if (!geocodePromise || typeof geocodePromise.then !== 'function') {
           clearTimeout(timeout);
+          reject(new Error('Geocoding xizmati mavjud emas'));
+          return;
+        }
+
+        geocodePromise.then((result: any) => {
+          clearTimeout(timeout);
+          if (!result) {
+            reject(new Error('Geocoding natijasi bo\'sh'));
+            return;
+          }
           resolve(result);
         }).catch((error: any) => {
           clearTimeout(timeout);
-          reject(error);
+          console.error('Geocoding API xatosi:', error);
+          
+          // Xato turini aniqlash
+          if (error && typeof error === 'object') {
+            if (error.message === 'scriptError' || error.message?.includes('scriptError')) {
+              reject(new Error('API kaliti noto\'g\'ri yoki internetga ulanish muammosi'));
+            } else if (error.message?.includes('Invalid API key')) {
+              reject(new Error('API kaliti noto\'g\'ri'));
+            } else if (error.message?.includes('timeout')) {
+              reject(new Error('So\'rov vaqti tugadi'));
+            } else {
+              reject(new Error(`Geocoding xatosi: ${error.message || 'Noma\'lum xato'}`));
+            }
+          } else {
+            reject(new Error('Geocoding xatosi yuz berdi'));
+          }
         });
       } catch (error) {
         clearTimeout(timeout);
-        reject(error);
+        console.error('Geocoding try-catch xatosi:', error);
+        reject(new Error('Geocoding xizmati bilan aloqa o\'rnatilmadi'));
       }
     });
   }
