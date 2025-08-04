@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Star, Heart, Clock, ChefHat, Gift, Cake, Cookie, ShoppingCart, Plus, Minus, ShoppingBasket } from 'lucide-react';
 import { dataService, Cake as CakeType } from '../services/dataService';
@@ -108,7 +107,7 @@ const HomePage = () => {
     // Real-time tortlar va buyurtmalar holatini kuzatish
     const unsubscribeCakes = dataService.subscribeToRealtimeCakes(async (updatedCakes) => {
       console.log('🔄 Real-time cakes yangilandi:', updatedCakes.length, 'ta mahsulot');
-      
+
       // Fresh buyurtmalarni olish
       const allOrders = await dataService.getOrders();
       console.log('📋 Fresh orders:', allOrders.length, 'ta buyurtma');
@@ -122,7 +121,7 @@ const HomePage = () => {
         if (isBakerProduct) {
           // Baker mahsulotlari: available holatiga qarab filtrlash
           console.log(`🔍 Baker mahsulot: ${cake.name} - available: ${cake.available}, quantity: ${cake.quantity}`);
-          
+
           // Agar quantity > 0 bo'lsa va available = true bo'lsa → "Hozir mavjud"
           // Agar quantity = 0 bo'lsa yoki available = false bo'lsa → "Buyurtma uchun"
           if (cake.available === true && (cake.quantity || 0) > 0) {
@@ -130,7 +129,7 @@ const HomePage = () => {
           } else {
             console.log(`📋 Baker mahsuloti "Buyurtma uchun": ${cake.name}`);
           }
-          
+
           return true; // Baker mahsulotlari doimo ko'rsatiladi
         }
         if (isShopProduct) {
@@ -167,7 +166,7 @@ const HomePage = () => {
     // Buyurtmalar holatini ham kuzatish - darhol yangilanish
     const unsubscribeOrders = dataService.subscribeToOrders(async (updatedOrders) => {
       console.log('🔄 Real-time orders yangilandi:', updatedOrders.length, 'ta buyurtma');
-      
+
       // Orders o'zgarganda darhol tortlarni qayta yuklash
       try {
         const filters: any = {};
@@ -179,7 +178,7 @@ const HomePage = () => {
         }
 
         const freshCakes = await dataService.getCakes(filters);
-        
+
         const processedCakes = freshCakes.filter(cake => {
           const isBakerProduct = cake.productType === 'baked' || (cake.bakerId && !cake.shopId);
           const isShopProduct = cake.productType === 'ready' || (cake.shopId && !cake.bakerId);
