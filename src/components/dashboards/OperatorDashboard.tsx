@@ -66,9 +66,10 @@ const OperatorDashboard = () => {
   });
   const [searchOrderId, setSearchOrderId] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResult, setSearchResult] = useState<{ type: 'success' | 'error' | null; message: string }>({
+  const [searchResult, setSearchResult: any] = useState<{ type: 'success' | 'error' | null; message: string; count: number }>({
     type: null,
-    message: ''
+    message: '',
+    count: 0
   });
 
   useEffect(() => {
@@ -499,7 +500,7 @@ const OperatorDashboard = () => {
   // orderUniqueId bo'yicha buyurtmalarni qidirish
   const handleSearchByOrderId = async () => {
     if (!searchOrderId.trim()) {
-      setSearchResult({ type: 'error', message: 'Buyurtma ID sini kiriting' });
+      setSearchResult({ type: 'error', message: 'Buyurtma ID sini kiriting', count: 0 });
       return;
     }
 
@@ -526,13 +527,21 @@ const OperatorDashboard = () => {
         console.log(`✅ ${foundOrders.length} ta buyurtma topildi`);
         // Update the main orders list with found orders
         setOrders(foundOrders);
-        setSearchResult({ type: 'success', message: `${foundOrders.length} ta buyurtma topildi` });
+        setSearchResult({ 
+          type: 'success', 
+          message: 'Topildi', 
+          count: foundOrders.length 
+        });
       } else {
-        setSearchResult({ type: 'error', message: 'Bu ID bo\'yicha buyurtma topilmadi' });
+        setSearchResult({ 
+          type: 'error', 
+          message: 'Topilmadi', 
+          count: 0 
+        });
       }
     } catch (error) {
       console.error('❌ Qidirishda xato:', error);
-      setSearchResult({ type: 'error', message: 'Qidirishda xatolik yuz berdi' });
+      setSearchResult({ type: 'error', message: 'Xatolik yuz berdi', count: 0 });
     } finally {
       setIsSearching(false);
     }
@@ -818,7 +827,8 @@ const OperatorDashboard = () => {
           <h3 className="text-lg font-semibold text-gray-900">Qo'llab-quvvatlash so'rovlari</h3>
           <div className="flex items-center space-x-3">
             <div className="relative">
-              <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search```text
+size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Qidirish..."
@@ -1039,12 +1049,6 @@ const OperatorDashboard = () => {
               <AlertTriangle size={16} />
             )}
             <span className="text-sm font-medium">{searchResult.message}</span>
-            <button
-              onClick={() => setSearchResult({type: null, message: ''})}
-              className="ml-auto text-gray-400 hover:text-gray-600"
-            >
-              <X size={14} />
-            </button>
           </div>
         )}
 
