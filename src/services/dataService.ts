@@ -1053,14 +1053,23 @@ class DataService {
             newInStock: newInStockQuantity,
             newAvailable: updateData.available
           });
+
+          // MUHIM: Agar zaxira tugasa, available ni false qilish
+          if (newInStockQuantity === 0) {
+            updateData.available = false;
+            console.log('⚠️ Baker mahsulot zaxirasi tugadi, available = false');
+          }
         } else {
           // Zaxira yetmaydi - pre-order
           fromStock = false;
+          // Zaxira yetmasa, available ni false qilish
+          updateData.available = false;
           
           console.log('🔄 Baker pre-order (fromStock: false):', {
             inStockQuantity: currentInStock,
             orderQuantity,
-            shortfall: orderQuantity - currentInStock
+            shortfall: orderQuantity - currentInStock,
+            newAvailable: false
           });
         }
         
@@ -1081,6 +1090,12 @@ class DataService {
           newInStock: newInStockQuantity,
           newAvailable: updateData.available
         });
+
+        // MUHIM: Shop mahsulotlari uchun ham zaxira tugasa available false
+        if (newInStockQuantity === 0) {
+          updateData.available = false;
+          console.log('⚠️ Shop mahsulot zaxirasi tugadi, available = false');
+        }
       }
 
       // Ma'lumotlarni yangilash
@@ -1144,6 +1159,11 @@ class DataService {
           : (cake.inStockQuantity || 0);
         
         updateData.available = finalInStockQuantity > 0;
+
+        // Agar zaxira qaytarilgandan keyin available bo'lsa, log qilish
+        if (updateData.available && !cake.available) {
+          console.log('✅ Baker mahsulot yana "Hozir mavjud" holatiga qaytdi');
+        }
         
         console.log('🔄 Baker mahsulot yangilanmoqda (yangi tizim):', {
           oldAmount: cake.amount || 0,
@@ -1166,6 +1186,11 @@ class DataService {
             newInStock: newInStockQuantity,
             newAvailable: updateData.available
           });
+
+          // Agar zaxira qaytarilgandan keyin available bo'lsa, log qilish
+          if (updateData.available && !cake.available) {
+            console.log('✅ Shop mahsulot yana "Mavjud" holatiga qaytdi');
+          }
         } else {
           // Agar fromStock false bo'lsa ham, available holatini tekshirish
           const currentInStock = cake.inStockQuantity || 0;

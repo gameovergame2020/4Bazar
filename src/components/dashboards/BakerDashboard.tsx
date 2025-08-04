@@ -227,7 +227,8 @@ const BakerDashboard = () => {
         available: cakeForm.available && quantity !== undefined && quantity > 0,
         ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
         discount: parseFloat(cakeForm.discount) || 0,
-        amount: 0
+        amount: 0,
+        inStockQuantity: quantity || 0
       };
 
       // Quantity maydonini faqat mavjud bo'lsa qo'shish
@@ -337,9 +338,10 @@ const BakerDashboard = () => {
         updatedAt: new Date()
       };
 
-      // Quantity maydonini faqat mavjud bo'lsa qo'shish
+      // Quantity va inStockQuantity maydonlarini qo'shish
       if (quantity !== undefined) {
         updates.quantity = quantity;
+        updates.inStockQuantity = quantity; // Yangi tizim uchun
       }
 
       // Agar quantity 0 bo'lsa, ogohlantirishni ko'rsatish
