@@ -537,14 +537,22 @@ const BakerDashboard = () => {
   };
 
 
-  const handleUpdateStock = async (productId: string, newValue: number, field: 'quantity' | 'amount' = 'quantity') => {
+  const handleUpdateStock = async (productId: string, newValue: number, field: 'inStockQuantity' | 'amount' = 'inStockQuantity') => {
     try {
       const updateData: any = {};
 
       if (field === 'amount') {
         updateData.amount = newValue;
-        updateData.available = newValue > 0;
+        // Available holati amount emas, faqat inStockQuantity ga bog'liq
+        // Hozirgi inStockQuantity ni olish kerak
+        const cake = cakes.find(c => c.id === productId);
+        const currentInStock = cake?.inStockQuantity || 0;
+        updateData.available = currentInStock > 0; // Faqat inStockQuantity > 0 bo'lsa available
+      } else if (field === 'inStockQuantity') {
+        updateData.inStockQuantity = newValue;
+        updateData.available = newValue > 0; // Faqat inStockQuantity > 0 bo'lsa available
       } else {
+        // Legacy support
         updateData.quantity = newValue;
         updateData.available = newValue > 0;
       }

@@ -34,7 +34,8 @@ export interface Cake {
   reviewCount: number;
   available: boolean;
   ingredients: string[];
-  quantity?: number; // Mavjud miqdor
+  quantity?: number; // Legacy field - eski maydon
+  inStockQuantity?: number; // Haqiqiy mavjud zaxira miqdori
   amount?: number; // Buyurtma berilgan miqdor
   discount?: number;
   createdAt: Date;
@@ -169,20 +170,22 @@ class DataService {
         updatedAt: Timestamp.now()
       };
 
-      // Baker mahsulotlari uchun logika
+      // Yangi tizim: inStockQuantity va amount maydonlari
       if (cake.productType === 'baked') {
-        if (cake.available) {
-          // "Hozir mavjud" baker mahsulotlari - amount da hisoblansin
-          cakeData.amount = cake.amount !== undefined ? cake.amount : 0;
-        } else {
-          // "Buyurtma uchun" baker mahsulotlari - quantity da hisoblansin
-          if (cake.quantity !== undefined && cake.quantity !== null) {
-            cakeData.quantity = cake.quantity;
-          }
-        }
+        // Baker mahsulotlari
+        cakeData.inStockQuantity = cake.inStockQuantity !== undefined ? cake.inStockQuantity : 0;
+        cakeData.amount = cake.amount !== undefined ? cake.amount : 0;
+        // Available holati faqat inStockQuantity > 0 bo'lsa true
+        cakeData.available = (cakeData.inStockQuantity > 0);
       } else if (cake.productType === 'ready') {
-        // Shop mahsulotlari - doim quantity da hisoblansin
-        cakeData.quantity = cake.quantity !== undefined ? cake.quantity : 0;
+        // Shop mahsulotlari
+        cakeData.inStockQuantity = cake.inStockQuantity !== undefined ? cake.inStockQuantity : 0;
+        cakeData.available = (cakeData.inStockQuantity > 0);
+      }
+
+      // Legacy quantity field ni ham saqlash (backward compatibility)
+      if (cake.quantity !== undefined) {
+        cakeData.quantity = cake.quantity;
       }
 
       // undefined qiymatlarni olib tashlash
@@ -190,6 +193,13 @@ class DataService {
         if (cakeData[key] === undefined) {
           delete cakeData[key];
         }
+      });
+
+      console.log('🍰 Yangi mahsulot qo\'shilmoqda:', {
+        productType: cakeData.productType,
+        inStockQuantity: cakeData.inStockQuantity,
+        amount: cakeData.amount,
+        available: cakeData.available
       });
 
       const docRef = await addDoc(collection(db, 'cakes'), cakeData);
@@ -1015,11 +1025,11 @@ class DataService {
         return { fromStock: false };
       }
 
-      console.log('📦 Mahsulot quantity processing:', {
+      console.log('📦 Mahsulot quantity processing (yangi tizim):', {
         cakeId,
         productType: cake.productType,
         available: cake.available,
-        currentQuantity: cake.quantity,
+        inStockQuantity: cake.inStockQuantity,
         currentAmount: cake.amount,
         orderQuantity
       });
@@ -1029,49 +1039,54 @@ class DataService {
 
       // Baker mahsulotlari uchun
       if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
-        if (cake.available && cake.quantity !== undefined && cake.quantity > 0) {
-          // "Hozir mavjud" baker mahsulotlari - quantity kamaytirish
-          const newQuantity = Math.max(0, cake.quantity - orderQuantity);
-          updateData.quantity = newQuantity;
-          updateData.available = newQuantity > 0;
-          fromStock = true; // Stock dan olindi
+        const currentInStock = cake.inStockQuantity || 0;
+        
+        if (currentInStock >= orderQuantity) {
+          // Zaxiradan olish mumkin
+          const newInStockQuantity = currentInStock - orderQuantity;
+          updateData.inStockQuantity = newInStockQuantity;
+          updateData.available = newInStockQuantity > 0; // Faqat inStockQuantity > 0 bo'lsa available
+          fromStock = true;
           
-          // Amount ni ham oshirish
-          updateData.amount = (cake.amount || 0) + orderQuantity;
-          
-          console.log('🔄 Baker "Hozir mavjud" mahsulot yangilanadi (fromStock: true):', {
-            oldQuantity: cake.quantity,
-            newQuantity,
-            oldAmount: cake.amount || 0,
-            newAmount: updateData.amount
+          console.log('🔄 Baker zaxiradan olindi (fromStock: true):', {
+            oldInStock: currentInStock,
+            newInStock: newInStockQuantity,
+            newAvailable: updateData.available
           });
         } else {
-          // "Buyurtma uchun" baker mahsulotlari - faqat amount oshirish
-          updateData.amount = (cake.amount || 0) + orderQuantity;
-          fromStock = false; // Pre-order
+          // Zaxira yetmaydi - pre-order
+          fromStock = false;
           
-          console.log('🔄 Baker "Buyurtma uchun" mahsulot yangilanadi (fromStock: false):', {
-            oldAmount: cake.amount || 0,
-            newAmount: updateData.amount
+          console.log('🔄 Baker pre-order (fromStock: false):', {
+            inStockQuantity: currentInStock,
+            orderQuantity,
+            shortfall: orderQuantity - currentInStock
           });
         }
+        
+        // Amount ni har doim oshirish (buyurtma miqdori)
+        updateData.amount = (cake.amount || 0) + orderQuantity;
+        
       } else if (cake.productType === 'ready') {
-        // Shop mahsulotlari - quantity kamaytirish
-        const newQuantity = Math.max(0, (cake.quantity || 0) - orderQuantity);
-        updateData.quantity = newQuantity;
-        updateData.available = newQuantity > 0;
+        // Shop mahsulotlari - doim zaxiradan
+        const currentInStock = cake.inStockQuantity || 0;
+        const newInStockQuantity = Math.max(0, currentInStock - orderQuantity);
+        
+        updateData.inStockQuantity = newInStockQuantity;
+        updateData.available = newInStockQuantity > 0; // Faqat inStockQuantity > 0 bo'lsa available
         fromStock = true; // Shop mahsulotlari doim stock dan
         
-        console.log('🔄 Shop mahsulot yangilanadi (fromStock: true):', {
-          oldQuantity: cake.quantity || 0,
-          newQuantity
+        console.log('🔄 Shop zaxiradan olindi (fromStock: true):', {
+          oldInStock: currentInStock,
+          newInStock: newInStockQuantity,
+          newAvailable: updateData.available
         });
       }
 
       // Ma'lumotlarni yangilash
       if (Object.keys(updateData).length > 0) {
         await this.updateCake(cakeId, updateData);
-        console.log('✅ Mahsulot quantity muvaffaqiyatli yangilandi:', updateData);
+        console.log('✅ Mahsulot quantity muvaffaqiyatli yangilandi (yangi tizim):', updateData);
       }
 
       return { fromStock };
@@ -1085,7 +1100,7 @@ class DataService {
   // Buyurtma bekor qilinganda mahsulot miqdorini qaytarish va amount kamaytirish
   async revertOrderQuantity(cakeId: string, orderQuantity: number, fromStock: boolean = false): Promise<void> {
     try {
-      console.log('🔄 Mahsulot sonini qaytarish boshlandi:', { cakeId, orderQuantity });
+      console.log('🔄 Mahsulot sonini qaytarish boshlandi (yangi tizim):', { cakeId, orderQuantity, fromStock });
       
       const cake = await this.getCakeById(cakeId);
       if (!cake) {
@@ -1093,10 +1108,10 @@ class DataService {
         throw new Error('Mahsulot topilmadi');
       }
 
-      console.log('📦 Joriy mahsulot holati:', {
+      console.log('📦 Joriy mahsulot holati (yangi tizim):', {
         productType: cake.productType,
         available: cake.available,
-        currentQuantity: cake.quantity,
+        inStockQuantity: cake.inStockQuantity,
         currentAmount: cake.amount,
         bakerId: cake.bakerId,
         shopId: cake.shopId
@@ -1104,105 +1119,71 @@ class DataService {
 
       const updateData: any = {};
 
-      let newQuantity = cake.quantity || 0; // Initialize newQuantity with current quantity
-
       // Baker mahsulotlari uchun
       if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
-        // Amount ni kamaytirish (operator rad etganda buyurtma qilingan miqdor kamayadi)
+        // Amount ni kamaytirish (buyurtma miqdori kamayadi)
         const newAmount = Math.max(0, (cake.amount || 0) - orderQuantity);
         updateData.amount = newAmount;
         
-        // Quantity ni faqat stock dan olingan bo'lsa qaytarish
+        // inStockQuantity ni faqat zaxiradan olingan bo'lsa qaytarish
         if (fromStock) {
-          newQuantity = (cake.quantity || 0) + orderQuantity;
-          updateData.quantity = newQuantity;
-          console.log('🔄 Stock dan olingan mahsulot, quantity qaytariladi:', {
-            oldQuantity: cake.quantity || 0,
-            newQuantity
-          });
-        } else {
-          console.log('🔄 Pre-order edi, quantity qaytarilmaydi');
-        }
-        
-        // MUHIM: Available holatini quantity asosida to'g'ri belgilash
-        if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
-          // Baker mahsulotlari uchun: quantity > 0 bo'lsa "Hozir mavjud"
-          updateData.available = newQuantity > 0;
+          const newInStockQuantity = (cake.inStockQuantity || 0) + orderQuantity;
+          updateData.inStockQuantity = newInStockQuantity;
           
-          if (newQuantity > 0) {
-            console.log('🟢 Baker mahsuloti "Hozir mavjud" holatiga o\'tkaziladi:', { 
-              cakeId, 
-              newQuantity, 
-              newAmount,
-              available: true
-            });
-          } else {
-            console.log('🔵 Baker mahsuloti "Buyurtma uchun" holatida qoladi:', { 
-              cakeId, 
-              newQuantity, 
-              newAmount,
-              available: false
-            });
-          }
-        } else {
-          // Shop mahsulotlari uchun: quantity > 0 bo'lsa "Hozir mavjud"
-          updateData.available = newQuantity > 0;
-          console.log('🏪 Shop mahsuloti holati yangilandi:', { 
-            cakeId, 
-            newQuantity, 
-            available: updateData.available 
+          console.log('🔄 Baker zaxiriga qaytarildi (fromStock: true):', {
+            oldInStock: cake.inStockQuantity || 0,
+            newInStock: newInStockQuantity
           });
+        } else {
+          console.log('🔄 Pre-order edi, zaxiriga qaytarilmaydi');
         }
         
-        console.log('🔄 Baker mahsulot yangilanmoqda:', {
+        // MUHIM: Available holati faqat inStockQuantity > 0 bo'lsa true
+        const finalInStockQuantity = updateData.inStockQuantity !== undefined 
+          ? updateData.inStockQuantity 
+          : (cake.inStockQuantity || 0);
+        
+        updateData.available = finalInStockQuantity > 0;
+        
+        console.log('🔄 Baker mahsulot yangilanmoqda (yangi tizim):', {
           oldAmount: cake.amount || 0,
           newAmount,
-          oldQuantity: cake.quantity || 0,
-          newQuantity,
+          oldInStock: cake.inStockQuantity || 0,
+          newInStock: finalInStockQuantity,
           newAvailable: updateData.available,
           statusText: updateData.available ? 'Hozir mavjud' : 'Buyurtma uchun'
         });
+        
       } else if (cake.productType === 'ready') {
-        // Shop mahsulotlari uchun quantity ni oshirish (doim stock dan bo'lgani uchun)
+        // Shop mahsulotlari uchun inStockQuantity ni qaytarish (doim stock dan bo'lgani uchun)
         if (fromStock) {
-          newQuantity = (cake.quantity || 0) + orderQuantity;
-          updateData.quantity = newQuantity;
-          updateData.available = newQuantity > 0;
+          const newInStockQuantity = (cake.inStockQuantity || 0) + orderQuantity;
+          updateData.inStockQuantity = newInStockQuantity;
+          updateData.available = newInStockQuantity > 0; // Faqat inStockQuantity > 0 bo'lsa available
           
-          console.log('🔄 Shop mahsulot yangilanmoqda:', {
-            oldQuantity: cake.quantity || 0,
-            newQuantity,
+          console.log('🔄 Shop zaxiriga qaytarildi:', {
+            oldInStock: cake.inStockQuantity || 0,
+            newInStock: newInStockQuantity,
             newAvailable: updateData.available
           });
         } else {
           // Agar fromStock false bo'lsa ham, available holatini tekshirish
-          newQuantity = cake.quantity || 0;
-          updateData.available = newQuantity > 0;
+          const currentInStock = cake.inStockQuantity || 0;
+          updateData.available = currentInStock > 0;
           
           console.log('🔄 Shop mahsulot holati tekshirilmoqda:', {
-            quantity: newQuantity,
+            inStockQuantity: currentInStock,
             available: updateData.available
           });
         }
       }
 
-      // MUHIM: Available holatini har doim to'g'ri yangilash
-      if (!updateData.hasOwnProperty('available')) {
-        // Agar available holati hali yangilanmagan bo'lsa, quantity asosida belgilash
-        updateData.available = newQuantity > 0;
-        console.log('🔄 Available holati avtomatik yangilandi:', {
-          quantity: newQuantity,
-          available: updateData.available
-        });
-      }
-
-      // Ma'lumotlarni yangilash va yangilanishni kuchaytirilgan tarzda amalga oshirish
+      // Ma'lumotlarni yangilash
       if (Object.keys(updateData).length > 0) {
-        // updatedAt ni qo'shish real-time subscription'ni trigger qilish uchun
         updateData.updatedAt = new Date();
         
         await this.updateCake(cakeId, updateData);
-        console.log('✅ Mahsulot soni muvaffaqiyatli qaytarildi:', updateData);
+        console.log('✅ Mahsulot soni muvaffaqiyatli qaytarildi (yangi tizim):', updateData);
         
         // Verification log
         if (updateData.available === true) {
@@ -1211,33 +1192,17 @@ class DataService {
           console.log('🟡 Mahsulot "Buyurtma uchun" holatida qoldi');
         }
 
-        // Firebase real-time yangilanishini kuchaytirilgan trigger qilish
+        // Force update for real-time subscription
         try {
-          // Force update with multiple timestamps to ensure real-time subscription triggers
           const forceUpdateData = {
             ...updateData,
             lastModified: new Date().getTime(),
-            forceUpdate: new Date().toISOString(),
             revertedAt: Timestamp.now(),
-            statusChangeId: Math.random().toString(36).substr(2, 9) // Random ID for forcing updates
+            statusChangeId: Math.random().toString(36).substr(2, 9)
           };
           
           await this.updateCake(cakeId, forceUpdateData);
-          console.log('🔄 Force update muvaffaqiyatli amalga oshirildi');
-          
-          // Qo'shimcha verification update
-          setTimeout(async () => {
-            try {
-              const verificationData = {
-                verified: true,
-                verificationTime: Timestamp.now()
-              };
-              await this.updateCake(cakeId, verificationData);
-              console.log('✅ Verification update amalga oshirildi');
-            } catch (verifyError) {
-              console.warn('⚠️ Verification update da xato:', verifyError);
-            }
-          }, 500);
+          console.log('🔄 Force update muvaffaqiyatli amalga oshirildi (yangi tizim)');
           
         } catch (triggerError) {
           console.warn('⚠️ Real-time trigger da xato:', triggerError);
@@ -1247,7 +1212,7 @@ class DataService {
       }
 
     } catch (error) {
-      console.error('❌ Buyurtma bekor qilishda xatolik:', error);
+      console.error('❌ Buyurtma bekor qilishda xatolik (yangi tizim):', error);
       throw error;
     }
   }
