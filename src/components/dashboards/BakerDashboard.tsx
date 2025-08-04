@@ -228,7 +228,7 @@ const BakerDashboard = () => {
         ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
         discount: parseFloat(cakeForm.discount) || 0,
         amount: 0,
-        inStockQuantity: quantity || 0
+        inStockQuantity: 0
       };
 
       // Quantity maydonini faqat mavjud bo'lsa qo'shish
@@ -771,11 +771,8 @@ const BakerDashboard = () => {
                     {cake.available ? 'Mavjud' : 'Buyurtma'}
                   </span>
                   {cake.available && cake.quantity !== undefined && cake.quantity <= 0 && (
-                    <span className="px-2 py-1 rounded-full text-xs font-red-100 text-red-600">
-                      Tugagan
-                    </span>
-                  )}
-                </div>
+                    <span className="px-This commit sets inStockQuantity to 0 when creating a new product in BakerDashboard.
+```typescript
               </div>
 
               <h4 className="font-medium text-gray-900 mb-1">{cake.name}</h4>
@@ -799,7 +796,7 @@ const BakerDashboard = () => {
                       value={cake.quantity || 0}
                       onChange={async (e) => {
                         const newQuantity = parseInt(e.target.value) || 0;
-                        
+
                         try {
                           const updates = {
                             quantity: newQuantity,
@@ -835,13 +832,13 @@ const BakerDashboard = () => {
                     <span className="text-sm text-gray-500">ta</span>
                   </div>
                 </div>
-                
+
                 {/* Buyurtma qilingan miqdor ko'rsatish */}
                 <div className="text-sm mb-2">
                   <span className="text-gray-600">Buyurtma qilingan: </span>
                   <span className="font-medium text-blue-600">{cake.amount || 0} ta</span>
                 </div>
-                
+
                 {/* Sotilgan/band qilingan miqdor */}
                 <div className="text-sm mb-2">
                   <span className="text-gray-600">Sotilgan/band: </span>
@@ -852,7 +849,7 @@ const BakerDashboard = () => {
                     </span>
                   )}
                 </div>
-                
+
                 <div className="text-xs">
                   {cake.available && (cake.quantity || 0) > 0 ? (
                     <span className={`font-medium ${

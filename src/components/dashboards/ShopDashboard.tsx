@@ -156,7 +156,8 @@ const ShopDashboard = () => {
         ingredients: [],
         quantity: quantity,
         amount: undefined, // Shop mahsulotlari uchun amount kerak emas
-        discount: parseFloat(productForm.discount) || 0
+        discount: parseFloat(productForm.discount) || 0,
+        inStockQuantity: 0 // Dastlab 0 - hech narsa sotilmagan
       };
 
       await dataService.addCake(newProduct);
