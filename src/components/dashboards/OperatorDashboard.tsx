@@ -71,6 +71,7 @@ const OperatorDashboard = () => {
     message: '',
     count: 0
   });
+  const [ticketFilter, setTicketFilter] = useState('all');
 
   useEffect(() => {
     if (userData?.id) {
@@ -713,8 +714,6 @@ const OperatorDashboard = () => {
       setLoading(false);
     }
   };
-
-  const [ticketFilter, setTicketFilter] = useState('all');
 
   return (
     <div className="space-y-6 pb-6">
