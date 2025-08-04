@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Package, TrendingUp, Users, Star, DollarSign, ShoppingCart, Eye, Edit, Trash2, Plus, Save, X, Clock, CheckCircle } from 'lucide-react';
+import { Package, TrendingUp, Users, Star, DollarSign, ShoppingCart, Eye, Edit, Trash2, Plus, Save, X, Clock, CheckCircle, User, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useProfileManager } from '../../hooks/useProfileManager';
 import { dataService, Cake, Order } from '../../services/dataService';
 import { notificationService } from '../../services/notificationService';
+import ProfileManager from '../ProfileManager';
+import SettingsPage from '../SettingsPage';
 
 const ShopDashboard = () => {
-  const { userData } = useAuth();
+  const { userData, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [inventory, setInventory] = useState<Cake[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -21,6 +24,7 @@ const ShopDashboard = () => {
   const [showAddProductForm, setShowAddProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Cake | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   const [productForm, setProductForm] = useState({
     name: '',
@@ -31,6 +35,8 @@ const ShopDashboard = () => {
     discount: '',
     image: null as File | null
   });
+
+  const { openUserProfile } = useProfileManager();
 
   const categories = [
     { value: 'birthday', label: "Tug'ilgan kun" },
@@ -244,8 +250,35 @@ const ShopDashboard = () => {
     <div className="space-y-6 pb-6">
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-green-500 to-teal-600 rounded-2xl p-6 text-white">
-        <h2 className="text-2xl font-bold mb-2">Do'kon boshqaruvi</h2>
-        <p className="text-green-100">Mahsulotlar va sotuvlarni boshqaring</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold mb-2">Do'kon boshqaruvi</h2>
+            <p className="text-green-100">Mahsulotlar va sotuvlarni boshqaring</p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => openUserProfile(userData)}
+              className="flex items-center space-x-2 px-4 py-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+            >
+              <User size={16} />
+              <span>Profil</span>
+            </button>
+            <button
+              onClick={() => setShowSettings(true)}
+              className="flex items-center space-x-2 px-4 py-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+            >
+              <Settings size={16} />
+              <span>Sozlamalar</span>
+            </button>
+            <button
+              onClick={logout}
+              className="flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <LogOut size={16} />
+              <span>Chiqish</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Quick Stats */}
@@ -628,6 +661,24 @@ const ShopDashboard = () => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Sozlamalar</h3>
+              <button
+                onClick={() => setShowSettings(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <SettingsPage onClose={() => setShowSettings(false)} />
           </div>
         </div>
       )}

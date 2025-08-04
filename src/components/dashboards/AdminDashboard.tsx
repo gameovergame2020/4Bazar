@@ -1,25 +1,9 @@
-import { useState, useEffect } from 'react';
-import { 
-  Users, 
-  TrendingUp, 
-  DollarSign, 
-  Package, 
-  Settings,
-  BarChart3,
-  PieChart,
-  Activity,
-  Globe,
-  Database,
-  Server,
-  Lock,
-  Edit,
-  Trash2,
-  Plus,
-  Eye,
-  Download,
-  ShoppingBag
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Users, Package, ShoppingBag, TrendingUp, AlertTriangle, Settings, Shield, BarChart3, UserCheck, Clock, User, LogOut } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useProfileManager } from '../../hooks/useProfileManager';
+import ProfileManager from '../ProfileManager';
+import SettingsPage from '../SettingsPage';
 import { dataService, Order, Cake } from '../../services/dataService';
 import { UserData } from '../../services/authService';
 
@@ -62,13 +46,14 @@ interface Department {
 }
 
 const AdminDashboard = () => {
-  const { userData } = useAuth();
+  const { userData, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
   const [cakes, setCakes] = useState<Cake[]>([]);
   const [users, setUsers] = useState<UserData[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [selectedTab, setSelectedTab] = useState<'overview' | 'users' | 'orders' | 'system' | 'settings' | 'statistics' | 'departments'>('overview');
+    const [showSettings, setShowSettings] = useState(false);
 
   // Bo'limlar uchun formalar
   const [showDepartmentForm, setShowDepartmentForm] = useState(false);
@@ -116,6 +101,8 @@ const AdminDashboard = () => {
       loadStatistics();
     }
   }, [userData]);
+
+    const { openUserProfile } = useProfileManager();
 
   const loadData = async () => {
     try {
@@ -363,8 +350,35 @@ const AdminDashboard = () => {
     <div className="space-y-6 pb-6">
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-red-500 to-pink-600 rounded-2xl p-6 text-white">
-        <h2 className="text-2xl font-bold mb-2">Administrator paneli</h2>
-        <p className="text-red-100">Butun tizimni boshqaring va nazorat qiling</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold mb-2">Admin paneli</h2>
+            <p className="text-red-100">Tizimni boshqaring va nazorat qiling</p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => openUserProfile(userData)}
+              className="flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <User size={16} />
+              <span>Profil</span>
+            </button>
+            <button
+              onClick={() => setShowSettings(true)}
+              className="flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <Settings size={16} />
+              <span>Sozlamalar</span>
+            </button>
+            <button
+              onClick={logout}
+              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              <LogOut size={16} />
+              <span>Chiqish</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Navigation Tabs */}
@@ -710,7 +724,7 @@ const AdminDashboard = () => {
                       <Eye size={16} />
                     </button>
                     <button className="text-green-600 hover:text-green-700">
-                      <Edit size={16} />
+                      <Edit size={16})
                     </button>
                   </div>
                 </div>
@@ -1358,8 +1372,7 @@ const AdminDashboard = () => {
               <div>
                 <h4 className="font-medium text-gray-900 mb-3">Xavfsizlik</h4>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">2FA majburiy</span>
+                  <div className="flex items-center justify-between                    <span className="text-gray-600">2FA majburiy</span>
                     <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300">
                       <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1"></span>
                     </button>
@@ -1390,6 +1403,14 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+        {/* Settings Modal */}
+        {showSettings && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-2xl p-6 w-full max-w-2xl m-4 max-h-[90vh] overflow-y-auto">
+                    <SettingsPage onClose={() => setShowSettings(false)} />
+                </div>
+            </div>
+        )}
     </div>
   );
 };

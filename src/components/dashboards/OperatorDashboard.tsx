@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfileManager } from '../../hooks/useProfileManager';
 import ProfileManager from '../ProfileManager';
+import SettingsPage from '../SettingsPage';
+import { User, LogOut, Settings } from 'lucide-react';
 import { useOperatorData } from '../../hooks/useOperatorData';
 import { useOrderManagement } from '../../hooks/useOrderManagement';
 import { useOrderSearch } from '../../hooks/useOrderSearch';
@@ -11,7 +13,9 @@ import OrdersManagementSection from '../operator/OrdersManagementSection';
 import EditOrderModal from '../operator/EditOrderModal';
 
 const OperatorDashboard = () => {
-  const { userData } = useAuth();
+  const { userData, logout, updateUser } = useAuth();
+  const { showProfile, profileType, openUserProfile, closeProfile } = useProfileManager();
+  const [showSettings, setShowSettings] = useState(false);
 
   const {
     loading,
@@ -72,12 +76,70 @@ const OperatorDashboard = () => {
     );
   }
 
+  // Profil ko'rsatilsa, ProfileManager ni render qilish
+  if (showProfile && profileType && userData) {
+    return (
+      <ProfileManager
+        user={userData}
+        profileType={profileType}
+        onBack={closeProfile}
+        onUpdate={updateUser}
+      />
+    );
+  }
+
+  // Sozlamalar ko'rsatilsa, SettingsPage ni render qilish  
+  if (showSettings && userData) {
+    return (
+      <SettingsPage
+        user={{
+          id: userData.id,
+          name: userData.name,
+          email: userData.email || '',
+          phone: userData.phone,
+          avatar: userData.avatar || '',
+          joinDate: userData.joinDate,
+          totalOrders: 0,
+          favoriteCount: 0
+        }}
+        onBack={() => setShowSettings(false)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6 pb-6">
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-yellow-500 to-orange-600 rounded-2xl p-6 text-white">
-        <h2 className="text-2xl font-bold mb-2">Operator paneli</h2>
-        <p className="text-yellow-100">Tizimni nazorat qiling va muammolarni hal qiling</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold mb-2">Operator paneli</h2>
+            <p className="text-yellow-100">Tizimni nazorat qiling va muammolarni hal qiling</p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => openUserProfile(userData)}
+              className="flex items-center space-x-2 px-4 py-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+            >
+              <User size={16} />
+              <span>Profil</span>
+            </button>
+            <button
+              onClick={() => setShowSettings(true)}
+              className="flex items-center space-x-2 px-4 py-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+            >
+              <Settings size={16} />
+              <span>Sozlamalar</span>
+            </button>
+            <button
+              onClick={logout}
+              className="flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <LogOut size={16} />
+              <span>Chiqish</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Quick Stats */}

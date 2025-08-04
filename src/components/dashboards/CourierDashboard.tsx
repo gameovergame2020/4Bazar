@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Navigation, Package, Clock, CheckCircle, MapPin, Phone, Truck, DollarSign, Star, Users, TrendingUp } from 'lucide-react';
+import { Truck, Package, MapPin, Clock, DollarSign, CheckCircle, AlertCircle, Phone, User, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useProfileManager } from '../../hooks/useProfileManager';
+import ProfileManager from '../ProfileManager';
+import SettingsPage from '../SettingsPage';
+import { Navigation, Star, Users, TrendingUp } from 'lucide-react';
 import { dataService, Order } from '../../services/dataService';
 import { notificationService } from '../../services/notificationService';
 
@@ -27,38 +31,38 @@ const CourierDashboard = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       // Load all orders
       const allOrders = await dataService.getOrders();
-      
+
       // Filter orders assigned to this courier (in real app, you'd have courierId field)
       // For demo, we'll simulate some orders
       const courierOrders = allOrders.filter(order => 
         ['delivering', 'ready'].includes(order.status)
       ).slice(0, 3); // Simulate assigned orders
-      
+
       const active = courierOrders.filter(order => 
         ['delivering', 'ready'].includes(order.status)
       );
-      
+
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       const completedToday = allOrders.filter(order => 
         order.status === 'delivered' && 
         order.createdAt >= today
       ).slice(0, 5); // Simulate completed deliveries
-      
+
       setActiveDeliveries(active);
       setCompletedDeliveries(completedToday);
-      
+
       // Calculate stats
       const activeCount = active.length;
       const completedTodayCount = completedToday.length;
       const totalEarnings = completedToday.reduce((sum, order) => sum + (order.totalPrice * 0.1), 0); // 10% commission
       const totalDeliveries = completedToday.length + 45; // Simulate total
       const workingHours = 8.5; // Simulate working hours
-      
+
       setStats({
         activeDeliveries: activeCount,
         completedToday: completedTodayCount,
@@ -67,7 +71,7 @@ const CourierDashboard = () => {
         totalDeliveries,
         workingHours
       });
-      
+
     } catch (error) {
       console.error('Ma\'lumotlarni yuklashda xatolik:', error);
     } finally {
@@ -78,7 +82,7 @@ const CourierDashboard = () => {
   const handleUpdateDeliveryStatus = async (orderId: string, status: Order['status']) => {
     try {
       await dataService.updateOrderStatus(orderId, status);
-      
+
       // Send notification to customer
       const order = activeDeliveries.find(o => o.id === orderId);
       if (order) {
@@ -89,7 +93,7 @@ const CourierDashboard = () => {
           order.cakeName
         );
       }
-      
+
       await loadData();
     } catch (error) {
       console.error('Buyurtma holatini yangilashda xatolik:', error);
@@ -221,7 +225,7 @@ const CourierDashboard = () => {
             {activeDeliveries.length} ta
           </span>
         </div>
-        
+
         <div className="space-y-4">
           {activeDeliveries.map((delivery) => (
             <div key={delivery.id} className="border border-gray-200 rounded-xl p-4">
@@ -235,12 +239,12 @@ const CourierDashboard = () => {
                   {getStatusText(delivery.status)}
                 </span>
               </div>
-              
+
               <div className="flex items-start space-x-3 mb-4">
                 <MapPin size={16} className="text-gray-400 mt-0.5" />
                 <p className="text-sm text-gray-700 flex-1">{delivery.deliveryAddress}</p>
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
                   <span>Miqdor: {delivery.quantity}</span>
@@ -276,7 +280,7 @@ const CourierDashboard = () => {
               </div>
             </div>
           ))}
-          
+
           {activeDeliveries.length === 0 && (
             <div className="text-center py-8">
               <Package size={48} className="text-gray-400 mx-auto mb-4" />
@@ -302,7 +306,7 @@ const CourierDashboard = () => {
               </div>
             </div>
           ))}
-          
+
           {completedDeliveries.length === 0 && (
             <div className="text-center py-8">
               <CheckCircle size={48} className="text-gray-400 mx-auto mb-4" />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Clock, Package, User, LogOut } from 'lucide-react';
+import { Plus, Clock, Package, User, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useBakerOrders } from '../../hooks/useBakerOrders';
 import { useProductStock } from '../../hooks/useProductStock';
@@ -8,6 +8,7 @@ import { useBakerForm } from '../../hooks/useBakerForm';
 import { dataService, Cake, Order } from '../../services/dataService';
 import { useProfileManager } from '../../hooks/useProfileManager';
 import ProfileManager from '../ProfileManager';
+import SettingsPage from '../SettingsPage';
 
 // Components
 import { StatsGrid } from '../baker/StatsGrid';
@@ -21,6 +22,7 @@ const BakerDashboard = () => {
   const { showProfile, profileType, openUserProfile, closeProfile } = useProfileManager();
   const [loading, setLoading] = useState(true);
   const [myCakes, setMyCakes] = useState<Cake[]>([]);
+  const [showSettings, setShowSettings] = useState(false);
 
   const loadData = async () => {
     if (!userData?.id) {
@@ -170,6 +172,25 @@ const BakerDashboard = () => {
     );
   }
 
+  // Sozlamalar ko'rsatilsa, SettingsPage ni render qilish
+  if (showSettings && userData) {
+    return (
+      <SettingsPage
+        user={{
+          id: userData.id,
+          name: userData.name,
+          email: userData.email || '',
+          phone: userData.phone,
+          avatar: userData.avatar || '',
+          joinDate: userData.joinDate,
+          totalOrders: 0,
+          favoriteCount: 0
+        }}
+        onBack={() => setShowSettings(false)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6 pb-6">
       {/* Welcome Banner */}
@@ -183,6 +204,13 @@ const BakerDashboard = () => {
             >
               <User size={16} />
               <span>Profil</span>
+            </button>
+            <button
+              onClick={() => setShowSettings(true)}
+              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              <Settings size={16} />
+              <span>Sozlamalar</span>
             </button>
             <span className="text-gray-600">{userData.name}</span>
             <button
