@@ -268,8 +268,29 @@ const BakerDashboard = () => {
   };
 
   const handleEditCake = async () => {
-    if (!editingCake || !cakeForm.name || !cakeForm.description || !cakeForm.price || (cakeForm.available && !cakeForm.quantity)) {
-      alert('Barcha majburiy maydonlarni to\'ldiring (mavjud bo\'lsa soni ham kiritish kerak)');
+    // Validatsiya
+    if (!editingCake) {
+      alert('Tahrirlash uchun tort tanlanmagan');
+      return;
+    }
+
+    if (!cakeForm.name.trim()) {
+      alert('Tort nomini kiriting');
+      return;
+    }
+
+    if (!cakeForm.description.trim()) {
+      alert('Tort tavsifini kiriting');
+      return;
+    }
+
+    if (!cakeForm.price || parseFloat(cakeForm.price) <= 0) {
+      alert('To\'g\'ri narx kiriting');
+      return;
+    }
+
+    if (cakeForm.available && (!cakeForm.quantity || parseInt(cakeForm.quantity) <= 0)) {
+      alert('Mavjud mahsulot uchun to\'g\'ri son kiriting');
       return;
     }
 
@@ -285,21 +306,35 @@ const BakerDashboard = () => {
 
       // Upload new image if provided
       if (cakeForm.image) {
-        const imagePath = `cakes/${userData.id}/${Date.now()}_${cakeForm.image.name}`;
-        imageUrl = await dataService.uploadImage(cakeForm.image, imagePath);
+        try {
+          const imagePath = `cakes/${userData.id}/${Date.now()}_${cakeForm.image.name}`;
+          imageUrl = await dataService.uploadImage(cakeForm.image, imagePath);
+        } catch (uploadError) {
+          console.error('Rasm yuklashda xatolik:', uploadError);
+          // Rasm yuklash muvaffaqiyatsiz bo'lsa, eski rasmni saqlash
+          alert('Rasm yuklashda muammo bo\'ldi, eski rasm saqlanadi');
+        }
       }
 
       const quantity = cakeForm.available ? parseInt(cakeForm.quantity) || 0 : undefined;
+      const price = parseFloat(cakeForm.price);
+      const discount = parseFloat(cakeForm.discount) || 0;
+
+      // Ingredients ni to'g'ri parse qilish
+      const ingredients = cakeForm.ingredients 
+        ? cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i.length > 0)
+        : [];
 
       const updates: Partial<Cake> = {
-        name: cakeForm.name,
-        description: cakeForm.description,
-        price: parseFloat(cakeForm.price),
+        name: cakeForm.name.trim(),
+        description: cakeForm.description.trim(),
+        price: price,
         image: imageUrl,
         category: cakeForm.category,
         available: cakeForm.available && quantity !== undefined && quantity > 0,
-        ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
-        discount: parseFloat(cakeForm.discount) || 0
+        ingredients: ingredients,
+        discount: discount,
+        updatedAt: new Date()
       };
 
       // Quantity maydonini faqat mavjud bo'lsa qo'shish
@@ -308,11 +343,16 @@ const BakerDashboard = () => {
       }
 
       // Agar quantity 0 bo'lsa, ogohlantirishni ko'rsatish
-      if (cakeForm.available && quantity <= 0) {
+      if (cakeForm.available && quantity !== undefined && quantity <= 0) {
         alert('Diqqat: Mahsulot soni 0 yoki kamroq bo\'lgani uchun avtomatik "Buyurtma uchun" rejimiga o\'tkazildi.');
+        updates.available = false;
       }
 
+      console.log('Tort yangilanmoqda:', editingCake.id, updates);
       await dataService.updateCake(editingCake.id!, updates);
+
+      // Muvaffaqiyatli yangilash
+      alert('Tort muvaffaqiyatli yangilandi!');
 
       // Reset form
       setEditingCake(null);
@@ -323,17 +363,18 @@ const BakerDashboard = () => {
         category: 'birthday',
         ingredients: '',
         image: null,
-        available: true,
+        available: false,
         quantity: '',
         discount: ''
       });
+      setShowAddCakeForm(false);
 
       // Reload data
       await loadData();
 
     } catch (error) {
       console.error('Tortni yangilashda xatolik:', error);
-      alert('Tortni yangilashda xatolik yuz berdi');
+      alert(`Tortni yangilashda xatolik yuz berdi: ${error.message || 'Noma\'lum xatolik'}`);
     } finally {
       setLoading(false);
     }
@@ -442,17 +483,18 @@ const BakerDashboard = () => {
   };
 
   const startEditCake = (cake: Cake) => {
+    console.log('Tort tahrirlash boshlandi:', cake);
     setEditingCake(cake);
     setCakeForm({
-      name: cake.name,
-      description: cake.description,
-      price: cake.price.toString(),
-      category: cake.category,
-      ingredients: cake.ingredients.join(', '),
-      image: null,
-      available: cake.available,
-      quantity: cake.quantity?.toString() || '0',
-      discount: cake.discount?.toString() || '0'
+      name: cake.name || '',
+      description: cake.description || '',
+      price: cake.price ? cake.price.toString() : '',
+      category: cake.category || 'birthday',
+      ingredients: cake.ingredients ? cake.ingredients.join(', ') : '',
+      image: null, // Yangi rasm yuklash uchun
+      available: cake.available || false,
+      quantity: cake.quantity !== undefined ? cake.quantity.toString() : '',
+      discount: cake.discount !== undefined ? cake.discount.toString() : '0'
     });
     setShowAddCakeForm(true);
   };
