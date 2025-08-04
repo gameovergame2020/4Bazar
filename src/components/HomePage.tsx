@@ -28,11 +28,6 @@ import CheckoutPage from './CheckoutPage';
 import ProductDetailModal from './ProductDetailModal';
 import BakerProfile from './BakerProfile';
 import ProfileManager from './ProfileManager';
-import BakerDashboard from './dashboards/BakerDashboard';
-import ShopDashboard from './dashboards/ShopDashboard';
-import CourierDashboard from './dashboards/CourierDashboard';
-import AdminDashboard from './dashboards/AdminDashboard';
-import OperatorDashboard from './dashboards/OperatorDashboard';
 
 const HomePage = () => {
   const { userData, isAuthenticated, updateUser } = useAuth();
@@ -497,26 +492,8 @@ const addToCart = (cakeId: string) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showUserMenu]);
 
-  // Role-based dashboards - faqat customer uchun HomePage ko'rsatiladi
-  if (userData?.role === 'baker') {
-    return <BakerDashboard />;
-  }
-
-  if (userData?.role === 'shop') {
-    return <ShopDashboard />;
-  }
-
-  if (userData?.role === 'courier') {
-    return <CourierDashboard />;
-  }
-
-  if (userData?.role === 'admin') {
-    return <AdminDashboard />;
-  }
-
-  if (userData?.role === 'operator') {
-    return <OperatorDashboard />;
-  }
+  // HomePage faqat customer rollari uchun
+  // Boshqa rollar o'zlarining Dashboard komponentlariga yo'naltiriladi App.tsx da
 
 
   if (showBakerProfile && selectedBakerId) {
