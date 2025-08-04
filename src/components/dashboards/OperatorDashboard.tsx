@@ -66,6 +66,10 @@ const OperatorDashboard = () => {
   });
   const [searchOrderId, setSearchOrderId] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [searchResult, setSearchResult] = useState<{ type: 'success' | 'error' | null; message: string }>({
+    type: null,
+    message: ''
+  });
 
   useEffect(() => {
     if (userData?.id) {
@@ -334,10 +338,10 @@ const OperatorDashboard = () => {
     setOrderItems({ [order.cakeId]: order.quantity });
     // Mijoz ma'lumotlarini tahrirlash uchun tayyorlash
     setEditingCustomerInfo({
-      customerId: order.customerId || '',
-      customerName: order.customerName || '',
-      customerPhone: order.customerPhone || '',
-      deliveryAddress: order.deliveryAddress || ''
+      customerId: '',
+      customerName: '',
+      customerPhone: '',
+      deliveryAddress: ''
     });
     // Qidiruv maydonini tozalash
     setNewProductSearchQuery('');
@@ -495,13 +499,13 @@ const OperatorDashboard = () => {
   // orderUniqueId bo'yicha buyurtmalarni qidirish
   const handleSearchByOrderId = async () => {
     if (!searchOrderId.trim()) {
-      alert('Buyurtma ID sini kiriting');
+      setSearchResult({ type: 'error', message: 'Buyurtma ID sini kiriting' });
       return;
     }
 
     try {
       setIsSearching(true);
-      
+
       // # belgisini olib tashlash va tozalash
       const cleanSearchId = searchOrderId.trim().replace(/^#/, '').toUpperCase();
       console.log('🔍 Order ID bo\'yicha qidiruv:', cleanSearchId);
@@ -511,7 +515,7 @@ const OperatorDashboard = () => {
       const foundOrders = allOrders.filter(order => {
         const orderUniqueId = order.orderUniqueId?.toUpperCase() || '';
         const orderId = order.id?.toUpperCase() || '';
-        
+
         return orderUniqueId.includes(cleanSearchId) || 
                orderId.includes(cleanSearchId) ||
                orderUniqueId === cleanSearchId ||
@@ -522,12 +526,13 @@ const OperatorDashboard = () => {
         console.log(`✅ ${foundOrders.length} ta buyurtma topildi`);
         // Update the main orders list with found orders
         setOrders(foundOrders);
+        setSearchResult({ type: 'success', message: `${foundOrders.length} ta buyurtma topildi` });
       } else {
-        alert('Bu ID bo\'yicha buyurtma topilmadi');
+        setSearchResult({ type: 'error', message: 'Bu ID bo\'yicha buyurtma topilmadi' });
       }
     } catch (error) {
       console.error('❌ Qidirishda xato:', error);
-      alert('Qidirishda xatolik yuz berdi');
+      setSearchResult({ type: 'error', message: 'Qidirishda xatolik yuz berdi' });
     } finally {
       setIsSearching(false);
     }
@@ -632,7 +637,7 @@ const OperatorDashboard = () => {
         try {
           await dataService.revertOrderQuantity(order.cakeId, order.quantity, order.fromStock || false);
           console.log('✅ Mahsulot soni muvaffaqiyatli qaytarildi');
-          
+
           // Real-time yangilanishni kuchaytirish uchun qo'shimcha trigger
           setTimeout(async () => {
             try {
@@ -649,7 +654,7 @@ const OperatorDashboard = () => {
               console.warn('⚠️ Mahsulot holati tekshirishda xato:', checkError);
             }
           }, 1000);
-          
+
         } catch (revertError) {
           console.error('❌ Mahsulot sonini qaytarishda xato:', revertError);
           // Xatoga qaramay order status ni yangilashni davom ettiramiz
@@ -815,6 +820,7 @@ const OperatorDashboard = () => {
             <div className="relative">
               <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
+```typescript
                 type="text"
                 placeholder="Qidirish..."
                 value={searchQuery}
@@ -1020,6 +1026,28 @@ const OperatorDashboard = () => {
                 <span>Barchasi</span>
               </button>
         </div>
+
+        {/* Search Result Message */}
+        {searchResult.type && (
+          <div className={`mb-4 p-3 rounded-lg flex items-center space-x-2 ${
+            searchResult.type === 'success' 
+              ? 'bg-green-50 text-green-700 border border-green-200' 
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}>
+            {searchResult.type === 'success' ? (
+              <CheckCircle size={16} />
+            ) : (
+              <AlertTriangle size={16} />
+            )}
+            <span className="text-sm font-medium">{searchResult.message}</span>
+            <button
+              onClick={() => setSearchResult({type: null, message: ''})}
+              className="ml-auto text-gray-400 hover:text-gray-600"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
 
         <div className="overflow-x-auto">
           <table className="w-full">
