@@ -403,7 +403,9 @@ const addToCart = (cakeId: string) => {
     }
 
     if (Object.keys(cart).length > 0) {
-      setShowCartModal(true);
+      // To'g'ridan-to'g'ri CheckoutPage-ga o'tish
+      console.log('Switching directly to checkout');
+      setCurrentView('checkout');
     } else {
       alert('Savat bo\'sh! Avval mahsulot qo\'shing.');
     }
