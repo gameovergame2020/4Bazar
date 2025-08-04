@@ -510,6 +510,17 @@ const addToCart = (cakeId: string) => {
   // HomePage faqat customer rollari uchun
   // Boshqa rollar o'zlarining Dashboard komponentlariga yo'naltiriladi App.tsx da
 
+  if (currentView === 'checkout') {
+    return (
+      <CheckoutPage
+        cart={cart}
+        cakes={cakes}
+        onBack={handleBackFromCheckout}
+        onOrderComplete={handleOrderComplete}
+        removeFromCart={removeFromCart}
+      />
+    );
+  }
 
   if (showBakerProfile && selectedBakerId) {
     return (
