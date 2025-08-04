@@ -1176,13 +1176,13 @@ class DataService {
           });
         } else {
           // "Buyurtma uchun" dan bekor qilindi - FAQAT amount kamayadi
-          // Quantity ga HECH QACHON qaytarilmaydi
+          // Quantity va inStockQuantity HECH QACHON o'zgartirilmaydi
           const currentAmount = cake.amount || 0;
           const newAmount = Math.max(0, currentAmount - orderQuantity);
           updateData.amount = newAmount;
           
-          // MUHIM: quantity va available holatini HECH QACHON o'zgartirmaydi
-          // "Buyurtma uchun" mahsulotlar real mahsulot emas, faqat buyurtma soni
+          // CRITICAL: quantity, inStockQuantity va available holatini o'zgartirmaslik
+          // "Buyurtma uchun" mahsulotlar virtual buyurtma, real zaxira emas
           
           console.log('🔄 Baker "Buyurtma uchun" bekor qilindi - FAQAT amount kamaytirildi:', {
             oldAmount: currentAmount,
@@ -1192,7 +1192,7 @@ class DataService {
             quantityUNTOUCHED: cake.quantity || 0,
             availableUNTOUCHED: cake.available,
             inStockUNTOUCHED: cake.inStockQuantity || 0,
-            rule: 'BUYURTMA UCHUN bekor qilinganda quantity ga qaytarilmaydi'
+            rule: 'BUYURTMA UCHUN bekor qilinganda hech qanday zaxira o\'zgartirilmaydi'
           });
         }
         
@@ -1223,6 +1223,15 @@ class DataService {
           // Shop mahsulotlari uchun fromStock false bo'lishi mumkin emas
           console.warn('⚠️ Shop mahsulot uchun fromStock: false - bu noto\'g\'ri holat');
         }
+      }
+
+      // CRITICAL VALIDATION: "Buyurtma uchun" mahsulotlar uchun quantity o'zgartirilmasligini tekshirish
+      if (!fromStock && (updateData.hasOwnProperty('quantity') || updateData.hasOwnProperty('inStockQuantity'))) {
+        console.error('❌ XATO: "Buyurtma uchun" mahsulot uchun quantity yoki inStockQuantity o\'zgartirilmoqda!');
+        delete updateData.quantity;
+        delete updateData.inStockQuantity;
+        delete updateData.available;
+        console.log('🔧 TUZATILDI: quantity va inStockQuantity o\'zgarishlari olib tashlandi');
       }
 
       // Ma'lumotlarni yangilash
