@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X, Star, Heart, ShoppingCart, Plus, Minus, Package, Clock, User, MapPin, MessageCircle, Send, ChevronRight, Phone, Mail, Award } from 'lucide-react';
 import { Cake } from '../services/dataService';
@@ -49,25 +48,50 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   isFavorite,
   favoritesLoading
 }) => {
-  const { userData, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<'details' | 'reviews' | 'provider'>('details');
   const [reviews, setReviews] = useState<Review[]>([]);
   const [newComment, setNewComment] = useState('');
   const [newRating, setNewRating] = useState(5);
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [hasDeliveredOrder, setHasDeliveredOrder] = useState(false);
+
+  const { isAuthenticated, userData } = useAuth();
   const [providerInfo, setProviderInfo] = useState<BakerShopInfo | null>(null);
   const [providerProducts, setProviderProducts] = useState<Cake[]>([]);
 
   useEffect(() => {
     if (isOpen && cake) {
       loadReviews();
+      checkUserDeliveredOrder();
       loadProviderInfo();
     }
-  }, [isOpen, cake]);
+  }, [isOpen, cake, userData]);
+
+  const checkUserDeliveredOrder = async () => {
+    if (!userData || !cake) {
+      setHasDeliveredOrder(false);
+      return;
+    }
+
+    try {
+      // Get user's orders for this specific product
+      const orders = await dataService.getOrders();
+      const userDeliveredOrder = orders.find(order => 
+        order.customerId === userData.id?.toString() &&
+        order.cakeId === cake.id &&
+        order.status === 'delivered'
+      );
+
+      setHasDeliveredOrder(!!userDeliveredOrder);
+    } catch (error) {
+      console.error('Buyurtmalarni tekshirishda xatolik:', error);
+      setHasDeliveredOrder(false);
+    }
+  };
 
   const loadReviews = async () => {
     if (!cake) return;
-    
+
     // Mock reviews - bu yerda dataService orqali reviews yuklashingiz mumkin
     const mockReviews: Review[] = [
       {
@@ -442,7 +466,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           {activeTab === 'reviews' && (
             <div className="space-y-6">
               {/* Add Review */}
-              {isAuthenticated && (
+              {isAuthenticated && hasDeliveredOrder ? (
                 <div className="border border-gray-200 rounded-lg p-4">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Izoh qoldiring</h3>
                   <div className="space-y-3">
@@ -464,12 +488,33 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       disabled={submittingComment || !newComment.trim()}
                       className="flex items-center space-x-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Send size={16} />
-                      <span>{submittingComment ? 'Yuborilmoqda...' : 'Izoh yuborish'}</span>
+                      {submittingComment ? (
+                        <>
+                          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                          <span>Yuborilmoqda...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Izoh qoldirish</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
-              )}
+              ) : isAuthenticated && !hasDeliveredOrder ? (
+                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                  <div className="text-center">
+                    <p className="text-gray-600 mb-2">Izoh qoldirish uchun mahsulotni sotib olib, qabul qilib olishingiz kerak</p>
+                    <p className="text-sm text-gray-500">Faqat yetkazib berilgan buyurtmalar uchun sharh yozish mumkin</p>
+                  </div>
+                </div>
+              ) : !isAuthenticated ? (
+                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                  <div className="text-center">
+                    <p className="text-gray-600">Izoh qoldirish uchun tizimga kiring</p>
+                  </div>
+                </div>
+              ) : null}
 
               {/* Reviews List */}
               <div className="space-y-4">
@@ -535,7 +580,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     {providerInfo.description && (
                       <p className="text-gray-600 mb-3">{providerInfo.description}</p>
                     )}
-                    
+
                     {/* Contact Info */}
                     <div className="space-y-2">
                       {providerInfo.phone && (
@@ -627,7 +672,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             <div className="text-sm text-gray-500">
               {cartQuantity > 0 && `Savatda: ${cartQuantity} ta`}
             </div>
-            
+
             <div className="flex items-center space-x-4">
               {cartQuantity > 0 ? (
                 <div className="flex items-center space-x-3">
