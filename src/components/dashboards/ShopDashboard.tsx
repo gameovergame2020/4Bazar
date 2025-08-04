@@ -17,11 +17,11 @@ const ShopDashboard = () => {
     averageRating: 0,
     totalCustomers: 0
   });
-  
+
   const [showAddProductForm, setShowAddProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Cake | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  
+
   const [productForm, setProductForm] = useState({
     name: '',
     description: '',
@@ -44,12 +44,12 @@ const ShopDashboard = () => {
   useEffect(() => {
     if (userData?.id) {
       loadData();
-      
+
       // Real-time inventory kuzatish
       const unsubscribe = dataService.subscribeToRealtimeCakes((updatedCakes) => {
         const shopCakes = updatedCakes.filter(cake => cake.shopId === userData.id);
         setInventory(shopCakes);
-        
+
         // Statistikani yangilash
         setStats(prev => ({
           ...prev,
@@ -69,28 +69,28 @@ const ShopDashboard = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       // Load shop's products
       const products = await dataService.getCakes({ 
         shopId: userData.id,
         productType: 'ready'
       });
       setInventory(products);
-      
+
       // Load orders for shop's products
       const allOrders = await dataService.getOrders();
       const shopOrders = allOrders.filter(order => 
         products.some(product => product.id === order.cakeId)
       );
       setOrders(shopOrders);
-      
+
       // Calculate stats
       const totalProducts = products.length;
       const lowStockItems = products.filter(p => p.quantity && p.quantity < 5).length;
-      
+
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       const todayOrders = shopOrders.filter(order => 
         order.createdAt >= today && order.status === 'delivered'
       );
@@ -98,13 +98,13 @@ const ShopDashboard = () => {
       const totalRevenue = shopOrders
         .filter(order => order.status === 'delivered')
         .reduce((sum, order) => sum + order.totalPrice, 0);
-      
+
       const averageRating = products.length > 0 
         ? products.reduce((sum, product) => sum + product.rating, 0) / products.length 
         : 0;
-      
+
       const uniqueCustomers = new Set(shopOrders.map(order => order.customerId)).size;
-      
+
       setStats({
         totalProducts,
         lowStockItems,
@@ -113,7 +113,7 @@ const ShopDashboard = () => {
         averageRating: Math.round(averageRating * 10) / 10,
         totalCustomers: uniqueCustomers
       });
-      
+
     } catch (error) {
       console.error('Ma\'lumotlarni yuklashda xatolik:', error);
     } finally {
@@ -129,14 +129,16 @@ const ShopDashboard = () => {
 
     try {
       setLoading(true);
-      
+
       let imageUrl = 'https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg?auto=compress&cs=tinysrgb&w=400';
-      
+
       if (productForm.image) {
         const imagePath = `cakes/${userData.id}/${Date.now()}_${productForm.image.name}`;
         imageUrl = await dataService.uploadImage(productForm.image, imagePath);
       }
-      
+
+      const quantity = parseInt(productForm.quantity);
+
       const newProduct: Omit<Cake, 'id' | 'createdAt' | 'updatedAt'> = {
         name: productForm.name,
         description: productForm.description,
@@ -147,18 +149,18 @@ const ShopDashboard = () => {
         bakerName: '',
         shopId: userData.id,
         shopName: userData.name,
-        productType: 'ready',
+        productType: quantity > 0 ? 'ready' : 'baked',
         rating: 0,
         reviewCount: 0,
-        available: true,
+        available: quantity > 0,
         ingredients: [],
-        quantity: parseInt(productForm.quantity),
+        quantity: quantity,
         amount: undefined, // Shop mahsulotlari uchun amount kerak emas
         discount: parseFloat(productForm.discount) || 0
       };
-      
+
       await dataService.addCake(newProduct);
-      
+
       setProductForm({
         name: '',
         description: '',
@@ -169,9 +171,9 @@ const ShopDashboard = () => {
         image: null
       });
       setShowAddProductForm(false);
-      
+
       await loadData();
-      
+
     } catch (error) {
       console.error('Mahsulot qo\'shishda xatolik:', error);
       alert('Mahsulot qo\'shishda xatolik yuz berdi');
@@ -195,7 +197,7 @@ const ShopDashboard = () => {
 
   const handleDeleteProduct = async (productId: string) => {
     if (!confirm('Mahsulotni o\'chirishni xohlaysizmi?')) return;
-    
+
     try {
       setLoading(true);
       await dataService.deleteCake(productId);
@@ -216,6 +218,14 @@ const ShopDashboard = () => {
     if (!quantity || quantity === 0) return { text: 'Tugagan', color: 'text-red-600 bg-red-50' };
     if (quantity < 5) return { text: 'Kam qoldi', color: 'text-yellow-600 bg-yellow-50' };
     return { text: 'Mavjud', color: 'text-green-600 bg-green-50' };
+  };
+
+  const handleQuantityChange = async (productId: string, newQuantity: number) => {
+    try {
+      await dataService.updateCake(productId, { quantity: newQuantity });
+    } catch (error) {
+      console.error("Quantityni yangilashda xatolik", error);
+    }
   };
 
   if (loading && inventory.length === 0) {
@@ -324,7 +334,7 @@ const ShopDashboard = () => {
             <span>Yangi mahsulot</span>
           </button>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -368,7 +378,32 @@ const ShopDashboard = () => {
                         <input
                           type="number"
                           value={product.quantity || 0}
-                          onChange={(e) => handleUpdateStock(product.id!, parseInt(e.target.value) || 0)}
+                          onChange={async (e) => {
+                            const newQuantity = parseInt(e.target.value) || 0;
+                            await handleQuantityChange(product.id!, newQuantity);
+
+                            // Quantity o'zgarganda productType va available ni avtomatik yangilash
+                            try {
+                              const updates = {
+                                quantity: newQuantity,
+                                available: newQuantity > 0,
+                                productType: newQuantity > 0 ? 'ready' as const : 'baked' as const
+                              };
+
+                              await dataService.updateCake(product.id!, updates);
+
+                              // Local state ni yangilash
+                              setInventory(prev => 
+                                prev.map(item => 
+                                  item.id === product.id 
+                                    ? { ...item, ...updates }
+                                    : item
+                                )
+                              );
+                            } catch (error) {
+                              console.error('Mahsulot holatini yangilashda xatolik:', error);
+                            }
+                          }}
                           className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
                           min="0"
                         />
@@ -401,7 +436,7 @@ const ShopDashboard = () => {
               })}
             </tbody>
           </table>
-          
+
           {inventory.length === 0 && (
             <div className="text-center py-8">
               <Package size={48} className="text-gray-400 mx-auto mb-4" />
@@ -444,7 +479,7 @@ const ShopDashboard = () => {
               </div>
             </div>
           ))}
-          
+
           {orders.length === 0 && (
             <div className="text-center py-8">
               <ShoppingCart size={48} className="text-gray-400 mx-auto mb-4" />
@@ -467,7 +502,7 @@ const ShopDashboard = () => {
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Mahsulot nomi *</label>
@@ -479,7 +514,7 @@ const ShopDashboard = () => {
                   placeholder="Masalan: Shokoladli tort"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Tavsif *</label>
                 <textarea
@@ -490,7 +525,7 @@ const ShopDashboard = () => {
                   placeholder="Mahsulot haqida qisqacha ma'lumot"
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Narx (so'm) *</label>
@@ -502,7 +537,7 @@ const ShopDashboard = () => {
                     placeholder="250000"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Miqdor *</label>
                   <input
@@ -515,7 +550,7 @@ const ShopDashboard = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Kategoriya</label>
@@ -529,7 +564,7 @@ const ShopDashboard = () => {
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Chegirma (%)</label>
                   <input
@@ -543,7 +578,7 @@ const ShopDashboard = () => {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Rasm</label>
                 <input
@@ -553,7 +588,7 @@ const ShopDashboard = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
-              
+
               <div className="flex space-x-3 pt-4">
                 <button
                   onClick={handleAddProduct}
