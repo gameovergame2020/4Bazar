@@ -33,7 +33,6 @@ import ShopDashboard from './dashboards/ShopDashboard';
 import CourierDashboard from './dashboards/CourierDashboard';
 import AdminDashboard from './dashboards/AdminDashboard';
 import OperatorDashboard from './dashboards/OperatorDashboard';
-import CustomerProfile from './profiles/CustomerProfile';
 
 const HomePage = () => {
   const { userData, isAuthenticated, updateUser } = useAuth();
@@ -58,7 +57,6 @@ const HomePage = () => {
   const [selectedBakerId, setSelectedBakerId] = useState<string | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { showProfile, profileType, openProfile, closeProfile } = useProfileManager();
-  const [showCustomerProfile, setShowCustomerProfile] = useState(false);
 
   const categories = [
     { name: 'Hammasi', icon: Cake, value: '' },
