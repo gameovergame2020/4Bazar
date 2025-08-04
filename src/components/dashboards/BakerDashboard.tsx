@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Package, Clock, TrendingUp, Users, Star, Edit, Trash2, Eye, EyeOff, CheckCircle, XCircle, Phone, MapPin, Calendar, DollarSign, Camera, Upload, Save, X, ShoppingBasket, Minus } from 'lucide-react';
+import { Plus, Package, Clock, TrendingUp, Users, Star, Edit, Trash2, Phone, MapPin, X, Save, ShoppingBasket } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { dataService, Cake, Order } from '../../services/dataService';
 import { notificationService } from '../../services/notificationService';
@@ -225,7 +225,7 @@ const BakerDashboard = () => {
         rating: 0,
         reviewCount: 0,
         available: cakeForm.available && quantity !== undefined && quantity > 0,
-        ingredients: typeof cakeForm.ingredients === 'string' 
+        ingredients: typeof cakeForm.ingredients === 'string'
           ? cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i)
           : [],
         discount: parseFloat(cakeForm.discount) || 0,
@@ -301,7 +301,7 @@ const BakerDashboard = () => {
         image: imageUrl,
         category: cakeForm.category,
         available: cakeForm.available && quantity !== undefined && quantity > 0,
-        ingredients: typeof cakeForm.ingredients === 'string' 
+        ingredients: typeof cakeForm.ingredients === 'string'
           ? cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i)
           : [],
         discount: parseFloat(cakeForm.discount) || 0
