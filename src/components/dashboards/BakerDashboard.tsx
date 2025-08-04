@@ -19,6 +19,37 @@ const BakerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [myCakes, setMyCakes] = useState<Cake[]>([]);
 
+  const loadData = async () => {
+    if (!userData?.id) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const cakes = await dataService.getCakes({ 
+        bakerId: userData.id,
+        productType: 'baked'
+      });
+
+      setMyCakes(cakes || []);
+
+      const allOrders = await dataService.getOrders();
+      const bakerOrders = allOrders.filter(order => 
+        cakes.some(cake => cake.id === order.cakeId)
+      );
+      setOrders(bakerOrders);
+
+    } catch (error) {
+      console.error('Ma\'lumotlarni yuklashda xatolik:', error);
+      setMyCakes([]);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const cakeIds = myCakes.map(cake => cake.id!);
   const { orders, setOrders, selectedOrder, setSelectedOrder, handleOrderStatusUpdate } = useBakerOrders(userData?.id, cakeIds);
   const { updateProductQuantity } = useProductStock();
@@ -77,37 +108,6 @@ const BakerDashboard = () => {
       setLoading(false);
     }
   }, [userData?.id]);
-
-  const loadData = async () => {
-    if (!userData?.id) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      const cakes = await dataService.getCakes({ 
-        bakerId: userData.id,
-        productType: 'baked'
-      });
-
-      setMyCakes(cakes || []);
-
-      const allOrders = await dataService.getOrders();
-      const bakerOrders = allOrders.filter(order => 
-        cakes.some(cake => cake.id === order.cakeId)
-      );
-      setOrders(bakerOrders);
-
-    } catch (error) {
-      console.error('Ma\'lumotlarni yuklashda xatolik:', error);
-      setMyCakes([]);
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('uz-UZ').format(price) + ' so\'m';
