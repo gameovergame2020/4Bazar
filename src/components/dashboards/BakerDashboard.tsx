@@ -403,38 +403,29 @@ const BakerDashboard = () => {
 
       // Agar buyurtma rad etilsa va mahsulot mavjud bo'lsa, sonini qaytarish
       if (status === 'cancelled' && order) {
+        // fromStock ma'lumotini dataService dan foydalanish
+        await dataService.revertOrderQuantity(order.cakeId, order.quantity, order.fromStock || false);
+        
+        console.log('✅ Buyurtma bekor qilindi, mahsulot quantity to\'g\'ri qaytarildi');
+        
+        // Local state update uchun cake ma'lumotlarini olish
         const cake = myCakes.find(c => c.id === order.cakeId);
         if (cake) {
-          // Baker mahsulotlari uchun amount va quantity ni to'g'ri boshqarish
           const updateData: any = {};
 
-          // Baker mahsulotlari uchun amount kamaytirib va quantity qaytarib, available holatini tekshirish
+          // Baker mahsulotlari uchun amount kamaytirib
           if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
             const newAmount = Math.max(0, (cake.amount || 0) - order.quantity);
             updateData.amount = newAmount;
 
-            // Agar mahsulot "hozir mavjud" holatida bo'lsa, quantity ni qaytarish
-            if (cake.available && cake.quantity !== undefined) {
-              const newQuantity = cake.quantity + order.quantity;
+            // dataService revertOrderQuantity da quantity ni to'g'ri boshqaradi
+            // faqat available holatini yangilash kerak
+            if (order.fromStock) {
+              const newQuantity = (cake.quantity || 0) + order.quantity;
               updateData.quantity = newQuantity;
               updateData.available = newQuantity > 0;
-            } else if (!cake.available && cake.quantity !== undefined) {
-              // "Hozir mavjud" bo'lgan lekin sotib tugagan mahsulotlar uchun quantity qaytarish
-              const newQuantity = cake.quantity + order.quantity;
-              updateData.quantity = newQuantity;
-              updateData.available = newQuantity > 0;
-            } else {
-              // Faqat "Buyurtma uchun" yaratilgan mahsulotlar uchun available false qoladi
-              updateData.available = false;
             }
-          } else {
-            // Shop mahsulotlari uchun quantity qaytarish
-            const newQuantity = (cake.quantity || 0) + order.quantity;
-            updateData.quantity = newQuantity;
-            updateData.available = newQuantity > 0;
           }
-
-          await dataService.updateCake(order.cakeId, updateData);
 
           // Local state'dagi tort ma'lumotlarini yangilash
           setMyCakes(prev => 

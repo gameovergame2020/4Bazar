@@ -52,6 +52,7 @@ export interface Order {
   cakeName: string;
   quantity: number;
   amount?: number; // Mahsulot amount maydonini tracking qilish uchun
+  fromStock?: boolean; // Mahsulot stockdan olinganmi yoki pre-order mi
   totalPrice: number;
   status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivering' | 'delivered' | 'cancelled';
   deliveryAddress: string;
@@ -298,11 +299,22 @@ class DataService {
       console.log('👤 Customer ID bilan bog\'langan:', order.customerId);
       
       // Buyurtma yaratilganda mahsulot quantity ni avtomatik yangilash
+      let fromStock = false;
       try {
-        await this.processOrderQuantity(order.cakeId, order.quantity);
-        console.log('📦 Mahsulot quantity muvaffaqiyatli yangilandi');
+        const result = await this.processOrderQuantity(order.cakeId, order.quantity);
+        fromStock = result.fromStock;
+        console.log('📦 Mahsulot quantity muvaffaqiyatli yangilandi, fromStock:', fromStock);
       } catch (quantityError) {
         console.warn('⚠️ Mahsulot quantity yangilashda xato:', quantityError);
+      }
+
+      // fromStock ma'lumotini buyurtmaga qo'shish
+      if (fromStock) {
+        await updateDoc(doc(db, 'orders', docRef.id), {
+          fromStock: true,
+          updatedAt: Timestamp.now()
+        });
+        console.log('✅ fromStock field buyurtmaga qo\'shildi');
       }
       
       return docRef.id;
@@ -969,12 +981,12 @@ class DataService {
   }
 
   // Buyurtma berilganda mahsulot miqdorini kamaytirish va amount oshirish
-  async processOrderQuantity(cakeId: string, orderQuantity: number): Promise<void> {
+  async processOrderQuantity(cakeId: string, orderQuantity: number): Promise<{ fromStock: boolean }> {
     try {
       const cake = await this.getCakeById(cakeId);
       if (!cake) {
         console.error('❌ Mahsulot topilmadi:', cakeId);
-        return;
+        return { fromStock: false };
       }
 
       console.log('📦 Mahsulot quantity processing:', {
@@ -987,19 +999,21 @@ class DataService {
       });
 
       const updateData: any = {};
+      let fromStock = false;
 
       // Baker mahsulotlari uchun
       if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
-        if (cake.available && cake.quantity !== undefined) {
+        if (cake.available && cake.quantity !== undefined && cake.quantity > 0) {
           // "Hozir mavjud" baker mahsulotlari - quantity kamaytirish
           const newQuantity = Math.max(0, cake.quantity - orderQuantity);
           updateData.quantity = newQuantity;
           updateData.available = newQuantity > 0;
+          fromStock = true; // Stock dan olindi
           
           // Amount ni ham oshirish
           updateData.amount = (cake.amount || 0) + orderQuantity;
           
-          console.log('🔄 Baker "Hozir mavjud" mahsulot yangilanadi:', {
+          console.log('🔄 Baker "Hozir mavjud" mahsulot yangilanadi (fromStock: true):', {
             oldQuantity: cake.quantity,
             newQuantity,
             oldAmount: cake.amount || 0,
@@ -1008,8 +1022,9 @@ class DataService {
         } else {
           // "Buyurtma uchun" baker mahsulotlari - faqat amount oshirish
           updateData.amount = (cake.amount || 0) + orderQuantity;
+          fromStock = false; // Pre-order
           
-          console.log('🔄 Baker "Buyurtma uchun" mahsulot yangilanadi:', {
+          console.log('🔄 Baker "Buyurtma uchun" mahsulot yangilanadi (fromStock: false):', {
             oldAmount: cake.amount || 0,
             newAmount: updateData.amount
           });
@@ -1019,8 +1034,9 @@ class DataService {
         const newQuantity = Math.max(0, (cake.quantity || 0) - orderQuantity);
         updateData.quantity = newQuantity;
         updateData.available = newQuantity > 0;
+        fromStock = true; // Shop mahsulotlari doim stock dan
         
-        console.log('🔄 Shop mahsulot yangilanadi:', {
+        console.log('🔄 Shop mahsulot yangilanadi (fromStock: true):', {
           oldQuantity: cake.quantity || 0,
           newQuantity
         });
@@ -1032,6 +1048,8 @@ class DataService {
         console.log('✅ Mahsulot quantity muvaffaqiyatli yangilandi:', updateData);
       }
 
+      return { fromStock };
+
     } catch (error) {
       console.error('❌ processOrderQuantity xatosi:', error);
       throw error;
@@ -1039,7 +1057,7 @@ class DataService {
   }
 
   // Buyurtma bekor qilinganda mahsulot miqdorini qaytarish va amount kamaytirish
-  async revertOrderQuantity(cakeId: string, orderQuantity: number): Promise<void> {
+  async revertOrderQuantity(cakeId: string, orderQuantity: number, fromStock: boolean = false): Promise<void> {
     try {
       console.log('🔄 Mahsulot sonini qaytarish boshlandi:', { cakeId, orderQuantity });
       
@@ -1066,9 +1084,17 @@ class DataService {
         const newAmount = Math.max(0, (cake.amount || 0) - orderQuantity);
         updateData.amount = newAmount;
         
-        // Quantity ni qaytarish
-        const newQuantity = (cake.quantity || 0) + orderQuantity;
-        updateData.quantity = newQuantity;
+        // Quantity ni faqat stock dan olingan bo'lsa qaytarish
+        if (fromStock) {
+          const newQuantity = (cake.quantity || 0) + orderQuantity;
+          updateData.quantity = newQuantity;
+          console.log('🔄 Stock dan olingan mahsulot, quantity qaytariladi:', {
+            oldQuantity: cake.quantity || 0,
+            newQuantity
+          });
+        } else {
+          console.log('🔄 Pre-order edi, quantity qaytarilmaydi');
+        }
         
         // MUHIM: Available holatini quantity asosida belgilash
         // Baker mahsulotlari uchun available holatini to'g'ri belgilash
@@ -1110,10 +1136,12 @@ class DataService {
           statusText: updateData.available ? 'Hozir mavjud' : 'Buyurtma uchun'
         });
       } else if (cake.productType === 'ready') {
-        // Shop mahsulotlari uchun quantity ni oshirish
-        const newQuantity = (cake.quantity || 0) + orderQuantity;
-        updateData.quantity = newQuantity;
-        updateData.available = newQuantity > 0;
+        // Shop mahsulotlari uchun quantity ni oshirish (doim stock dan bo'lgani uchun)
+        if (fromStock) {
+          const newQuantity = (cake.quantity || 0) + orderQuantity;
+          updateData.quantity = newQuantity;
+          updateData.available = newQuantity > 0;
+        }
         
         console.log('🔄 Shop mahsulot yangilanmoqda:', {
           oldQuantity: cake.quantity || 0,
