@@ -1002,38 +1002,38 @@ size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gra
         {/* Search Orders */}
         <div className="mb-4 flex items-center space-x-2">
           <input
-                type="text"
-                value={searchOrderId}
-                onChange={(e) => setSearchOrderId(e.target.value)}
-                placeholder="Buyurtma ID sini kiriting (masalan: D9OAHZ7Z)..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyPress={(e) => e.key === 'Enter' && handleSearchByOrderId()}
-              />
-              <button
-                onClick={handleSearchByOrderId}
-                disabled={isSearching}
-                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center space-x-2"
-              >
-                {isSearching ? (
-                  <>
-                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                    <span>Qidirilmoqda...</span>
-                  </>
-                ) : (
-                  <>
-                    <Search size={16} />
-                    <span>ID bo'yicha qidirish</span>
-                  </>
-                )}
-              </button>
-              <button
-                onClick={loadData}
-                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center space-x-2"
-                title="Barcha buyurtmalarni ko'rsatish"
-              >
-                <RefreshCw size={16} />
-                <span>Barchasi</span>
-              </button>
+            type="text"
+            value={searchOrderId}
+            onChange={(e) => setSearchOrderId(e.target.value)}
+            placeholder="Buyurtma ID sini kiriting (masalan: D9OAHZ7Z)..."
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onKeyPress={(e) => e.key === 'Enter' && handleSearchByOrderId()}
+          />
+          <button
+            onClick={handleSearchByOrderId}
+            disabled={isSearching}
+            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center space-x-2"
+          >
+            {isSearching ? (
+              <>
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                <span>Qidirilmoqda...</span>
+              </>
+            ) : (
+              <>
+                <Search size={16} />
+                <span>ID bo'yicha qidirish</span>
+              </>
+            )}
+          </button>
+          <button
+            onClick={loadData}
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center space-x-2"
+            title="Barcha buyurtmalarni ko'rsatish"
+          >
+            <RefreshCw size={16} />
+            <span>Barchasi</span>
+          </button>
         </div>
 
         {/* Search Result Message */}
