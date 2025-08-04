@@ -25,6 +25,12 @@ import CheckoutPage from './CheckoutPage';
 import ProductDetailModal from './ProductDetailModal';
 import BakerProfile from './BakerProfile';
 import ProfileManager from './ProfileManager';
+import BakerDashboard from './BakerDashboard';
+import ShopDashboard from './ShopDashboard';
+import CourierDashboard from './CourierDashboard';
+import AdminDashboard from './AdminDashboard';
+import OperatorDashboard from './OperatorDashboard';
+import CustomerProfile from './CustomerProfile';
 
 const HomePage = () => {
   const { userData, isAuthenticated, updateUser } = useAuth();
@@ -48,6 +54,7 @@ const HomePage = () => {
   const [selectedBakerId, setSelectedBakerId] = useState<string | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { showProfile, profileType, openProfile, closeProfile } = useProfileManager();
+  const [showCustomerProfile, setShowCustomerProfile] = useState(false);
 
   const categories = [
     { name: 'Hammasi', icon: Cake, value: '' },
@@ -488,6 +495,27 @@ const addToCart = (cakeId: string) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showUserMenu]);
 
+  // Role-based dashboards - faqat customer uchun HomePage ko'rsatiladi
+  if (userData?.role === 'baker') {
+    return <BakerDashboard />;
+  }
+
+  if (userData?.role === 'shop') {
+    return <ShopDashboard />;
+  }
+
+  if (userData?.role === 'courier') {
+    return <CourierDashboard />;
+  }
+
+  if (userData?.role === 'admin') {
+    return <AdminDashboard />;
+  }
+
+  if (userData?.role === 'operator') {
+    return <OperatorDashboard />;
+  }
+
 
   if (showBakerProfile && selectedBakerId) {
     return (
@@ -739,7 +767,7 @@ const addToCart = (cakeId: string) => {
         <div>
           <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Reytingi yuqori tortlar</h3>
           <div className="space-y-3 sm:space-y-4">
-            {topRatedCakes.map((cake) => (
+            {topRatedCakes.map((cake)(
               <div key={cake.id} className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
                 <div className="flex items-center space-x-3 sm:space-x-4">
                   <div className="relative">
