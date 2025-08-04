@@ -95,7 +95,6 @@ class YandexMapsService {
       script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&load=package.full`;
       script.type = 'text/javascript';
       script.async = true;
-      script.timeout = 15000; // 15 soniya timeout
 
       const timeoutId = setTimeout(() => {
         script.remove();
@@ -196,3 +195,4 @@ class YandexMapsService {
 }
 
 export const yandexMapsService = YandexMapsService.getInstance();
+export default yandexMapsService;

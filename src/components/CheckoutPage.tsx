@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { yandexMapsService } from '../services/yandexMapsService';
 import UserInfoForm from './checkout/UserInfoForm';
 import AddressForm from './checkout/AddressForm';
 import OrderSummary from './checkout/OrderSummary';
@@ -170,7 +171,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     try {
       console.log('🚀 Yandex Maps ishga tushirilmoqda...');
 
-      const { yandexMapsService } = await import('../services/yandexMapsService');
       await yandexMapsService.loadYandexMaps();
       setIsYmapsLoaded(true);
 
@@ -262,8 +262,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       }
 
       // Yandex Maps servisini tekshirish
-      const { yandexMapsService } = await import('../services/yandexMapsService');
-      
       if (!yandexMapsService.isYmapsReady()) {
         console.warn('⚠️ Yandex Maps hali tayyor emas, qayta yuklash...');
         try {
@@ -366,8 +364,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       console.log('🔍 Manzil qidirilmoqda:', query);
 
       // Yandex Maps servisini tekshirish
-      const { yandexMapsService } = await import('../services/yandexMapsService');
-      
       if (!yandexMapsService.isYmapsReady()) {
         console.warn('⚠️ Yandex Maps hali tayyor emas');
         setAddressSuggestions([]);
