@@ -1072,10 +1072,15 @@ class DataService {
           });
         } else {
           // "Hozir mavjud" yetmaydi - "Buyurtma uchun" dan olish
-          // Amount ni oshirish (buyurtma qilingan miqdor)
+          // Amount ni oshirish (buyurtma qilingan miqdor - real mahsulot emas)
           updateData.amount = (cake.amount || 0) + orderQuantity;
           fromStock = false;
-          console.log('🔄 Baker "Buyurtma uchun" dan olindi, amount oshirildi:', updateData.amount);
+          console.log('🔄 Baker "Buyurtma uchun" dan olindi, amount oshirildi (real mahsulot emas, faqat buyurtma soni):', {
+            oldAmount: cake.amount || 0,
+            newAmount: updateData.amount,
+            quantityUnchanged: cake.quantity || 0,
+            rule: 'amount - faqat buyurtma soni, quantity - real mavjud mahsulot'
+          });
         }
         
       } else if (cake.productType === 'ready') {
@@ -1168,16 +1173,20 @@ class DataService {
           });
         } else {
           // "Buyurtma uchun" dan tasdiqlanib amount ga o'tgan mahsulot bekor qilindi
-          // Faqat amount ni kamaytirish, quantity ga qaytarmaydi
+          // Faqat amount ni kamaytirish, quantity ga HECH QACHON qaytarmaydi
           const newAmount = Math.max(0, (cake.amount || 0) - orderQuantity);
           updateData.amount = newAmount;
           
-          console.log('🔄 Baker "Buyurtma uchun" dan bekor qilindi (quantity ga qaytmaydi):', {
+          // MUHIM: quantity va available holatini o'zgartirmaydi
+          // amount faqat buyurtma sonini ko'rsatadi, mavjud mahsulot emas
+          
+          console.log('🔄 Baker "Buyurtma uchun" (amount) dan bekor qilindi - quantity o\'zgartirilmaydi:', {
             oldAmount: cake.amount || 0,
             newAmount,
             quantityUnchanged: cake.quantity || 0,
             availableUnchanged: cake.available,
-            inStockUnchanged: cake.inStockQuantity || 0
+            inStockUnchanged: cake.inStockQuantity || 0,
+            rule: 'amount bekor qilinganda quantity ga qo\'shilmaydi'
           });
         }
         
