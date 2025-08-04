@@ -1,0 +1,59 @@
+[plugin:vite:react-babel] D:\Music\tortbazar\src\components\dashboards\OperatorDashboard.tsx: Unexpected token (823:0)
+  826 |                 value={searchQuery}
+D:/Music/tortbazar/src/components/dashboards/OperatorDashboard.tsx:823:0
+837|                <option value="open">Ochiq</option>
+838|                <option value="in_progress">Jarayonda</option>
+839|                <option value="resolved">Hal qilindi</option>
+   |                                   ^
+840|                <option value="closed">Yopildi</option>
+841|              </select>
+    at constructor (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:362:19)
+    at TypeScriptParserMixin.raise (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:3259:19)
+    at TypeScriptParserMixin.unexpected (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:3279:16)
+    at TypeScriptParserMixin.jsxParseIdentifier (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:6616:12)
+    at TypeScriptParserMixin.jsxParseNamespacedName (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:6623:23)
+    at TypeScriptParserMixin.jsxParseAttribute (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:6699:22)
+    at TypeScriptParserMixin.jsxParseOpeningElementAfterName (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:6714:28)
+    at TypeScriptParserMixin.jsxParseOpeningElementAfterName (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:9690:18)
+    at TypeScriptParserMixin.jsxParseOpeningElementAt (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:6709:17)
+    at TypeScriptParserMixin.jsxParseElementAt (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:6733:33)
+    at TypeScriptParserMixin.jsxParseElementAt (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:6745:32)
+    at TypeScriptParserMixin.jsxParseElementAt (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:6745:32)
+    at TypeScriptParserMixin.jsxParseElementAt (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:6745:32)
+    at TypeScriptParserMixin.jsxParseElementAt (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:6745:32)
+    at TypeScriptParserMixin.jsxParseElementAt (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:6745:32)
+    at TypeScriptParserMixin.jsxParseElement (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:6796:17)
+    at TypeScriptParserMixin.parseExprAtom (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:6806:19)
+    at TypeScriptParserMixin.parseExprSubscripts (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10591:23)
+    at TypeScriptParserMixin.parseUpdate (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10576:21)
+    at TypeScriptParserMixin.parseMaybeUnary (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10556:23)
+    at TypeScriptParserMixin.parseMaybeUnary (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:9483:18)
+    at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10410:61)
+    at TypeScriptParserMixin.parseExprOps (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10415:23)
+    at TypeScriptParserMixin.parseMaybeConditional (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10392:23)
+    at TypeScriptParserMixin.parseMaybeAssign (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10355:21)
+    at D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:9421:39
+    at TypeScriptParserMixin.tryParse (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:3597:20)
+    at TypeScriptParserMixin.parseMaybeAssign (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:9421:18)
+    at D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10325:39
+    at TypeScriptParserMixin.allowInAnd (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:11937:12)
+    at TypeScriptParserMixin.parseMaybeAssignAllowIn (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10325:17)
+    at TypeScriptParserMixin.parseParenAndDistinguishExpression (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:11196:28)
+    at TypeScriptParserMixin.parseExprAtom (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10849:23)
+    at TypeScriptParserMixin.parseExprAtom (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:6811:20)
+    at TypeScriptParserMixin.parseExprSubscripts (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10591:23)
+    at TypeScriptParserMixin.parseUpdate (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10576:21)
+    at TypeScriptParserMixin.parseMaybeUnary (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10556:23)
+    at TypeScriptParserMixin.parseMaybeUnary (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:9483:18)
+    at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10410:61)
+    at TypeScriptParserMixin.parseExprOps (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10415:23)
+    at TypeScriptParserMixin.parseMaybeConditional (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10392:23)
+    at TypeScriptParserMixin.parseMaybeAssign (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10355:21)
+    at TypeScriptParserMixin.parseMaybeAssign (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:9432:20)
+    at TypeScriptParserMixin.parseExpressionBase (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10309:23)
+    at D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10305:39
+    at TypeScriptParserMixin.allowInAnd (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:11932:16)
+    at TypeScriptParserMixin.parseExpression (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:10305:17)
+    at TypeScriptParserMixin.parseReturnStatement (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:12622:28)
+    at TypeScriptParserMixin.parseStatementContent (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:12274:21)
+    at TypeScriptParserMixin.parseStatementContent (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:9157:18
