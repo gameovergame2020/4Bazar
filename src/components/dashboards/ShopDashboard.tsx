@@ -380,14 +380,12 @@ const ShopDashboard = () => {
                           value={product.quantity || 0}
                           onChange={async (e) => {
                             const newQuantity = parseInt(e.target.value) || 0;
-                            await handleQuantityChange(product.id!, newQuantity);
 
-                            // Quantity o'zgarganda productType va available ni avtomatik yangilash
                             try {
                               const updates = {
                                 quantity: newQuantity,
-                                available: newQuantity > 0,
-                                productType: newQuantity > 0 ? 'ready' as const : 'baked' as const
+                                // Quantity > 0 bo'lsa avtomatik mavjud, aks holda mavjud emas
+                                available: newQuantity > 0
                               };
 
                               await dataService.updateCake(product.id!, updates);
@@ -400,6 +398,14 @@ const ShopDashboard = () => {
                                     : item
                                 )
                               );
+
+                              // Status o'zgarishi haqida log
+                              if (newQuantity > 0 && !product.available) {
+                                console.log('✅ Shop mahsulot mavjud holatiga o\'tdi');
+                              } else if (newQuantity === 0 && product.available) {
+                                console.log('⚠️ Shop mahsulot tugadi');
+                              }
+
                             } catch (error) {
                               console.error('Mahsulot holatini yangilashda xatolik:', error);
                             }

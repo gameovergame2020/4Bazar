@@ -792,7 +792,7 @@ const BakerDashboard = () => {
 
               <div className="mb-3">
                 <div className="text-sm mb-2">
-                  <span className="text-gray-600">Mavjud: </span>
+                  <span className="text-gray-600">Hozir mavjud: </span>
                   <div className="flex items-center space-x-2 mt-1">
                     <input
                       type="number"
@@ -803,8 +803,8 @@ const BakerDashboard = () => {
                         try {
                           const updates = {
                             quantity: newQuantity,
-                            available: newQuantity > 0,
-                            inStockQuantity: newQuantity // Baker mahsulotlari uchun ham inStockQuantity yangilash
+                            // Quantity > 0 bo'lsa avtomatik "Hozir mavjud", aks holda "Buyurtma uchun"
+                            available: newQuantity > 0
                           };
 
                           await dataService.updateCake(cake.id!, updates);
@@ -817,6 +817,14 @@ const BakerDashboard = () => {
                                 : item
                             )
                           );
+
+                          // Status o'zgarishi haqida xabar
+                          if (newQuantity > 0 && !cake.available) {
+                            console.log('✅ Mahsulot "Buyurtma uchun" dan "Hozir mavjud" ga o\'tdi');
+                          } else if (newQuantity === 0 && cake.available) {
+                            console.log('⚠️ Mahsulot "Hozir mavjud" dan "Buyurtma uchun" ga o\'tdi');
+                          }
+
                         } catch (error) {
                           console.error('Mahsulot holatini yangilashda xatolik:', error);
                         }
@@ -828,19 +836,25 @@ const BakerDashboard = () => {
                   </div>
                 </div>
                 
+                {/* Buyurtma qilingan miqdor ko'rsatish */}
+                <div className="text-sm mb-2">
+                  <span className="text-gray-600">Buyurtma qilingan: </span>
+                  <span className="font-medium text-blue-600">{cake.amount || 0} ta</span>
+                </div>
+                
                 <div className="text-xs">
-                  {cake.available ? (
+                  {cake.available && (cake.quantity || 0) > 0 ? (
                     <span className={`font-medium ${
-                      cake.quantity !== undefined && cake.quantity <= 0 
-                        ? 'text-red-600' 
-                        : cake.quantity !== undefined && cake.quantity <= 5 
-                          ? 'text-orange-600' 
-                          : 'text-green-600'
+                      (cake.quantity || 0) <= 5 
+                        ? 'text-orange-600' 
+                        : 'text-green-600'
                     }`}>
-                      {cake.quantity !== undefined && cake.quantity > 0 ? 'Hozir mavjud' : 'Tugagan'}
+                      🟢 Hozir mavjud
                     </span>
                   ) : (
-                    <span className="text-blue-600 font-medium">Buyurtma uchun</span>
+                    <span className="text-blue-600 font-medium">
+                      🔵 Buyurtma uchun
+                    </span>
                   )}
                 </div>
               </div>
