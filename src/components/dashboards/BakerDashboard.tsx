@@ -547,7 +547,7 @@ const BakerDashboard = () => {
         updateData.amount = newValue;
         // Available holati amount emas, faqat inStockQuantity ga bog'liq
         // Hozirgi inStockQuantity ni olish kerak
-        const cake = cakes.find(c => c.id === productId);
+        const cake = myCakes.find(c => c.id === productId);
         const currentInStock = cake?.inStockQuantity || 0;
         updateData.available = currentInStock > 0; // Faqat inStockQuantity > 0 bo'lsa available
       } else if (field === 'inStockQuantity') {
@@ -791,9 +791,45 @@ const BakerDashboard = () => {
               </div>
 
               <div className="mb-3">
-                {cake.available ? (
-                  <div className="text-sm">
-                    <span className="text-gray-600">Qoldi: </span>
+                <div className="text-sm mb-2">
+                  <span className="text-gray-600">Mavjud: </span>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <input
+                      type="number"
+                      value={cake.quantity || 0}
+                      onChange={async (e) => {
+                        const newQuantity = parseInt(e.target.value) || 0;
+                        
+                        try {
+                          const updates = {
+                            quantity: newQuantity,
+                            available: newQuantity > 0,
+                            inStockQuantity: newQuantity // Baker mahsulotlari uchun ham inStockQuantity yangilash
+                          };
+
+                          await dataService.updateCake(cake.id!, updates);
+
+                          // Local state ni yangilash
+                          setMyCakes(prev => 
+                            prev.map(item => 
+                              item.id === cake.id 
+                                ? { ...item, ...updates }
+                                : item
+                            )
+                          );
+                        } catch (error) {
+                          console.error('Mahsulot holatini yangilashda xatolik:', error);
+                        }
+                      }}
+                      className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
+                      min="0"
+                    />
+                    <span className="text-sm text-gray-500">ta</span>
+                  </div>
+                </div>
+                
+                <div className="text-xs">
+                  {cake.available ? (
                     <span className={`font-medium ${
                       cake.quantity !== undefined && cake.quantity <= 0 
                         ? 'text-red-600' 
@@ -801,19 +837,12 @@ const BakerDashboard = () => {
                           ? 'text-orange-600' 
                           : 'text-green-600'
                     }`}>
-                      {cake.quantity !== undefined ? `${cake.quantity} ta` : 'Cheksiz'}
+                      {cake.quantity !== undefined && cake.quantity > 0 ? 'Hozir mavjud' : 'Tugagan'}
                     </span>
-                    {cake.quantity !== undefined && cake.quantity <= 0 && (
-                      <span className="block text-xs text-red-600 mt-1">
-                        Avtomatik "Buyurtma uchun" ga o'tkazildi
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-sm">
-                    <span className="text-blue-600 font-medium">Buyurtma uchun mavjud</span>
-                  </div>
-                )}
+                  ) : (
+                    <span className="text-blue-600 font-medium">Buyurtma uchun</span>
+                  )}
+                </div>
               </div>
 
               <div className="flex space-x-2">
