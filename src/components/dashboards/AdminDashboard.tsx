@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Package, ShoppingBag, TrendingUp, AlertTriangle, Settings, Shield, BarChart3, UserCheck, Clock, User, LogOut } from 'lucide-react';
+import { Users, Package, ShoppingBag, TrendingUp, AlertTriangle, Settings, Shield, BarChart3, UserCheck, Clock, User, LogOut, Globe, Activity, Server, Database, DollarSign, PieChart, Edit, Eye, Trash2, Plus, Lock, Download, X } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfileManager } from '../../hooks/useProfileManager';
 import ProfileManager from '../ProfileManager';

@@ -207,15 +207,14 @@ const BakerDashboard = () => {
             </button>
             <button
               onClick={() => setShowSettings(true)}
-              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
             >
               <Settings size={16} />
               <span>Sozlamalar</span>
             </button>
-            <span className="text-gray-600">{userData.name}</span>
             <button
               onClick={logout}
-              className="flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
             >
               <LogOut size={16} />
               <span>Chiqish</span>
@@ -321,6 +320,15 @@ const BakerDashboard = () => {
         getStatusText={getStatusText}
         formatPrice={formatPrice}
       />
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <SettingsPage user={userData} onClose={() => setShowSettings(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -31,11 +31,12 @@ interface User {
 }
 
 interface SettingsPageProps {
-  user: User;
-  onBack: () => void;
+  user?: User;
+  onBack?: () => void;
+  onClose?: () => void;
 }
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack }) => {
+const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack, onClose }) => {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [notifications, setNotifications] = useState({
@@ -127,7 +128,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack }) => {
             </label>
             <input
               type="text"
-              defaultValue={user.name}
+              defaultValue={user?.name || ''}
               className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
           </div>
@@ -138,7 +139,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack }) => {
             </label>
             <input
               type="email"
-              defaultValue={user.email}
+              defaultValue={user?.email || ''}
               className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
           </div>
@@ -149,7 +150,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack }) => {
             </label>
             <input
               type="tel"
-              defaultValue={user.phone}
+              defaultValue={user?.phone || ''}
               className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
           </div>
@@ -429,10 +430,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ user, onBack }) => {
           <div className="flex items-center justify-between max-w-6xl mx-auto">
             <div className="flex items-center space-x-2 sm:space-x-3">
               <button 
-                onClick={onBack}
+                onClick={onBack || onClose}
                 className="p-2 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
               >
-                <ArrowLeft size={18} />
+                {onClose ? <X size={18} /> : <ArrowLeft size={18} />}
               </button>
               <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Sozlamalar</h1>
             </div>

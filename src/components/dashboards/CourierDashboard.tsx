@@ -21,6 +21,8 @@ const CourierDashboard = () => {
     totalDeliveries: 0,
     workingHours: 0
   });
+  const [selectedView, setSelectedView] = useState<'available' | 'active' | 'completed'>('available');
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     if (userData?.id) {
@@ -348,6 +350,47 @@ const CourierDashboard = () => {
           })}
         </div>
       </div>
+      
+      {/* Header */}
+      <div className="flex justify-end items-center py-4 px-6">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => openUserProfile(userData)}
+              className="flex items-center space-x-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            >
+              <User size={16} />
+              <span>Profil</span>
+            </button>
+            <button
+              onClick={() => setShowSettings(true)}
+              className="flex items-center space-x-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            >
+              <Settings size={16} />
+              <span>Sozlamalar</span>
+            </button>
+            <button
+              onClick={logout}
+              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              <LogOut size={16} />
+              <span>Chiqish</span>
+            </button>
+          </div>
+      </div>
+
+{/* Profile Manager */}
+      {showProfile && (
+        <ProfileManager onClose={closeProfile} />
+      )}
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <SettingsPage user={userData} onClose={() => setShowSettings(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -12,13 +12,19 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  X
+  X,
+  User,
+  LogOut,
+  Settings
 } from 'lucide-react';
 import { dataService, Cake, Order } from '../../services/dataService';
 import { UserData } from '../../services/authService';
 import { useFavorites } from '../../hooks/useFavorites';
 import { useAuth } from '../../hooks/useAuth';
 import ProductDetailModal from '../ProductDetailModal';
+import { useProfileManager } from '../../hooks/useProfileManager';
+import ProfileManager from '../ProfileManager';
+import SettingsPage from '../SettingsPage';
 
 const CustomerDashboard = () => {
   const { userData } = useAuth();
@@ -34,7 +40,11 @@ const CustomerDashboard = () => {
   const [rating, setRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
-  
+  const [showProfile, setShowProfile] = useState(false);
+  const { openProfile, closeProfile } = useProfileManager(() => setShowProfile(true));
+  const [selectedFavorite, setSelectedFavorite] = useState<Cake | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+
   const { 
     favorites: userFavorites, 
     favoriteIds, 
@@ -367,7 +377,7 @@ const CustomerDashboard = () => {
     try {
       // Find the cake to get more details
       const cake = cakes.find(c => c.id === orderToRate.cakeId);
-      
+
       // Add review to the product
       await dataService.addReview(orderToRate.cakeId, {
         userId: userData.id!.toString(),
@@ -382,9 +392,9 @@ const CustomerDashboard = () => {
       setOrderToRate(null);
       setRating(5);
       setReviewComment('');
-      
+
       alert('Baho va izohingiz muvaffaqiyatli qo\'shildi!');
-      
+
       // Refresh data to show updated rating
       await loadData();
     } catch (error) {
@@ -896,6 +906,18 @@ const CustomerDashboard = () => {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+       {showProfile && (
+        <ProfileManager onClose={closeProfile} />
+      )}
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <SettingsPage user={userData} onClose={() => setShowSettings(false)} />
           </div>
         </div>
       )}
