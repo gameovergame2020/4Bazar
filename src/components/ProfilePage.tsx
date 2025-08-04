@@ -22,6 +22,7 @@ import {
 import { UserData } from '../services/authService';
 import SettingsPage from './SettingsPage';
 import { dataService, Order } from '../services/dataService';
+import { useFavorites } from '../hooks/useFavorites';
 
 interface ProfilePageProps {
   user: UserData;
@@ -39,6 +40,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
   const [ordersError, setOrdersError] = useState<string | null>(null);
   const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  // Sevimlilar hook
+  const { 
+    favorites, 
+    favoriteCount,
+    removeFromFavorites,
+    loading: favoritesLoading 
+  } = useFavorites(user?.id);
 
   // Buyurtmalarni yuklash funksiyasi
   const loadUserOrders = useCallback(async (showLoading = true) => {
@@ -191,35 +200,15 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     }
   };
 
-  const favoriteCakes = [
-    {
-      id: 1,
-      name: 'Qulupnayli Cheese Cake',
-      restaurant: 'Cake Paradise',
-      price: '180,000',
-      image: 'https://images.pexels.com/photos/1126728/pexels-photo-1126728.jpeg?auto=compress&cs=tinysrgb&w=150',
-      rating: 4.9,
-      available: true,
-    },
-    {
-      id: 2,
-      name: 'Napolyon Torta',
-      restaurant: 'Classic Bakery',
-      price: '220,000',
-      image: 'https://images.pexels.com/photos/1721932/pexels-photo-1721932.jpeg?auto=compress&cs=tinysrgb&w=150',
-      rating: 4.8,
-      available: true,
-    },
-    {
-      id: 3,
-      name: 'Shokoladli Muffin',
-      restaurant: 'Sweet Dreams',
-      price: '45,000',
-      image: 'https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg?auto=compress&cs=tinysrgb&w=150',
-      rating: 4.7,
-      available: false,
-    },
-  ];
+  // Sevimlilardan o'chirish funksiyasi
+  const handleRemoveFromFavorites = async (cakeId: string) => {
+    try {
+      await removeFromFavorites(cakeId);
+    } catch (error: any) {
+      console.error('Sevimlilardan o\'chirishda xatolik:', error);
+      alert('Sevimlilardan o\'chirishda xatolik yuz berdi');
+    }
+  };
 
   const menuItems = [
     { icon: Settings, label: 'Sozlamalar', hasChevron: true, onClick: () => onNavigate('advanced-settings') },
@@ -352,7 +341,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
               }}
               className="text-center p-2 sm:p-3 rounded-lg sm:rounded-xl hover:bg-gray-700/30 transition-all duration-300 transform hover:scale-105"
             >
-              <div className="text-xl sm:text-2xl font-bold text-pink-400">{user.favoriteCount || 0}</div>
+              <div className="text-xl sm:text-2xl font-bold text-pink-400">
+                {favoritesLoading ? '...' : favoriteCount}
+              </div>
               <div className="text-gray-400 text-xs sm:text-sm flex items-center justify-center space-x-1">
                 <span>Sevimlilar</span>
                 <ChevronDown 
@@ -577,38 +568,68 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                 <span>Sevimli tortlar</span>
               </h4>
               <div className="space-y-2 sm:space-y-3 max-h-48 sm:max-h-64 overflow-y-auto">
-                {favoriteCakes.slice(0, 3).map((cake) => (
-                  <div key={cake.id} className="bg-gray-600/30 rounded-lg p-2 sm:p-3 hover:bg-gray-600/50 transition-colors">
-                    <div className="flex items-center space-x-2 sm:space-x-3">
-                      <div className="relative">
-                        <img 
-                          src={cake.image}
-                          alt={cake.name}
-                          className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg object-cover"
-                        />
-                        {!cake.available && (
-                          <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-                            <span className="text-white text-xs">Tugagan</span>
+                {favoritesLoading ? (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <div className="animate-spin h-8 w-8 border-2 border-pink-500 border-t-transparent rounded-full mb-3"></div>
+                    <span className="text-gray-300 text-sm">Sevimlilar yuklanmoqda...</span>
+                  </div>
+                ) : favorites.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-600/30 rounded-full flex items-center justify-center">
+                      <Heart className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <p className="text-gray-400 text-sm">Hozircha sevimli tortlar yo'q</p>
+                    <p className="text-gray-500 text-xs mt-1">Yoqtirilgan tortlarni sevimlilarga qo'shing!</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-3 text-xs text-gray-400 text-center">
+                      Jami {favorites.length} ta sevimli tort
+                      {favorites.length > 5 && ' (so\'nggi 5 tasi ko\'rsatilgan)'}
+                    </div>
+                    {favorites.slice(0, 5).map((favorite) => (
+                      <div key={favorite.id} className="bg-gray-600/30 rounded-lg p-2 sm:p-3 hover:bg-gray-600/50 transition-colors">
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                          <div className="relative">
+                            <img 
+                              src={favorite.cakeImage}
+                              alt={favorite.cakeName}
+                              className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://images.pexels.com/photos/1126728/pexels-photo-1126728.jpeg?auto=compress&cs=tinysrgb&w=150';
+                              }}
+                            />
                           </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-white text-xs sm:text-sm truncate">{cake.name}</h4>
-                        <p className="text-gray-400 text-xs">{cake.restaurant}</p>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-orange-400 text-xs sm:text-sm font-medium">{cake.price} so'm</span>
-                          <div className="flex items-center space-x-1">
-                            <Star size={10} className="text-yellow-400 fill-current" />
-                            <span className="text-gray-300 text-xs">{cake.rating}</span>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-white text-xs sm:text-sm truncate">{favorite.cakeName}</h4>
+                            <p className="text-gray-400 text-xs">{favorite.shopName || 'Tort do\'koni'}</p>
+                            <div className="flex items-center justify-between mt-1">
+                              <span className="text-orange-400 text-xs sm:text-sm font-medium">
+                                {favorite.cakePrice.toLocaleString()} so'm
+                              </span>
+                              <div className="text-gray-400 text-xs">
+                                {new Date(favorite.createdAt).toLocaleDateString('uz-UZ')}
+                              </div>
+                            </div>
                           </div>
+                          <button 
+                            onClick={() => handleRemoveFromFavorites(favorite.cakeId)}
+                            className="p-0.5 sm:p-1 text-pink-400 hover:text-pink-300 transition-colors"
+                            title="Sevimlilardan o'chirish"
+                          >
+                            <Heart size={12} className="fill-current" />
+                          </button>
                         </div>
                       </div>
-                      <button className="p-0.5 sm:p-1 text-pink-400 hover:text-pink-300 transition-colors">
-                        <Heart size={12} className="fill-current" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                    ))}
+
+                    {favorites.length > 5 && (
+                      <div className="text-center mt-3">
+                        <p className="text-xs text-gray-500">Va yana {favorites.length - 5} ta sevimli tort...</p>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </div>

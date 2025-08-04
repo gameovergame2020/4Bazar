@@ -8,6 +8,7 @@ import { userService } from './userService';
 import { supportService } from './supportService';
 import { storageService } from './storageService';
 import { statisticsService } from './statisticsService';
+import { favoritesService } from './favoritesService';
 
 // Export types
 export * from './shared/types';
@@ -19,6 +20,7 @@ export { userService } from './userService';
 export { supportService } from './supportService';
 export { storageService } from './storageService';
 export { statisticsService } from './statisticsService';
+export { favoritesService, type Favorite } from './favoritesService';
 
 // Main DataService class that aggregates all functionality
 class DataService {
@@ -81,6 +83,12 @@ class DataService {
   getOrderBasedProductsStats = statisticsService.getOrderBasedProductsStats.bind(statisticsService);
   getBusinessStats = statisticsService.getBusinessStats.bind(statisticsService);
   subscribeToStats = statisticsService.subscribeToStats.bind(statisticsService);
+
+  // Favorites methods
+  addToFavorites = favoritesService.addToFavorites.bind(favoritesService);
+  removeFromFavorites = favoritesService.removeFromFavorites.bind(favoritesService);
+  getUserFavorites = favoritesService.getUserFavorites.bind(favoritesService);
+  checkIfFavorite = favoritesService.checkIfFavorite.bind(favoritesService);
 
   // Legacy methods for backward compatibility
   updateProductQuantityAndAmount = async (cakeId: string, quantityChange: number, isOrder: boolean = false): Promise<void> => {

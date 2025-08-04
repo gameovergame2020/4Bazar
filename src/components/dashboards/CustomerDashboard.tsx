@@ -1,7 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Heart, Clock, Star, Gift, Truck, Plus, Minus } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import { 
+  Plus, 
+  Minus, 
+  Star, 
+  Heart, 
+  ShoppingCart, 
+  Search, 
+  Filter,
+  ShoppingBag,
+  Package,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  X
+} from 'lucide-react';
 import { dataService, Cake, Order } from '../../services/dataService';
+import { UserData } from '../../services/authService';
+import { useFavorites } from '../../hooks/useFavorites';
 
 const CustomerDashboard = () => {
   const { userData } = useAuth();
