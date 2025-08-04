@@ -1,0 +1,50 @@
+[plugin:vite:react-babel] D:\Music\tortbazar\src\components\HomePage.tsx: Identifier 'useAuth' has already been declared. (9:9)
+  12 |   const { userData, isAuthenticated } = useAuth();
+D:/Music/tortbazar/src/components/HomePage.tsx:9:9
+7  |  import ProductDetailModal from './ProductDetailModal';
+8  |  import BakerProfile from './BakerProfile';
+9  |  import { useAuth } from '../hooks/useAuth';
+   |           ^
+10 |  
+11 |  const HomePage = () => {
+    at constructor (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:362:19)
+    at TypeScriptParserMixin.raise (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:3259:19)
+    at TypeScriptScopeHandler.declareName (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:6913:21)
+    at TypeScriptParserMixin.declareNameFromIdentifier (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:7350:16)
+    at TypeScriptParserMixin.checkIdentifier (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:7346:12)
+    at TypeScriptParserMixin.checkLVal (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:7287:12)
+    at TypeScriptParserMixin.finishImportSpecifier (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:13734:10)
+    at TypeScriptParserMixin.parseImportSpecifier (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:13899:17)
+    at TypeScriptParserMixin.parseImportSpecifier (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:9793:18)
+    at TypeScriptParserMixin.parseNamedImportSpecifiers (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:13878:36)
+    at TypeScriptParserMixin.parseImportSpecifiersAndAfter (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:13711:37)
+    at TypeScriptParserMixin.parseImport (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:13704:17)
+    at TypeScriptParserMixin.parseImport (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:9073:26)
+    at TypeScriptParserMixin.parseStatementContent (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:12351:27)
+    at TypeScriptParserMixin.parseStatementContent (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:9157:18)
+    at TypeScriptParserMixin.parseStatementLike (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:12243:17)
+    at TypeScriptParserMixin.parseModuleItem (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:12220:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:12796:36)
+    at TypeScriptParserMixin.parseBlockBody (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:12789:10)
+    at TypeScriptParserMixin.parseProgram (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:12117:10)
+    at TypeScriptParserMixin.parseTopLevel (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:12107:25)
+    at TypeScriptParserMixin.parse (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:13923:10)
+    at TypeScriptParserMixin.parse (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:9771:18)
+    at parse (D:\Music\tortbazar\node_modules\@babel\parser\lib\index.js:13957:38)
+    at parser (D:\Music\tortbazar\node_modules\@babel\core\lib\parser\index.js:41:34)
+    at parser.next (<anonymous>)
+    at normalizeFile (D:\Music\tortbazar\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+    at normalizeFile.next (<anonymous>)
+    at run (D:\Music\tortbazar\node_modules\@babel\core\lib\transformation\index.js:21:50)
+    at run.next (<anonymous>)
+    at transform (D:\Music\tortbazar\node_modules\@babel\core\lib\transform.js:22:33)
+    at transform.next (<anonymous>)
+    at step (D:\Music\tortbazar\node_modules\gensync\index.js:261:32)
+    at D:\Music\tortbazar\node_modules\gensync\index.js:273:13
+    at async.call.result.err.err (D:\Music\tortbazar\node_modules\gensync\index.js:223:11)
+    at D:\Music\tortbazar\node_modules\gensync\index.js:189:28
+    at D:\Music\tortbazar\node_modules\@babel\core\lib\gensync-utils\async.js:67:7
+    at D:\Music\tortbazar\node_modules\gensync\index.js:113:33
+    at step (D:\Music\tortbazar\node_modules\gensync\index.js:287:14)
+    at D:\Music\tortbazar\node_modules\gensync\index.js:273:13
+    at async.call.result.err.err (D:\Music\tortbazar\node_modules\gensync\index.js:223:11
