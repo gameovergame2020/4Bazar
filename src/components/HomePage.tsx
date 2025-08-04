@@ -6,7 +6,6 @@ import { useFavorites } from '../hooks/useFavorites';
 import CheckoutPage from './CheckoutPage';
 import ProductDetailModal from './ProductDetailModal';
 import BakerProfile from './BakerProfile';
-import { useAuth } from '../hooks/useAuth';
 
 const HomePage = () => {
   const { userData, isAuthenticated } = useAuth();
