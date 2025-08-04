@@ -1,10 +1,11 @@
-
 import React from 'react';
 import { UserData } from '../services/authService';
 import CustomerProfile from './profiles/CustomerProfile';
 import BakerProfile from './profiles/BakerProfile';
 import ShopProfile from './profiles/ShopProfile';
 import CourierProfile from './profiles/CourierProfile';
+import AdminProfile from './profiles/AdminProfile';
+import OperatorProfile from './profiles/OperatorProfile';
 
 interface ProfileManagerProps {
   user: UserData;
@@ -27,10 +28,32 @@ const ProfileManager: React.FC<ProfileManagerProps> = ({
     case 'shop':
       return <ShopProfile user={user} onBack={onBack} onUpdate={onUpdate} />;
     case 'courier':
-      return <CourierProfile user={user} onBack={onBack} onUpdate={onUpdate} />;
-    default:
-      return null;
-  }
+        return (
+          <CourierProfile
+            user={user}
+            onBack={onBack}
+            onUpdate={onUpdate}
+          />
+        );
+      case 'admin':
+        return (
+          <AdminProfile
+            user={user}
+            onBack={onBack}
+            onUpdate={onUpdate}
+          />
+        );
+      case 'operator':
+        return (
+          <OperatorProfile
+            user={user}
+            onBack={onBack}
+            onUpdate={onUpdate}
+          />
+        );
+      default:
+        return null;
+    }
 };
 
 export default ProfileManager;
