@@ -1118,7 +1118,7 @@ class DataService {
   // Buyurtma bekor qilinganda mahsulot miqdorini qaytarish va amount kamaytirish
   async revertOrderQuantity(cakeId: string, orderQuantity: number, fromStock: boolean = false): Promise<void> {
     try {
-      console.log('🔄 Mahsulot sonini qaytarish boshlandi:', { cakeId, orderQuantity, fromStock });
+      console.log('🔄 Operator buyurtmani bekor qildi, mahsulot sonini qaytarish:', { cakeId, orderQuantity, fromStock });
       
       const cake = await this.getCakeById(cakeId);
       if (!cake) {
@@ -1140,7 +1140,7 @@ class DataService {
       if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
         
         if (fromStock) {
-          // "Hozir mavjud" dan sotilgan mahsulot bekor qilindi
+          // "Hozir mavjud" dan sotilgan mahsulot operator tomonidan bekor qilindi
           // inStockQuantity dan olib tashlab, quantity ga qaytarish
           const newInStockQuantity = Math.max(0, (cake.inStockQuantity || 0) - orderQuantity);
           const newQuantity = (cake.quantity || 0) + orderQuantity;
@@ -1148,29 +1148,28 @@ class DataService {
           updateData.inStockQuantity = newInStockQuantity;
           updateData.quantity = newQuantity;
           
-          // Quantity > 0 bo'lsa, avtomatik "Hozir mavjud" ga o'tish
-          if (newQuantity > 0) {
-            updateData.available = true;
-            console.log('✅ Baker mahsulot "Hozir mavjud" holatiga qaytdi');
-          }
+          // MUHIM: Quantity > 0 bo'lganda avtomatik "Hozir mavjud" ga qaytarish
+          updateData.available = newQuantity > 0;
           
-          console.log('🔄 "Hozir mavjud" dan bekor qilindi:', {
+          console.log('✅ Baker "Hozir mavjud" dan bekor qilindi - quantity qaytarildi:', {
             oldQuantity: cake.quantity || 0,
             newQuantity,
             oldInStock: cake.inStockQuantity || 0,
             newInStock: newInStockQuantity,
-            newAvailable: updateData.available
+            newAvailable: updateData.available,
+            statusChange: newQuantity > 0 ? '"Buyurtma uchun" -> "Hozir mavjud"' : 'Mavjud emas'
           });
         } else {
           // "Buyurtma uchun" dan tasdiqlanib amount ga o'tgan mahsulot bekor qilindi
-          // Amount ni kamaytirish, lekin quantity ga qaytarmaydi
+          // Faqat amount ni kamaytirish, quantity ga qaytarmaydi
           const newAmount = Math.max(0, (cake.amount || 0) - orderQuantity);
           updateData.amount = newAmount;
           
-          console.log('🔄 "Buyurtma uchun" dan bekor qilindi (quantity ga qaytmaydi):', {
+          console.log('🔄 Baker "Buyurtma uchun" dan bekor qilindi (quantity ga qaytmaydi):', {
             oldAmount: cake.amount || 0,
             newAmount,
-            quantityUnchanged: cake.quantity || 0
+            quantityUnchanged: cake.quantity || 0,
+            availableUnchanged: cake.available
           });
         }
         
@@ -1184,55 +1183,57 @@ class DataService {
           updateData.inStockQuantity = newInStockQuantity;
           updateData.quantity = newQuantity;
           
-          // Quantity > 0 bo'lsa, avtomatik mavjud ga o'tish
-          if (newQuantity > 0) {
-            updateData.available = true;
-            console.log('✅ Shop mahsulot yana "Mavjud" holatiga qaytdi');
-          }
+          // MUHIM: Quantity > 0 bo'lganda avtomatik mavjud ga qaytarish
+          updateData.available = newQuantity > 0;
           
-          console.log('🔄 Shop zaxiriga qaytarildi:', {
+          console.log('✅ Shop mahsulot bekor qilindi - quantity qaytarildi:', {
             oldQuantity: cake.quantity || 0,
             newQuantity,
             oldInStock: cake.inStockQuantity || 0,
             newInStock: newInStockQuantity,
-            newAvailable: updateData.available
+            newAvailable: updateData.available,
+            statusChange: newQuantity > 0 ? 'Tugagan -> Mavjud' : 'Tugagan'
           });
         }
       }
 
       // Ma'lumotlarni yangilash
       if (Object.keys(updateData).length > 0) {
-        updateData.updatedAt = new Date();
+        updateData.updatedAt = Timestamp.now();
         
         await this.updateCake(cakeId, updateData);
-        console.log('✅ Mahsulot soni muvaffaqiyatli qaytarildi:', updateData);
+        console.log('✅ Operator bekor qilish: mahsulot muvaffaqiyatli yangilandi:', updateData);
         
-        // Status o'zgarishi haqida log
+        // Status o'zgarishi haqida aniq log
         if (updateData.available === true && !cake.available) {
-          console.log('🟢 Mahsulot "Hozir mavjud" holatiga qaytarildi');
+          console.log('🟢 OPERATOR BEKOR QILISH: Mahsulot "Hozir mavjud" holatiga qaytarildi');
+        } else if (updateData.available === false && cake.available) {
+          console.log('🔴 OPERATOR BEKOR QILISH: Mahsulot "Mavjud emas" holatiga o\'tdi');
         }
 
-        // Real-time yangilanish uchun force update
+        // MUHIM: Operator bekor qilish uchun maxsus force update
         try {
-          const forceUpdateData = {
+          const operatorRevertData = {
             ...updateData,
-            lastModified: new Date().getTime(),
-            revertedAt: Timestamp.now(),
-            statusChangeId: Math.random().toString(36).substr(2, 9)
+            operatorReverted: true,
+            operatorRevertedAt: Timestamp.now(),
+            lastOperatorAction: 'order_cancelled',
+            forceUpdate: Date.now(),
+            statusChangeReason: 'operator_cancelled_order'
           };
           
-          await this.updateCake(cakeId, forceUpdateData);
-          console.log('🔄 Real-time yangilanish muvaffaqiyatli');
+          await this.updateCake(cakeId, operatorRevertData);
+          console.log('🔄 Operator bekor qilish: Real-time yangilanish trigger qilindi');
           
         } catch (triggerError) {
-          console.warn('⚠️ Real-time trigger da xato:', triggerError);
+          console.warn('⚠️ Operator bekor qilish: Real-time trigger da xato:', triggerError);
         }
       } else {
-        console.warn('⚠️ Yangilanishi kerak bo\'lgan ma\'lumotlar topilmadi');
+        console.warn('⚠️ Operator bekor qilish: Yangilanishi kerak bo\'lgan ma\'lumotlar topilmadi');
       }
 
     } catch (error) {
-      console.error('❌ Buyurtma bekor qilishda xatolik:', error);
+      console.error('❌ Operator buyurtma bekor qilishda xatolik:', error);
       throw error;
     }
   }

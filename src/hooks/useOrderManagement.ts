@@ -25,11 +25,25 @@ export const useOrderManagement = (orders: Order[], setOrders: React.Dispatch<Re
     if (confirm('Bu buyurtmani o\'chirishni tasdiqlaysizmi?')) {
       try {
         const order = orders.find(o => o.id === orderId);
-        if (order && status === 'cancelled') {
-          await dataService.revertOrderQuantity(order.cakeId, order.quantity);
+        if (order) {
+          console.log('🚫 Operator buyurtmani bekor qilmoqda:', {
+            orderId,
+            cakeId: order.cakeId,
+            quantity: order.quantity,
+            fromStock: order.fromStock,
+            status: order.status
+          });
+
+          // Buyurtma holatini cancelled qilib o'zgartirish
+          await dataService.updateOrderStatus(orderId, 'cancelled');
+          
+          // Mahsulot miqdorini qaytarish (fromStock flag ni hisobga olgan holda)
+          const fromStockStatus = order.fromStock !== undefined ? order.fromStock : true; // Default true deb hisoblaymiz
+          await dataService.revertOrderQuantity(order.cakeId, order.quantity, fromStockStatus);
+          
+          console.log('✅ Operator: buyurtma bekor qilindi va mahsulot soni qaytarildi');
         }
         
-        await dataService.updateOrderStatus(orderId, 'cancelled');
         setOrders(prev => prev.filter(order => order.id !== orderId));
         loadData();
       } catch (error) {
