@@ -177,7 +177,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_')) {
         console.error('❌ API kaliti mavjud emas');
         setGeocodingError('Yandex Maps API kaliti mavjud emas. .env faylida VITE_YANDEX_MAPS_API_KEY ni to\'ldiring.');
-
+        
         // API kalitisiz ham xaritani ko'rsatish (faqat statik)
         await initSimpleMap();
         return;
@@ -225,7 +225,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       if (mapRef.current && !mapInstanceRef.current) {
         try {
           console.log('🗺️ Xarita yaratilmoqda...');
-
+          
           mapInstanceRef.current = new window.ymaps.Map(mapRef.current, {
             center: [41.311158, 69.240562], // Toshkent koordinatalari
             zoom: 12,
@@ -248,7 +248,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
     } catch (error) {
       console.error('❌ Yandex Maps ishga tushirishda xato:', error);
-
+      
       let errorMessage = 'Xaritani yuklashda xato yuz berdi';
       if (error && typeof error === 'object' && error.message) {
         if (error.message.includes('API kaliti')) {
@@ -261,11 +261,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           errorMessage = `Xato: ${error.message}`;
         }
       }
-
+      
       setGeocodingError(errorMessage);
       setIsYmapsLoaded(false);
       setIsMapInitialized(false);
-
+      
       // Fallback - oddiy xarita
       await initSimpleMap();
     }
@@ -341,15 +341,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
       // API kalitini tekshirish
       const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
-      const hasValidApiKey = apiKey && apiKey !== 'undefined' && !apiKey.includes('your_') && apiKey.trim() !== '';
-      
-      if (!hasValidApiKey) {
-        console.warn('⚠️ API kalitisiz rejim: faqat koordinata ko\'rsatiladi');
-        const fallbackAddress = `Tanlangan joy: ${coords[0].toFixed(4)}, ${coords[1].toFixed(4)}`;
-        setDeliveryAddress(fallbackAddress);
-        setUserInfo(prev => ({ ...prev, address: fallbackAddress }));
-        setGeocodingError('API kaliti mavjud emas. Koordinata sifatida saqlandi.');
-        return;
+      if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_')) {
+        throw new Error('API kaliti noto\'g\'ri konfiguratsiya qilingan. .env faylida VITE_YANDEX_MAPS_API_KEY ni to\'g\'ri to\'ldiring.');
       }
 
       // Yandex Maps servisini tekshirish
@@ -671,52 +664,39 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       console.log('✅ Buyurtma yaratildi, Firebase ID:', orderResult.docId);
       console.log('🆔 Buyurtma raqami:', orderResult.orderUniqueId);
 
-      // Buyurtma muvaffaqiyatli yaratilgandan keyin modal oynani ko'rsatish
-      if (orderResult && orderResult.orderUniqueId) {
-        const operatorPhone = '+998 90 123 45 67';
+      const operatorPhone = '+998 90 123 45 67';
 
-        console.log('🎉 Tasdiqlash oynasi ko\'rsatilmoqda...');
-        
-        setOrderDetails({ 
-          orderId: orderResult.orderUniqueId,
-          operatorPhone 
+      setOrderDetails({ 
+        orderId: orderResult.orderUniqueId,
+        operatorPhone 
+      });
+      setOrderConfirmed(true);
+
+      Object.keys(cart).forEach(cakeId => {
+        removeFromCart(cakeId);
+      });
+
+      try {
+        const { notificationService } = await import('../services/notificationService');
+        await notificationService.createNotification({
+          userId: 'operator-1',
+          type: 'order',
+          title: 'Yangi buyurtma!',
+          message: `${userInfo.name} tomonidan yangi buyurtma: ${cartProducts.map(p => p.name).join(', ')}`,
+          data: { 
+            orderId: orderResult.docId, 
+            orderUniqueId: orderResult.orderUniqueId,
+            customerName: userInfo.name,
+            customerPhone: userInfo.phone,
+            totalPrice 
+          },
+          read: false,
+          priority: 'high',
+          actionUrl: `/operator/orders/${orderResult.docId}`
         });
-        
-        // Modal ko'rsatishdan oldin state'ni yangilash
-        setTimeout(() => {
-          setOrderConfirmed(true);
-          console.log('✅ OrderConfirmed state: true ga o\'zgartirildi');
-        }, 100);
-
-        // Cart'ni tozalash
-        Object.keys(cart).forEach(cakeId => {
-          removeFromCart(cakeId);
-        });
-
-        try {
-          const { notificationService } = await import('../services/notificationService');
-          await notificationService.createNotification({
-            userId: 'operator-1',
-            type: 'order',
-            title: 'Yangi buyurtma!',
-            message: `${userInfo.name} tomonidan yangi buyurtma: ${cartProducts.map(p => p.name).join(', ')}`,
-            data: { 
-              orderId: orderResult.docId, 
-              orderUniqueId: orderResult.orderUniqueId,
-              customerName: userInfo.name,
-              customerPhone: userInfo.phone,
-              totalPrice 
-            },
-            read: false,
-            priority: 'high',
-            actionUrl: `/operator/orders/${orderResult.docId}`
-          });
-          console.log('📢 Operator bildirishnomasi yuborildi');
-        } catch (notifError) {
-          console.warn('⚠️ Operator bildirishnomasi yuborishda xato:', notifError);
-        }
-      } else {
-        throw new Error('Buyurtma yaratilmadi yoki ID qaytarilmadi');
+        console.log('📢 Operator bildirishnomasi yuborildi');
+      } catch (notifError) {
+        console.warn('⚠️ Operator bildirishnomasi yuborishda xato:', notifError);
       }
 
     } catch (error) {
@@ -781,26 +761,16 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       />
 
       {/* Buyurtma tasdiqlash modali */}
-      {(() => {
-        console.log('🔍 Modal render tekshiruvi:', {
-          orderConfirmed,
-          orderDetails,
-          totalPrice
-        });
-        return null;
-      })()}
       <OrderConfirmationModal
         isVisible={orderConfirmed}
         orderDetails={orderDetails}
         totalPrice={totalPrice}
         userInfo={userInfo}
         onClose={() => {
-          console.log('❌ Modal yopilmoqda...');
           setOrderConfirmed(false);
           setOrderDetails(null);
         }}
         onBackToHome={() => {
-          console.log('🏠 Bosh sahifaga qaytish...');
           setOrderConfirmed(false);
           setOrderDetails(null);
           onOrderComplete();
