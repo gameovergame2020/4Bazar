@@ -501,14 +501,22 @@ const OperatorDashboard = () => {
 
     try {
       setIsSearching(true);
-      console.log('🔍 Order ID bo\'yicha qidiruv:', searchOrderId);
+      
+      // # belgisini olib tashlash va tozalash
+      const cleanSearchId = searchOrderId.trim().replace(/^#/, '').toUpperCase();
+      console.log('🔍 Order ID bo\'yicha qidiruv:', cleanSearchId);
 
       // Barcha buyurtmalarni olish va orderUniqueId bo'yicha filtrlash
       const allOrders = await dataService.getOrders();
-      const foundOrders = allOrders.filter(order => 
-        order.orderUniqueId?.toLowerCase().includes(searchOrderId.trim().toLowerCase()) ||
-        order.id?.toLowerCase().includes(searchOrderId.trim().toLowerCase())
-      );
+      const foundOrders = allOrders.filter(order => {
+        const orderUniqueId = order.orderUniqueId?.toUpperCase() || '';
+        const orderId = order.id?.toUpperCase() || '';
+        
+        return orderUniqueId.includes(cleanSearchId) || 
+               orderId.includes(cleanSearchId) ||
+               orderUniqueId === cleanSearchId ||
+               orderId.slice(-6) === cleanSearchId;
+      });
 
       if (foundOrders.length > 0) {
         console.log(`✅ ${foundOrders.length} ta buyurtma topildi`);
