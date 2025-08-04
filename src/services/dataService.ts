@@ -9,6 +9,27 @@ import { supportService } from './supportService';
 import { storageService } from './storageService';
 import { statisticsService } from './statisticsService';
 import { favoritesService } from './favoritesService';
+import { 
+  collection, 
+  doc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  getDocs, 
+  getDoc,
+  setDoc,
+  query, 
+  where, 
+  orderBy, 
+  limit,
+  Timestamp,
+  increment,
+  arrayUnion,
+  arrayRemove,
+  writeBatch,
+  db 
+} from './shared/firebaseConfig';
+import { UserData } from './authService';
 
 // Export types
 export * from './shared/types';
@@ -112,6 +133,98 @@ class DataService {
   async getDepartmentById(departmentId: string): Promise<any | null> {
     const departments = await this.getDepartments();
     return departments.find(dept => dept.id === departmentId) || null;
+  }
+
+  // Foydalanuvchilarni boshqarish uchun userService metodlarini export qilish
+  async getUsers(filters?: { role?: string; blocked?: boolean }): Promise<UserData[]> {
+    try {
+      const { userService } = await import('./userService');
+      return await userService.getUsers(filters);
+    } catch (error) {
+      console.error('Foydalanuvchilarni olishda xatolik:', error);
+      return [];
+    }
+  }
+
+  async updateUserStatus(userId: string, updates: { blocked?: boolean; active?: boolean }): Promise<void> {
+    try {
+      const { userService } = await import('./userService');
+      return await userService.updateUserStatus(userId, updates);
+    } catch (error) {
+      console.error('Foydalanuvchi holatini yangilashda xatolik:', error);
+      throw error;
+    }
+  }
+
+  async updateUserRole(userId: string, newRole: string): Promise<void> {
+    try {
+      const { userService } = await import('./userService');
+      return await userService.updateUserRole(userId, newRole);
+    } catch (error) {
+      console.error('Foydalanuvchi rolini o\'zgartirishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    try {
+      const { userService } = await import('./userService');
+      return await userService.deleteUser(userId);
+    } catch (error) {
+      console.error('Foydalanuvchini o\'chirishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  async getUserById(userId: string): Promise<UserData | null> {
+    try {
+      const users = await this.getUsers();
+      return users.find(user => user.id === userId) || null;
+    } catch (error) {
+      console.error('Foydalanuvchini topishda xatolik:', error);
+      return null;
+    }
+  }
+
+  // Bo'limlar bilan ishlash
+  async getDepartments(): Promise<any[]> {
+    try {
+      const { userService } = await import('./userService');
+      return await userService.getDepartments();
+    } catch (error) {
+      console.error('Bo\'limlarni olishda xatolik:', error);
+      return [];
+    }
+  }
+
+  async createDepartment(departmentData: any): Promise<string> {
+    try {
+      const { userService } = await import('./userService');
+      return await userService.createDepartment(departmentData);
+    } catch (error) {
+      console.error('Bo\'lim yaratishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  async updateDepartment(departmentId: string, updates: any): Promise<void> {
+    try {
+      const { userService } = await import('./userService');
+      return await userService.updateDepartment(departmentId, updates);
+    } catch (error) {
+      console.error('Bo\'limni yangilashda xatolik:', error);
+      throw error;
+    }
+  }
+
+  async deleteDepartment(departmentId: string): Promise<void> {
+    try {
+      const { userService } = await import('./userService');
+      return await userService.deleteDepartment(departmentId);
+    } catch (error) {
+      console.error('Bo\'limni o\'chirishda xatolik:', error);
+      throw error;
+    }
   }
 }
 

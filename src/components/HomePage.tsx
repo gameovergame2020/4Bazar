@@ -715,8 +715,7 @@ const addToCart = (cakeId: string) => {
                       </div>
                       <span className="text-xs text-gray-500">
                         {cake.productType === 'baked' 
-                          ? cake.available && cake.quantity !== undefined && cake.quantity > 0
-                            ? `Hozir mavjud: ${cake.quantity} ta`
+                          ? cake.available && cake.quantity !== undefined && cake.quantity > 0                          ? `Hozir mavjud: ${cake.quantity} ta`
                             : cake.available && (cake.quantity === undefined || cake.quantity === 0)
                               ? 'Buyurtma uchun (miqdor cheklanmagan)'
                               : !cake.available
