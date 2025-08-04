@@ -735,6 +735,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
             geocodingError={geocodingError}
             selectedCoordinates={selectedCoordinates}
             isMapInitialized={isMapInitialized}
+            mapRef={mapRef}
           />
         </div>
 

@@ -10,6 +10,7 @@ interface AddressFormProps {
   geocodingError: string | null;
   selectedCoordinates: [number, number] | null;
   isMapInitialized: boolean;
+  mapRef: React.RefObject<HTMLDivElement>;
 }
 
 const AddressForm: React.FC<AddressFormProps> = ({
@@ -20,9 +21,9 @@ const AddressForm: React.FC<AddressFormProps> = ({
   isLoadingGeocoding,
   geocodingError,
   selectedCoordinates,
-  isMapInitialized
+  isMapInitialized,
+  mapRef
 }) => {
-  const mapRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border">
