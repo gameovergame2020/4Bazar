@@ -667,7 +667,7 @@ const BakerDashboard = () => {
                   Batafsil
                 </button>
                 <div className="flex space-x-2">
-                  
+
                   {order.status === 'accepted' && (
                     <button
                       onClick={() => handleOrderStatusUpdate(order.id!, 'preparing')}
