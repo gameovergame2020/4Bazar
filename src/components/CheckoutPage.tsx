@@ -423,7 +423,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         } else if (error.message) {
           errorMessage = `Xato: ${error.message}`;
         }
-      }</errorMessage>
+      }
 
       setGeocodingError(errorMessage);
 
