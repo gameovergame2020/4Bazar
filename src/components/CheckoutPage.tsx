@@ -250,31 +250,31 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
       console.log('🔄 Reverse geocoding boshlanmoqda:', coords);
 
-      if (!window.ymaps || !window.ymaps.geocode) {
-        console.warn('⚠️ ymaps.geocode funksiyasi mavjud emas');
-        setGeocodingError('Geocoding xizmati mavjud emas');
-        return;
-      }
-
-      await new Promise<void>((resolve) => {
-        if (window.ymaps.ready) {
-          window.ymaps.ready(() => resolve());
-        } else {
-          resolve();
-        }
-      });
-
+      // Koordinatalarni tekshirish
       if (!coords || coords.length !== 2 || !coords[0] || !coords[1]) {
         throw new Error('Noto\'g\'ri koordinatalar');
       }
 
+      // Yandex Maps servisini tekshirish
+      const { yandexMapsService } = await import('../services/yandexMapsService');
+      
+      if (!yandexMapsService.isYmapsReady()) {
+        console.warn('⚠️ Yandex Maps hali tayyor emas, qayta yuklash...');
+        await yandexMapsService.loadYandexMaps();
+      }
+
+      if (!yandexMapsService.isYmapsReady()) {
+        throw new Error('Yandex Maps xizmati mavjud emas');
+      }
+
       console.log('📍 Geocoding uchun koordinatalar:', coords);
 
-      const result = await window.ymaps.geocode(coords, {
+      // Xavfsiz geocoding
+      const result = await yandexMapsService.safeGeocode(coords, {
         kind: 'house',
         results: 1,
         lang: 'uz_UZ',
-        timeout: 10000
+        timeout: 8000
       });
 
       console.log('🔍 Geocoding natijasi:', result);
@@ -313,12 +313,16 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       let errorMessage = 'Manzilni aniqlashda xato yuz berdi';
 
       if (error && typeof error === 'object') {
-        if (error.message === 'scriptError') {
-          errorMessage = 'Xarita API xizmati bilan aloqa xatosi. Internetni tekshiring';
+        if (error.message === 'scriptError' || error.message?.includes('scriptError')) {
+          errorMessage = 'Xarita API xizmati bilan aloqa xatosi. Internetni tekshiring va sahifani yangilang';
+        } else if (error.message === 'Geocoding timeout') {
+          errorMessage = 'Xizmat javob bermadi. Qaytadan urinib ko\'ring';
         } else if (error.message === 'Noto\'g\'ri koordinatalar') {
           errorMessage = 'Tanlangan koordinatalar noto\'g\'ri';
-        } else if (error.message && error.message.includes('timeout')) {
-          errorMessage = 'Xizmat javob bermadi. Qaytadan urinib ko\'ring';
+        } else if (error.message?.includes('timeout')) {
+          errorMessage = 'Xizmat vaqti tugadi. Internetni tekshiring';
+        } else if (error.message?.includes('API key')) {
+          errorMessage = 'API kaliti bilan muammo. Administratorga murojaat qiling';
         } else if (error.message) {
           errorMessage = `Xato: ${error.message}`;
         }
@@ -326,6 +330,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
       setGeocodingError(errorMessage);
 
+      // Koordinatani fallback sifatida saqlash
       if (coords && coords.length === 2) {
         const fallbackAddress = `Koordinata: ${coords[0].toFixed(4)}, ${coords[1].toFixed(4)}`;
         setDeliveryAddress(fallbackAddress);
@@ -347,29 +352,24 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     try {
       console.log('🔍 Manzil qidirilmoqda:', query);
 
-      if (!window.ymaps || !window.ymaps.geocode) {
-        console.warn('⚠️ ymaps.geocode mavjud emas');
+      // Yandex Maps servisini tekshirish
+      const { yandexMapsService } = await import('../services/yandexMapsService');
+      
+      if (!yandexMapsService.isYmapsReady()) {
+        console.warn('⚠️ Yandex Maps hali tayyor emas');
         setAddressSuggestions([]);
         return;
       }
 
-      await new Promise<void>((resolve) => {
-        if (window.ymaps.ready) {
-          window.ymaps.ready(() => resolve());
-        } else {
-          resolve();
-        }
-      });
-
       const searchQuery = `Uzbekistan, Tashkent, ${query}`;
       console.log('🔍 Qidiruv so\'rovi:', searchQuery);
 
-      const result = await window.ymaps.geocode(searchQuery, {
+      const result = await yandexMapsService.safeGeocode(searchQuery, {
         kind: 'house',
         results: 5,
         lang: 'uz_UZ',
         boundedBy: [[40.0, 67.0], [42.0, 71.0]],
-        timeout: 8000
+        timeout: 6000
       });
 
       if (!result || !result.geoObjects) {
@@ -389,7 +389,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           if (geoObject && geoObject.getAddressLine) {
             const addressLine = geoObject.getAddressLine();
             if (addressLine && addressLine.trim()) {
-              suggestions.push(addressLine);
+              // Dublikatlarni oldini olish
+              if (!suggestions.includes(addressLine)) {
+                suggestions.push(addressLine);
+              }
             }
           }
         } catch (itemError) {
@@ -404,8 +407,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       console.error('❌ Manzil qidirishda xato:', error);
       setAddressSuggestions([]);
 
-      if (error && typeof error === 'object' && error.message === 'scriptError') {
-        setGeocodingError('Manzil qidirish xizmati bilan aloqa xatosi');
+      if (error && typeof error === 'object') {
+        if (error.message === 'scriptError' || error.message?.includes('scriptError')) {
+          setGeocodingError('Manzil qidirish xizmati bilan aloqa xatosi. Internetni tekshiring');
+        } else if (error.message?.includes('timeout')) {
+          setGeocodingError('Qidiruv vaqti tugadi. Qaytadan urinib ko\'ring');
+        }
       }
     }
   };
