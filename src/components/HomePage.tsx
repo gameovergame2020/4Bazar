@@ -12,7 +12,10 @@ import {
   ShoppingCart,
   Plus,
   Minus,
-  X
+  X,
+  LogOut,
+  SortAsc,
+  ChevronDown
 } from 'lucide-react';
 import { dataService, Cake as CakeType } from '../services/dataService';
 import { useAuth } from '../hooks/useAuth';
@@ -467,6 +470,23 @@ const addToCart = (cakeId: string) => {
     setShowBakerProfile(true);
   };
 
+  useEffect(() => {
+    if (userData) {
+      loadFavorites();
+    }
+  }, [userData]);
+
+  // Click outside handler for user menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showUserMenu && !(event.target as Element).closest('.relative')) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showUserMenu]);
 
 
   if (showBakerProfile && selectedBakerId) {
@@ -730,7 +750,7 @@ const addToCart = (cakeId: string) => {
                       onClick={() => handleProductClick(cake)}
                       onError={(e) => {
                         e.currentTarget.src = 'https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg?auto=compress&cs=tinysrgb&w=150';
-                      }}
+                    }}
                     />
                     {cake.discount && cake.discount > 0 && (
                       <div className="absolute -top-1 -right-1 bg-red-500 text-white px-1 py-0.5 rounded-full text-xs font-medium">
