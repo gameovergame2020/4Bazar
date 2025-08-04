@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
@@ -133,7 +132,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
       const orders = await dataService.getOrdersByCustomerId(user.id);
       const completedOrders = orders.filter(order => order.status === 'delivered');
       const totalSpent = completedOrders.reduce((sum, order) => sum + order.totalPrice, 0);
-      
+
       // Membership level calculation
       let membershipLevel = 'Bronze';
       if (totalSpent > 5000000) membershipLevel = 'Platinum';
@@ -157,7 +156,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
     setLoading(true);
     try {
       let avatarUrl = user.avatar;
-      
+
       if (editForm.avatar) {
         const imagePath = `avatars/customers/${user.id}/${Date.now()}_${editForm.avatar.name}`;
         avatarUrl = await dataService.uploadImage(editForm.avatar, imagePath);
@@ -258,7 +257,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
                   {stats.membershipLevel}
                 </div>
               </div>
-              
+
               <div className="flex-1 mt-4 md:mt-0">
                 {isEditing ? (
                   <div className="space-y-4">
@@ -280,6 +279,8 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
                 ) : (
                   <div>
                     <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
+                    <h2 className="text-lg text-blue-600 font-medium">@{user.username || 'username'}</h2>
+                    <h3 className="text-base text-gray-500 font-medium">Tortbazar mijozi</h3>
                     <p className="text-gray-600 mt-1">{user.bio || 'Tort sevuvchi mijoz'}</p>
                     <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
                       <div className="flex items-center space-x-1">
@@ -552,7 +553,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
               <div className="font-semibold text-gray-900">Birinchi buyurtma</div>
               <div className="text-xs text-gray-600">Tizimga birinchi buyurtma</div>
             </div>
-            
+
             {stats.totalOrders >= 5 && (
               <div className="text-center p-4 bg-blue-50 rounded-xl">
                 <Target size={32} className="text-blue-600 mx-auto mb-2" />
@@ -582,10 +583,10 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
         {/* Settings Section */}
         <div className="bg-white rounded-2xl p-6 border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Sozlamalar</h3>
-          
+
           {/* Settings Navigation */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
+
             {/* Profile Settings */}
             <div className="space-y-4">
               <h4 className="font-medium text-gray-900 mb-3 flex items-center space-x-2">
@@ -633,7 +634,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
                   </div>
                   <p className="text-xs text-gray-600">{user.address || 'Manzil belgilanmagan'}</p>
                 </div>
-                
+
                 <div className="p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-medium text-sm">To'lov usuli</span>
@@ -664,7 +665,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
                   <div className="font-medium text-sm text-purple-900">Tez-tez so'raladigan savollar</div>
                   <p className="text-xs text-purple-600 mt-1">Eng ko'p so'raladigan savollar va javoblar</p>
                 </button>
-                
+
                 <button className="w-full text-left p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
                   <div className="font-medium text-sm text-purple-900">Murojaat qilish</div>
                   <p className="text-xs text-purple-600 mt-1">Qo'llab-quvvatlash xizmatiga murojaat</p>

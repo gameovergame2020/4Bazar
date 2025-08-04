@@ -71,7 +71,7 @@ const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     try {
@@ -270,7 +270,7 @@ const LoginPage: React.FC = () => {
                 <p className="text-sm text-red-600">{error}</p>
               </div>
             )}
-            
+
             <button
               type="submit"
               disabled={loading}

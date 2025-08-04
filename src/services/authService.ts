@@ -7,7 +7,7 @@ import {
   updateProfile,
   sendPasswordResetEmail
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import { UserRole } from '../types/user';
 import { UserData } from './shared/types';
@@ -22,6 +22,9 @@ class AuthService {
       const userCredential = await createUserWithEmailAndPassword(auth, emailFormat, password);
       const user = userCredential.user;
 
+      // Unique username yaratish
+      const username = await this.generateUniqueUsername(name);
+
       // Foydalanuvchi profilini yangilash
       await updateProfile(user, {
         displayName: name
@@ -31,6 +34,7 @@ class AuthService {
       const userData: UserData = {
         id: user.uid,
         name,
+        username,
         email: emailFormat,
         phone,
         role,
@@ -120,6 +124,85 @@ class AuthService {
   // Joriy foydalanuvchini olish
   getCurrentUser(): User | null {
     return auth.currentUser;
+  }
+
+  // Username yaratish va tekshirish
+  private async generateUniqueUsername(name: string): Promise<string> {
+    // Ismdan username yaratish (faqat harflar va raqamlar)
+    let baseUsername = name.toLowerCase()
+      .replace(/[^a-z0-9]/g, '')
+      .substring(0, 15);
+
+    if (baseUsername.length < 3) {
+      baseUsername = 'user' + baseUsername;
+    }
+
+    let username = baseUsername;
+    let counter = 1;
+
+    // Username unique ekanligini tekshirish
+    while (await this.isUsernameExists(username)) {
+      username = `${baseUsername}${counter}`;
+      counter++;
+    }
+
+    return username;
+  }
+
+  // Username mavjudligini tekshirish
+  private async isUsernameExists(username: string): Promise<boolean> {
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('username', '==', username));
+      const querySnapshot = await getDocs(q);
+      return !querySnapshot.empty;
+    } catch (error) {
+      console.error('Username tekshirishda xatolik:', error);
+      return false;
+    }
+  }
+
+  // Username yangilash
+  async updateUsername(userId: string, newUsername: string): Promise<boolean> {
+    try {
+      // Yangi username formatini tekshirish
+      if (!/^[a-z0-9_]{3,20}$/.test(newUsername)) {
+        throw new Error('Username faqat kichik harflar, raqamlar va _ belgisidan iborat bo\'lishi kerak (3-20 ta belgi)');
+      }
+
+      // Username mavjudligini tekshirish
+      if (await this.isUsernameExists(newUsername)) {
+        throw new Error('Bu username allaqachon band');
+      }
+
+      await updateDoc(doc(db, 'users', userId), {
+        username: newUsername
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Username yangilashda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Username bo'yicha foydalanuvchi qidirish
+  async findUserByUsername(username: string): Promise<UserData | null> {
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('username', '==', username));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        return null;
+      }
+
+      const userDoc = querySnapshot.docs[0];
+      return userDoc.data() as UserData;
+    } catch (error) {
+      console.error('Username bo\'yicha qidirishda xatolik:', error);
+      return null;
+    }
   }
 }
 

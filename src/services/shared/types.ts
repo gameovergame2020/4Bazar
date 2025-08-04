@@ -2,6 +2,7 @@
 export interface UserData {
   id: string;
   name: string;
+  username: string;
   email: string;
   phone: string;
   role: 'customer' | 'baker' | 'shop' | 'courier' | 'operator' | 'admin';
