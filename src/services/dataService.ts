@@ -1497,7 +1497,7 @@ class DataService {
     }
   }
 
-  // Real-time statistika kuzatish
+  // Real-time statistika kuzatish (optimized)
   subscribeToStats(callback: (stats: {
     available: any;
     orderBased: any;
@@ -1506,51 +1506,40 @@ class DataService {
     let isActive = true;
     let unsubscribeCakes: (() => void) | null = null;
     let unsubscribeOrders: (() => void) | null = null;
+    let debounceTimer: NodeJS.Timeout | null = null;
+
+    const debouncedUpdate = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(async () => {
+        if (!isActive) return;
+        
+        try {
+          const [available, orderBased, business] = await Promise.all([
+            this.getAvailableProductsStats(),
+            this.getOrderBasedProductsStats(),
+            this.getBusinessStats()
+          ]);
+
+          if (isActive) {
+            callback({ available, orderBased, business });
+          }
+        } catch (error) {
+          console.error('Statistikani yangilashda xatolik:', error);
+        }
+      }, 1000); // 1 second debounce
+    };
 
     try {
-      // Tortlar va buyurtmalar o'zgarganda statistikani yangilash
-      unsubscribeCakes = this.subscribeToRealtimeCakes(async () => {
-        if (!isActive) return;
-        
-        try {
-          const [available, orderBased, business] = await Promise.all([
-            this.getAvailableProductsStats(),
-            this.getOrderBasedProductsStats(),
-            this.getBusinessStats()
-          ]);
-
-          if (isActive) {
-            callback({ available, orderBased, business });
-          }
-        } catch (error) {
-          console.error('Statistikani yangilashda xatolik:', error);
-        }
-      });
-
-      unsubscribeOrders = this.subscribeToOrders(async () => {
-        if (!isActive) return;
-        
-        try {
-          const [available, orderBased, business] = await Promise.all([
-            this.getAvailableProductsStats(),
-            this.getOrderBasedProductsStats(),
-            this.getBusinessStats()
-          ]);
-
-          if (isActive) {
-            callback({ available, orderBased, business });
-          }
-        } catch (error) {
-          console.error('Statistikani yangilashda xatolik:', error);
-        }
-      });
-
+      // Less frequent updates to reduce BloomFilter load
+      unsubscribeCakes = this.subscribeToRealtimeCakes(debouncedUpdate);
+      unsubscribeOrders = this.subscribeToOrders(debouncedUpdate);
     } catch (error) {
       console.error('Subscription yaratishda xatolik:', error);
     }
 
     return () => {
       isActive = false;
+      if (debounceTimer) clearTimeout(debounceTimer);
       try {
         if (typeof unsubscribeCakes === 'function') {
           unsubscribeCakes();
@@ -1812,7 +1801,7 @@ class DataService {
 
   // REAL-TIME YANGILANISHLAR
 
-  // Tortlarni real-time kuzatish
+  // Tortlarni real-time kuzatish (BloomFilter optimized)
   subscribeToRealtimeCakes(callback: (cakes: Cake[]) => void, filters?: { 
     category?: string; 
     bakerId?: string; 
@@ -1828,69 +1817,96 @@ class DataService {
       if (!isActive) return null;
 
       try {
+        // Reduce query complexity to avoid BloomFilter issues
         let q = query(
           collection(db, 'cakes'), 
-          orderBy('createdAt', 'desc'),
-          limit(100) // Limit qo'shish BloomFilter xatosini kamaytirish uchun
+          orderBy('updatedAt', 'desc'),
+          limit(50) // Reduced limit to prevent BloomFilter errors
         );
 
-        if (filters?.category) {
-          q = query(q, where('category', '==', filters.category));
-        }
+        // Apply only one filter at a time to reduce complexity
         if (filters?.bakerId) {
           q = query(q, where('bakerId', '==', filters.bakerId));
-        }
-        if (filters?.shopId) {
+        } else if (filters?.shopId) {
           q = query(q, where('shopId', '==', filters.shopId));
-        }
-        if (filters?.productType) {
+        } else if (filters?.category) {
+          q = query(q, where('category', '==', filters.category));
+        } else if (filters?.productType) {
           q = query(q, where('productType', '==', filters.productType));
-        }
-        if (filters?.available !== undefined) {
+        } else if (filters?.available !== undefined) {
           q = query(q, where('available', '==', filters.available));
         }
 
         return onSnapshot(q, 
+          {
+            includeMetadataChanges: false // Reduce unnecessary updates
+          },
           (querySnapshot) => {
             if (!isActive) return;
 
             try {
-              const cakes = querySnapshot.docs.map(doc => ({
+              let cakes = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
-                createdAt: doc.data().createdAt.toDate(),
-                updatedAt: doc.data().updatedAt.toDate()
+                createdAt: doc.data().createdAt?.toDate() || new Date(),
+                updatedAt: doc.data().updatedAt?.toDate() || new Date()
               } as Cake));
 
-              retryCount = 0; // Reset retry count on success
+              // Client-side filtering for multiple conditions to reduce server load
+              if (filters) {
+                cakes = cakes.filter(cake => {
+                  if (filters.category && cake.category !== filters.category) return false;
+                  if (filters.bakerId && cake.bakerId !== filters.bakerId) return false;
+                  if (filters.shopId && cake.shopId !== filters.shopId) return false;
+                  if (filters.available !== undefined && cake.available !== filters.available) return false;
+                  if (filters.productType && cake.productType !== filters.productType) return false;
+                  return true;
+                });
+              }
+
+              retryCount = 0;
               callback(cakes);
             } catch (error) {
               console.error('❌ Cakes callback xatosi:', error);
-              if (isActive) {
-                callback([]);
-              }
+              if (isActive) callback([]);
             }
           },
           (error) => {
             if (!isActive) return;
 
+            // Handle BloomFilter errors specifically
+            if (error.message?.includes('BloomFilter')) {
+              console.warn('⚠️ BloomFilter xatosi, simple query bilan qayta urinish');
+              // Fallback to simpler query
+              const simpleQuery = query(
+                collection(db, 'cakes'),
+                orderBy('createdAt', 'desc'),
+                limit(25)
+              );
+              
+              return onSnapshot(simpleQuery, (snapshot) => {
+                if (!isActive) return;
+                const cakes = snapshot.docs.map(doc => ({
+                  id: doc.id,
+                  ...doc.data(),
+                  createdAt: doc.data().createdAt?.toDate() || new Date(),
+                  updatedAt: doc.data().updatedAt?.toDate() || new Date()
+                } as Cake));
+                callback(cakes);
+              });
+            }
+
             console.error('❌ Cakes subscription xatosi:', error);
             retryCount++;
 
             if (retryCount <= maxRetries) {
-              const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000);
-              console.log(`🔄 Cakes subscription qayta urinish... (${retryCount}/${maxRetries})`);
-              
+              const retryDelay = Math.min(2000 * retryCount, 10000);
               setTimeout(() => {
-                if (isActive) {
-                  createSubscription();
-                }
+                if (isActive) createSubscription();
               }, retryDelay);
             } else {
               console.error('❌ Cakes subscription maksimal retry tugadi');
-              if (isActive) {
-                callback([]);
-              }
+              if (isActive) callback([]);
             }
           }
         );
@@ -1914,7 +1930,7 @@ class DataService {
     };
   }
 
-  // Buyurtmalar holatini real-time kuzatish (User ID bo'yicha optimized)
+  // Buyurtmalar holatini real-time kuzatish (BloomFilter optimized)
   subscribeToOrders(callback: (orders: Order[]) => void, filters?: { customerId?: string }) {
     let isSubscriptionActive = true;
     let retryCount = 0;
@@ -1928,20 +1944,20 @@ class DataService {
       try {
         if (filters?.customerId) {
           console.log('🔄 Real-time subscription: Customer ID bo\'yicha', filters.customerId);
-          // Faqat specific customer uchun
+          // Specific customer uchun optimized query
           q = query(
             collection(db, 'orders'), 
             where('customerId', '==', filters.customerId),
-            orderBy('createdAt', 'desc'),
-            limit(100) // Kamroq limit
+            orderBy('updatedAt', 'desc'),
+            limit(50) // Reduced limit for BloomFilter optimization
           );
         } else {
           console.log('🔄 Real-time subscription: Umumiy buyurtmalar');
-          // Umumiy buyurtmalar uchun
+          // General orders with reduced complexity
           q = query(
             collection(db, 'orders'), 
-            orderBy('createdAt', 'desc'), 
-            limit(100) // Limit oshirildi
+            orderBy('updatedAt', 'desc'), 
+            limit(75) // Optimized limit
           );
         }
 
