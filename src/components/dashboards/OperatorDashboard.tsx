@@ -66,7 +66,7 @@ const OperatorDashboard = () => {
   });
   const [searchOrderId, setSearchOrderId] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResult, setSearchResult: any] = useState<{ type: 'success' | 'error' | null; message: string; count: number }>({
+  const [searchResult, setSearchResult] = useState<{ type: 'success' | 'error' | null; message: string; count: number }>({
     type: null,
     message: '',
     count: 0
