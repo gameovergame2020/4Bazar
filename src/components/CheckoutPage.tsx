@@ -341,8 +341,15 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
       // API kalitini tekshirish
       const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
-      if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_')) {
-        throw new Error('API kaliti noto\'g\'ri konfiguratsiya qilingan. .env faylida VITE_YANDEX_MAPS_API_KEY ni to\'g\'ri to\'ldiring.');
+      const hasValidApiKey = apiKey && apiKey !== 'undefined' && !apiKey.includes('your_') && apiKey.trim() !== '';
+      
+      if (!hasValidApiKey) {
+        console.warn('⚠️ API kalitisiz rejim: faqat koordinata ko\'rsatiladi');
+        const fallbackAddress = `Tanlangan joy: ${coords[0].toFixed(4)}, ${coords[1].toFixed(4)}`;
+        setDeliveryAddress(fallbackAddress);
+        setUserInfo(prev => ({ ...prev, address: fallbackAddress }));
+        setGeocodingError('API kaliti mavjud emas. Koordinata sifatida saqlandi.');
+        return;
       }
 
       // Yandex Maps servisini tekshirish
