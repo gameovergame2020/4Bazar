@@ -372,6 +372,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
         {/* Contact Information */}
         <div className="bg-white rounded-2xl p-6 border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Aloqa ma'lumotlari</h3>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Telefon raqam</label>
@@ -441,6 +442,82 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Username bo'limi - faqat admin tasdiqlagan foydalanuvchilar uchun */}
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Username
+                </label>
+                <p className="text-xs text-gray-500">
+                  Admin tomonidan tasdiqlangan foydalanuvchilar uchun maxsus
+                </p>
+              </div>
+              {user.isVerified && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  ✓ Tasdiqlangan
+                </span>
+              )}
+            </div>
+
+            {user.isVerified ? (
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-900">
+                      {user.username ? (
+                        <span className="font-mono text-blue-600">@{user.username}</span>
+                      ) : (
+                        <span className="text-gray-500">Username belgilanmagan</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Username sizning noyob identifikatoringiz
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowUsernameModal(true)}
+                    className="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                  >
+                    {user.username ? 'O\'zgartirish' : 'Qo\'shish'}
+                  </button>
+                </div>
+
+                {/* Faol username so'rovlari */}
+                {usernameRequests.filter(req => req.status === 'pending').length > 0 && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-yellow-600">⏳</span>
+                      <span className="text-sm font-medium text-yellow-800">
+                        {usernameRequests.filter(req => req.status === 'pending').length} ta so'rov kutilmoqda
+                      </span>
+                    </div>
+                    <p className="text-xs text-yellow-700 mt-1">
+                      Admin tomonidan ko'rib chiqiladi
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <div className="text-center">
+                  <div className="w-12 h-12 mx-auto mb-3 bg-gray-200 rounded-full flex items-center justify-center">
+                    <span className="text-2xl">🔒</span>
+                  </div>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">
+                    Username funksiyasi yopiq
+                  </h4>
+                  <p className="text-xs text-gray-600 mb-3">
+                    Username qo'shish uchun avval admin tomonidan tasdiqlanishingiz kerak
+                  </p>
+                  <div className="text-xs text-gray-500">
+                    💡 Admin bilan bog'laning yoki faoliyatingizni oshiring
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -847,7 +924,7 @@ const CustomerProfile: React.FC<CustomerProfileProps> = ({ user, onBack, onUpdat
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md m-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Username o'zgartirish</h3>
-            
+
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Joriy username: <span className="font-mono">@{user.username || 'belgilanmagan'}</span>

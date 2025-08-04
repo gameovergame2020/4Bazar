@@ -284,6 +284,23 @@ const AdminDashboard = () => {
     }
   };
 
+  // Foydalanuvchini tasdiqlash/tasdiqlashni bekor qilish
+  const handleVerifyUser = async (userId: string, verify: boolean) => {
+    try {
+      if (verify) {
+        await authService.verifyUser(userId, userData.id);
+        alert('Foydalanuvchi tasdiqlandi! Endi u username qo\'sha oladi.');
+      } else {
+        await authService.unverifyUser(userId, userData.id);
+        alert('Foydalanuvchi tasdiq bekor qilindi.');
+      }
+      loadData();
+    } catch (error) {
+      console.error('Foydalanuvchi tasdiqida xato:', error);
+      alert('Xatolik yuz berdi');
+    }
+  };
+
   // Bo'lim saqlash/yangilash
   const handleSaveDepartment = async () => {
     try {
@@ -650,6 +667,7 @@ const AdminDashboard = () => {
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Telefon</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Tug'ilgan kun</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Rol</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-900">Holat</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Qo'shildi</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-900">Amallar</th>
                 </tr>
@@ -677,6 +695,20 @@ const AdminDashboard = () => {
                         {getRoleText(user.role)}
                       </span>
                     </td>
+                    <td className="py-3 px-4">
+                      <div className="flex flex-col space-y-1">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium inline-flex items-center w-fit ${
+                          user.isVerified 
+                            ? 'bg-green-100 text-green-600' 
+                            : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {user.isVerified ? '✓ Tasdiqlangan' : '○ Tasdiqlanmagan'}
+                        </span>
+                        {user.username && (
+                          <span className="text-xs text-blue-600 font-mono">@{user.username}</span>
+                        )}
+                      </div>
+                    </td>
                     <td className="py-3 px-4 text-gray-600 text-sm">
                       {new Date(user.joinDate).toLocaleDateString('uz-UZ')}
                     </td>
@@ -703,6 +735,13 @@ const AdminDashboard = () => {
                           }}
                         >
                           <Edit size={16} />
+                        </button>
+                        <button
+                          className={`p-1 ${user.isVerified ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700'}`}
+                          title={user.isVerified ? "Tasdiqni bekor qilish" : "Foydalanuvchini tasdiqlash"}
+                          onClick={() => handleVerifyUser(user.id, !user.isVerified)}
+                        >
+                          <UserCheck size={16} />
                         </button>
                         <button
                           className="p-1 text-yellow-600 hover:text-yellow-700"

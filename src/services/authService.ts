@@ -40,7 +40,8 @@ class AuthService {
         role,
         joinDate: new Date().toISOString(),
         totalOrders: 0,
-        favoriteCount: 0
+        favoriteCount: 0,
+        isVerified: false
       };
 
       await setDoc(doc(db, 'users', user.uid), userData);
@@ -199,13 +200,13 @@ class AuthService {
   async approveUsernameChange(requestId: string, adminId: string): Promise<boolean> {
     try {
       const requestDoc = await getDoc(doc(db, 'usernameRequests', requestId));
-      
+
       if (!requestDoc.exists()) {
         throw new Error('So\'rov topilmadi');
       }
 
       const requestData = requestDoc.data();
-      
+
       if (requestData.status !== 'pending') {
         throw new Error('Bu so\'rov allaqachon ko\'rib chiqilgan');
       }
@@ -257,7 +258,7 @@ class AuthService {
       const requestsRef = collection(db, 'usernameRequests');
       const q = query(requestsRef, where('status', '==', 'pending'));
       const querySnapshot = await getDocs(q);
-      
+
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -274,7 +275,7 @@ class AuthService {
       const requestsRef = collection(db, 'usernameRequests');
       const q = query(requestsRef, where('userId', '==', userId));
       const querySnapshot = await getDocs(q);
-      
+
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -315,7 +316,7 @@ class AuthService {
       const usersRef = collection(db, 'users');
       const q = query(usersRef, where('username', '==', username));
       const querySnapshot = await getDocs(q);
-      
+
       if (querySnapshot.empty) {
         return null;
       }
@@ -327,6 +328,55 @@ class AuthService {
       return null;
     }
   }
+
+  //Admin tomonidan foydalanuvchini tasdiqlash
+  async verifyUser(userId: string, adminId: string): Promise<boolean> {
+    try {
+      await updateDoc(doc(db, 'users', userId), {
+        isVerified: true,
+        verifiedAt: new Date().toISOString(),
+        verifiedBy: adminId
+      });
+      return true;
+    } catch (error) {
+      console.error('Foydalanuvchini tasdiqlashda xatolik:', error);
+      throw error;
+    }
+  }
+
+  //Admin tomonidan foydalanuvchini bekor qilish
+  async unverifyUser(userId: string, adminId: string): Promise<boolean> {
+    try {
+      await updateDoc(doc(db, 'users', userId), {
+        isVerified: false,
+        unverifiedAt: new Date().toISOString(),
+        unverifiedBy: adminId
+      });
+      return true;
+    } catch (error) {
+      console.error('Foydalanuvchini bekor qilishda xatolik:', error);
+      throw error;
+    }
+  }
+}
+
+export interface UserData {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: 'customer' | 'baker' | 'shop' | 'courier' | 'operator' | 'admin';
+  avatar?: string;
+  address?: string;
+  birthDate?: string;
+  joinDate: string;
+  username?: string;
+  blocked?: boolean;
+  isVerified?: boolean; // Admin tomonidan tasdiqlangan
+  verifiedAt?: string;
+  verifiedBy?: string;
+  unverifiedAt?: string;
+  unverifiedBy?: string;
 }
 
 export const authService = new AuthService();
