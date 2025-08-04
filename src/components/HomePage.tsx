@@ -477,6 +477,16 @@ const addToCart = (cakeId: string) => {
     setShowBakerProfile(true);
   };
 
+  // Cart Products - savatdagi mahsulotlarni olish
+  const cartProducts = Object.keys(cart).map(cakeId => {
+    const cake = cakes.find(c => c.id === cakeId);
+    if (!cake) return null;
+    return {
+      ...cake,
+      quantity: cart[cakeId]
+    };
+  }).filter(Boolean) as (Cake & { quantity: number })[];
+
   useEffect(() => {
     if (userData) {
       loadFavorites();
