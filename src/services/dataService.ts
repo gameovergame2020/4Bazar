@@ -1142,12 +1142,31 @@ class DataService {
           newQuantity = (cake.quantity || 0) + orderQuantity;
           updateData.quantity = newQuantity;
           updateData.available = newQuantity > 0;
+          
+          console.log('🔄 Shop mahsulot yangilanmoqda:', {
+            oldQuantity: cake.quantity || 0,
+            newQuantity,
+            newAvailable: updateData.available
+          });
+        } else {
+          // Agar fromStock false bo'lsa ham, available holatini tekshirish
+          newQuantity = cake.quantity || 0;
+          updateData.available = newQuantity > 0;
+          
+          console.log('🔄 Shop mahsulot holati tekshirilmoqda:', {
+            quantity: newQuantity,
+            available: updateData.available
+          });
         }
-        
-        console.log('🔄 Shop mahsulot yangilanmoqda:', {
-          oldQuantity: cake.quantity || 0,
-          newQuantity,
-          newAvailable: updateData.available
+      }
+
+      // MUHIM: Available holatini har doim to'g'ri yangilash
+      if (!updateData.hasOwnProperty('available')) {
+        // Agar available holati hali yangilanmagan bo'lsa, quantity asosida belgilash
+        updateData.available = newQuantity > 0;
+        console.log('🔄 Available holati avtomatik yangilandi:', {
+          quantity: newQuantity,
+          available: updateData.available
         });
       }
 
