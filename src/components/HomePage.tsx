@@ -15,7 +15,10 @@ import {
   X,
   LogOut,
   SortAsc,
-  ChevronDown
+  ChevronDown,
+  Cake,
+  Cookie,
+  ShoppingBasket
 } from 'lucide-react';
 import { dataService, Cake as CakeType } from '../services/dataService';
 import { useAuth } from '../hooks/useAuth';
