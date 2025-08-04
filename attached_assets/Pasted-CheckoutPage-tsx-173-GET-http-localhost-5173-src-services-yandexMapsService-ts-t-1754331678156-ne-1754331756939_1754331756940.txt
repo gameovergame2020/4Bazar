@@ -1,0 +1,33 @@
+CheckoutPage.tsx:173  GET http://localhost:5173/src/services/yandexMapsService.ts?t=1754331678156 net::ERR_ABORTED 500 (Internal Server Error)
+initializeYandexMap @ CheckoutPage.tsx:173
+(anonymous) @ CheckoutPage.tsx:129
+commitHookEffectListMount @ react-dom_client.js?v=3f6cd34b:16915
+commitPassiveMountOnFiber @ react-dom_client.js?v=3f6cd34b:18156
+commitPassiveMountEffects_complete @ react-dom_client.js?v=3f6cd34b:18129
+commitPassiveMountEffects_begin @ react-dom_client.js?v=3f6cd34b:18119
+commitPassiveMountEffects @ react-dom_client.js?v=3f6cd34b:18109
+flushPassiveEffectsImpl @ react-dom_client.js?v=3f6cd34b:19490
+flushPassiveEffects @ react-dom_client.js?v=3f6cd34b:19447
+commitRootImpl @ react-dom_client.js?v=3f6cd34b:19416
+commitRoot @ react-dom_client.js?v=3f6cd34b:19277
+performSyncWorkOnRoot @ react-dom_client.js?v=3f6cd34b:18895
+flushSyncCallbacks @ react-dom_client.js?v=3f6cd34b:9119
+(anonymous) @ react-dom_client.js?v=3f6cd34b:18627Understand this error
+firebase.ts:46 ❌ Yandex Maps ishga tushirishda xato: TypeError: Failed to fetch dynamically imported module: http://localhost:5173/src/services/yandexMapsService.ts?t=1754331678156
+console.error @ firebase.ts:46
+initializeYandexMap @ CheckoutPage.tsx:210
+await in initializeYandexMap
+(anonymous) @ CheckoutPage.tsx:129
+commitHookEffectListMount @ react-dom_client.js?v=3f6cd34b:16915
+commitPassiveMountOnFiber @ react-dom_client.js?v=3f6cd34b:18156
+commitPassiveMountEffects_complete @ react-dom_client.js?v=3f6cd34b:18129
+commitPassiveMountEffects_begin @ react-dom_client.js?v=3f6cd34b:18119
+commitPassiveMountEffects @ react-dom_client.js?v=3f6cd34b:18109
+flushPassiveEffectsImpl @ react-dom_client.js?v=3f6cd34b:19490
+flushPassiveEffects @ react-dom_client.js?v=3f6cd34b:19447
+commitRootImpl @ react-dom_client.js?v=3f6cd34b:19416
+commitRoot @ react-dom_client.js?v=3f6cd34b:19277
+performSyncWorkOnRoot @ react-dom_client.js?v=3f6cd34b:18895
+flushSyncCallbacks @ react-dom_client.js?v=3f6cd34b:9119
+(anonymous) @ react-dom_client.js?v=3f6cd34b:18627Understand this error
+firebase.ts:46 ❌ Yandex Maps ishga tushirishda xato: TypeError: Failed to fetch dynamically imported module: http://localhost:5173/src/services/yandexMapsService.ts?t=1754331678156
