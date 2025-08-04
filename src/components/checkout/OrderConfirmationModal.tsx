@@ -189,33 +189,8 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
               onClick={onBackToHome}
               className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 px-6 rounded-2xl font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
             >
-              🏠 Bosh sahifaga qaytish
+              📋 Buyurtmalar
             </button>
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(orderDetails.orderId);
-                  const notification = document.createElement('div');
-                  notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-slideDown';
-                  notification.textContent = '✅ ID nusxalandi!';
-                  document.body.appendChild(notification);
-                  setTimeout(() => {
-                    notification.remove();
-                  }, 2000);
-                }}
-                className="bg-gray-100 text-gray-700 py-3 px-4 rounded-xl font-medium hover:bg-gray-200 transition-colors text-sm"
-              >
-                📋 ID nusxalash
-              </button>
-
-              <a
-                href={`tel:${orderDetails.operatorPhone}`}
-                className="bg-blue-100 text-blue-700 py-3 px-4 rounded-xl font-medium hover:bg-blue-200 transition-colors text-sm text-center"
-              >
-                📞 Qo'ng'iroq
-              </a>
-            </div>
           </div>
 
           {/* Additional Info */}
