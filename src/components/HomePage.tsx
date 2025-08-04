@@ -4,6 +4,7 @@ import { dataService, Cake as CakeType } from '../services/dataService';
 import { useAuth } from '../hooks/useAuth';
 import { useFavorites } from '../hooks/useFavorites';
 import CheckoutPage from './CheckoutPage';
+import ProductDetailModal from './ProductDetailModal';
 
 const HomePage = () => {
   const { userData, isAuthenticated } = useAuth();
@@ -21,6 +22,8 @@ const HomePage = () => {
   const [cart, setCart] = useState<{[key: string]: number}>({});
   const [currentView, setCurrentView] = useState<'home' | 'checkout'>('home');
   const [filteredCakes, setFilteredCakes] = useState<CakeType[]>([]);
+  const [selectedCake, setSelectedCake] = useState<CakeType | null>(null);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
   const categories = [
     { name: 'Hammasi', icon: Cake, value: '' },
@@ -384,6 +387,16 @@ const addToCart = (cakeId: string) => {
     setCurrentView('home');
   };
 
+  const handleProductClick = (cake: CakeType) => {
+    setSelectedCake(cake);
+    setIsProductModalOpen(true);
+  };
+
+  const handleCloseProductModal = () => {
+    setIsProductModalOpen(false);
+    setSelectedCake(null);
+  };
+
   // Handle remove from cart event
   useEffect(() => {
     const handleRemoveFromCart = (event: any) => {
@@ -537,7 +550,8 @@ const addToCart = (cakeId: string) => {
                   <img 
                     src={cake.image} 
                     alt={cake.name}
-                    className="w-full h-40 sm:h-48 object-cover"
+                    className="w-full h-40 sm:h-48 object-cover cursor-pointer"
+                    onClick={() => handleProductClick(cake)}
                     onError={(e) => {
                       e.currentTarget.src = 'https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg?auto=compress&cs=tinysrgb&w=400';
                     }}
@@ -565,11 +579,21 @@ const addToCart = (cakeId: string) => {
                   )}
                 </div>
                 <div className="p-3 sm:p-4">
-                  <h4 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">{cake.name}</h4>
+                  <h4 
+                    className="font-semibold text-gray-900 mb-1 text-sm sm:text-base cursor-pointer hover:text-orange-600 transition-colors"
+                    onClick={() => handleProductClick(cake)}
+                  >
+                    {cake.name}
+                  </h4>
                   <p className="text-xs sm:text-sm text-gray-600 mb-1">
                     {cake.productType === 'baked' ? `Oshpaz: ${cake.bakerName}` : `Do'kon: ${cake.shopName}`}
                   </p>
-                  <p className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-2">{cake.description}</p>
+                  <p 
+                    className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-2 cursor-pointer hover:text-gray-800 transition-colors"
+                    onClick={() => handleProductClick(cake)}
+                  >
+                    {cake.description}
+                  </p>
 
                   <div className="flex items-center justify-between mb-2 sm:mb-3">
                     <div className="flex items-center space-x-1">
@@ -684,7 +708,8 @@ const addToCart = (cakeId: string) => {
                     <img 
                       src={cake.image} 
                       alt={cake.name}
-                      className="w-16 sm:w-20 h-16 sm:h-20 rounded-lg sm:rounded-xl object-cover"
+                      className="w-16 sm:w-20 h-16 sm:h-20 rounded-lg sm:rounded-xl object-cover cursor-pointer"
+                      onClick={() => handleProductClick(cake)}
                       onError={(e) => {
                         e.currentTarget.src = 'https://images.pexels.com/photos/291528/pexels-photo-291528.jpeg?auto=compress&cs=tinysrgb&w=150';
                       }}
@@ -696,7 +721,12 @@ const addToCart = (cakeId: string) => {
                     )}
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">{cake.name}</h4>
+                    <h4 
+                      className="font-semibold text-gray-900 mb-1 text-sm sm:text-base cursor-pointer hover:text-orange-600 transition-colors"
+                      onClick={() => handleProductClick(cake)}
+                    >
+                      {cake.name}
+                    </h4>
                     <p className="text-xs sm:text-sm text-gray-600 mb-1">
                       {cake.productType === 'baked' ? `Oshpaz: ${cake.bakerName}` : `Do'kon: ${cake.shopName}`}
                     </p>
@@ -817,6 +847,19 @@ const addToCart = (cakeId: string) => {
           </div>
         </button>
       </div>
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        cake={selectedCake}
+        isOpen={isProductModalOpen}
+        onClose={handleCloseProductModal}
+        onAddToCart={addToCart}
+        onRemoveFromCart={removeFromCart}
+        onToggleFavorite={handleToggleFavorite}
+        cartQuantity={selectedCake ? getCartQuantity(selectedCake.id!) : 0}
+        isFavorite={selectedCake ? isFavorite(selectedCake.id!) : false}
+        favoritesLoading={favoritesLoading}
+      />
     </div>
   );
 };

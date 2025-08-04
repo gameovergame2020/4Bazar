@@ -17,6 +17,8 @@ import {
 import { dataService, Cake, Order } from '../../services/dataService';
 import { UserData } from '../../services/authService';
 import { useFavorites } from '../../hooks/useFavorites';
+import { useAuth } from '../../hooks/useAuth';
+import ProductDetailModal from '../ProductDetailModal';
 
 const CustomerDashboard = () => {
   const { userData } = useAuth();
@@ -25,6 +27,8 @@ const CustomerDashboard = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [cart, setCart] = useState<{[key: string]: number}>({});
   const [productFilter, setProductFilter] = useState<'all' | 'baked' | 'ready'>('all');
+  const [selectedCake, setSelectedCake] = useState<Cake | null>(null);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   
   const { 
     favorites: userFavorites, 
@@ -334,6 +338,16 @@ const CustomerDashboard = () => {
     }
   };
 
+  const handleProductClick = (cake: Cake) => {
+    setSelectedCake(cake);
+    setIsProductModalOpen(true);
+  };
+
+  const handleCloseProductModal = () => {
+    setIsProductModalOpen(false);
+    setSelectedCake(null);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
@@ -492,7 +506,8 @@ const CustomerDashboard = () => {
                   <img 
                     src={cake.image}
                     alt={cake.name}
-                    className="w-full h-32 rounded-lg object-cover"
+                    className="w-full h-32 rounded-lg object-cover cursor-pointer"
+                    onClick={() => handleProductClick(cake)}
                   />
                   <button
                     onClick={() => handleFavoriteToggle(cake)}
@@ -530,8 +545,18 @@ const CustomerDashboard = () => {
                   </div>
                 </div>
 
-                <h4 className="font-medium text-gray-900 mb-1">{cake.name}</h4>
-                <p className="text-sm text-gray-600 mb-2 line-clamp-2">{cake.description}</p>
+                <h4 
+                  className="font-medium text-gray-900 mb-1 cursor-pointer hover:text-orange-600 transition-colors"
+                  onClick={() => handleProductClick(cake)}
+                >
+                  {cake.name}
+                </h4>
+                <p 
+                  className="text-sm text-gray-600 mb-2 line-clamp-2 cursor-pointer hover:text-gray-800 transition-colors"
+                  onClick={() => handleProductClick(cake)}
+                >
+                  {cake.description}
+                </p>
                 <p className="text-xs text-gray-500 mb-2">
                   {cake.productType === 'baked' ? `Baker: ${cake.bakerName}` : `Shop: ${cake.shopName || 'Mahalliy do\'kon'}`}
                 </p>
@@ -652,9 +677,15 @@ const CustomerDashboard = () => {
                   <img 
                     src={cake.image}
                     alt={cake.name}
-                    className="w-full h-32 rounded-lg object-cover mb-3"
+                    className="w-full h-32 rounded-lg object-cover mb-3 cursor-pointer"
+                    onClick={() => handleProductClick(cake)}
                   />
-                  <h4 className="font-medium text-gray-900 mb-1">{cake.name}</h4>
+                  <h4 
+                    className="font-medium text-gray-900 mb-1 cursor-pointer hover:text-orange-600 transition-colors"
+                    onClick={() => handleProductClick(cake)}
+                  >
+                    {cake.name}
+                  </h4>
                   <p className="text-sm text-gray-600 mb-2">
                     {cake.productType === 'baked' ? `Baker: ${cake.bakerName}` : `Shop: ${cake.shopName || 'Mahalliy do\'kon'}`}
                   </p>
@@ -694,6 +725,19 @@ const CustomerDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        cake={selectedCake}
+        isOpen={isProductModalOpen}
+        onClose={handleCloseProductModal}
+        onAddToCart={addToCart}
+        onRemoveFromCart={removeFromCart}
+        onToggleFavorite={handleFavoriteToggle}
+        cartQuantity={selectedCake ? cart[selectedCake.id!] || 0 : 0}
+        isFavorite={selectedCake ? isFavorite(selectedCake.id!) : false}
+        favoritesLoading={favoritesLoading}
+      />
     </div>
   );
 };
