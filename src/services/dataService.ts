@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
+import { UserData } from './authService';
 
 // Tortlar uchun interface
 export interface Cake {
@@ -304,7 +305,7 @@ class DataService {
         console.warn('⚠️ Mahsulot quantity yangilashda xato:', quantityError);
       }
       
-      return { docId: docRef.id, orderUniqueId: uniqueOrderId };
+      return docRef.id;
     } catch (error) {
       console.error('Buyurtma yaratishda xatolik:', error);
       throw error;
@@ -525,7 +526,7 @@ class DataService {
         const { notificationService } = await import('./notificationService');
         await notificationService.createNotification({
           userId: 'operator-refunds',
-          type: 'refund',
+          type: 'system',
           title: 'To\'lov qaytarish so\'rovi',
           message: `${orderData.customerName} - ${refundAmount.toLocaleString()} so'm qaytarish kerak (${orderData.paymentType})`,
           data: {
