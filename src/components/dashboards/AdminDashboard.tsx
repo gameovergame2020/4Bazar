@@ -1424,4 +1424,163 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Joylashuv */}
-                Completing the AdminDashboard component with username request handling and UI elements.
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Joylashuv</label>
+                  <input
+                    type="text"
+                    value={departmentForm.location}
+                    onChange={(e) => setDepartmentForm({...departmentForm, location: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Masalan: 1-qavat, 101-xona"
+                  />
+                </div>
+
+                {/* Telefon */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
+                  <input
+                    type="tel"
+                    value={departmentForm.phone}
+                    onChange={(e) => setDepartmentForm({...departmentForm, phone: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="+998 90 123 45 67"
+                  />
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={departmentForm.email}
+                    onChange={(e) => setDepartmentForm({...departmentForm, email: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="department@company.uz"
+                  />
+                </div>
+              </div>
+
+              {/* Ruxsatlar */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Ruxsatlar</label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {[
+                    'read_orders', 'write_orders', 'delete_orders',
+                    'read_users', 'write_users', 'delete_users',
+                    'read_products', 'write_products', 'delete_products',
+                    'read_analytics', 'system_admin'
+                  ].map((permission) => (
+                    <label key={permission} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={departmentForm.permissions.includes(permission)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setDepartmentForm({
+                              ...departmentForm,
+                              permissions: [...departmentForm.permissions, permission]
+                            });
+                          } else {
+                            setDepartmentForm({
+                              ...departmentForm,
+                              permissions: departmentForm.permissions.filter(p => p !== permission)
+                            });
+                          }
+                        }}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">{permission}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowDepartmentForm(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Bekor qilish
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveDepartment}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                {editingDepartment ? 'Yangilash' : 'Saqlash'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Tab Content */}
+      {selectedTab === 'settings' && (
+        <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tizim sozlamalari</h3>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-900">Umumiy sozlamalar</h4>
+                <div className="space-y-3">
+                  <label className="flex items-center space-x-3">
+                    <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                    <span className="text-sm text-gray-700">Email bildirishnomalari</span>
+                  </label>
+                  <label className="flex items-center space-x-3">
+                    <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                    <span className="text-sm text-gray-700">SMS bildirishnomalari</span>
+                  </label>
+                  <label className="flex items-center space-x-3">
+                    <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                    <span className="text-sm text-gray-700">Avtomatik backup</span>
+                  </label>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-900">Xavfsizlik</h4>
+                <div className="space-y-3">
+                  <label className="flex items-center space-x-3">
+                    <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                    <span className="text-sm text-gray-700">Ikki faktorli autentifikatsiya</span>
+                  </label>
+                  <label className="flex items-center space-x-3">
+                    <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                    <span className="text-sm text-gray-700">Login loglarini saqlash</span>
+                  </label>
+                  <label className="flex items-center space-x-3">
+                    <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                    <span className="text-sm text-gray-700">API rate limiting</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Manager Modal */}
+      {showProfile && (
+        <ProfileManager
+          user={profileType?.user}
+          type={profileType?.type}
+          onClose={closeProfile}
+          userData={userData}
+        />
+      )}
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <SettingsPage
+          onClose={() => setShowSettings(false)}
+          userData={userData}
+          updateUser={updateUser}
+        />
+      )}
+    </div>
+  );
+};
+
+export default AdminDashboard;</old_str>
