@@ -36,6 +36,16 @@ let db: any = null;
 let storage: any = null;
 let analytics: any = null;
 
+// BloomFilter xatolarini suppress qilish
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  if (args[0]?.includes?.('BloomFilter error') || 
+      args[0]?.includes?.('@firebase/firestore: Firestore')) {
+    return; // BloomFilter xatolarini yashirish
+  }
+  originalConsoleError.apply(console, args);
+};
+
 try {
   // Agar Firebase konfiguratsiyasi to'liq bo'lsa
   if (missingKeys.length === 0) {
