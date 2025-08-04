@@ -142,6 +142,7 @@ const AdminDashboard = () => {
       // Firebase dan real foydalanuvchilarni olish
       try {
         const realUsers = await dataService.getUsers();
+        console.log('Yuklangan foydalanuvchilar:', realUsers);
         setUsers(realUsers);
       } catch (error) {
         console.error('Foydalanuvchilarni yuklashda xato:', error);

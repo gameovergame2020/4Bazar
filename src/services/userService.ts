@@ -21,7 +21,7 @@ class UserService {
     blocked?: boolean; 
   }): Promise<UserData[]> {
     try {
-      let q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+      let q = query(collection(db, 'users'));
 
       if (filters?.role) {
         q = query(q, where('role', '==', filters.role));
@@ -31,16 +31,25 @@ class UserService {
       }
 
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        joinDate: doc.data().createdAt?.toDate()?.toISOString() || new Date().toISOString(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        updatedAt: doc.data().updatedAt?.toDate() || new Date()
-      } as UserData));
+      const users = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          joinDate: data.createdAt?.toDate()?.toISOString() || data.joinDate || new Date().toISOString(),
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date(),
+          blocked: data.blocked || false,
+          active: data.active !== undefined ? data.active : true
+        } as UserData;
+      });
+      
+      console.log('UserService getUsers natijasi:', users);
+      return users;
     } catch (error) {
       console.error('Foydalanuvchilarni olishda xatolik:', error);
-      throw error;
+      // Xato bo'lsa ham bo'sh array qaytarish
+      return [];
     }
   }
 
