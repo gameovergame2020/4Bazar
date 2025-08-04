@@ -442,15 +442,16 @@ const BakerDashboard = () => {
   };
 
   const startEditCake = (cake: Cake) => {
+    console.log('🔧 Tahrirlash boshlandi:', cake);
     setEditingCake(cake);
     setCakeForm({
-      name: cake.name,
-      description: cake.description,
-      price: cake.price.toString(),
-      category: cake.category,
-      ingredients: cake.ingredients.join(', '),
+      name: cake.name || '',
+      description: cake.description || '',
+      price: cake.price?.toString() || '',
+      category: cake.category || 'birthday',
+      ingredients: cake.ingredients || '',
       image: null,
-      available: cake.available,
+      available: cake.available || false,
       quantity: cake.quantity?.toString() || '0',
       discount: cake.discount?.toString() || '0'
     });
@@ -458,7 +459,7 @@ const BakerDashboard = () => {
   };
 
   const cancelEdit = () => {
-    setEditingCake(null);
+    console.log('❌ Form bekor qilindi');
     setCakeForm({
       name: '',
       description: '',
@@ -470,6 +471,7 @@ const BakerDashboard = () => {
       quantity: '',
       discount: ''
     });
+    setEditingCake(null);
     setShowAddCakeForm(false);
   };
 
@@ -667,7 +669,7 @@ const BakerDashboard = () => {
                   Batafsil
                 </button>
                 <div className="flex space-x-2">
-                  
+
                   {order.status === 'accepted' && (
                     <button
                       onClick={() => handleOrderStatusUpdate(order.id!, 'preparing')}
