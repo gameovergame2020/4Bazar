@@ -1175,29 +1175,29 @@ class DataService {
             statusChange: newQuantity > 0 ? '"Buyurtma uchun" -> "Hozir mavjud"' : 'Mavjud emas'
           });
         } else {
-          // "Buyurtma uchun" dan tasdiqlanib amount ga o'tgan mahsulot bekor qilindi
-          // Faqat amount ni MAJBURIY kamaytirish, quantity ga HECH QACHON qaytarmaydi
+          // "Buyurtma uchun" dan bekor qilindi - FAQAT amount kamayadi
+          // Quantity ga HECH QACHON qaytarilmaydi
           const currentAmount = cake.amount || 0;
           const newAmount = Math.max(0, currentAmount - orderQuantity);
           updateData.amount = newAmount;
           
-          // MUHIM: quantity va available holatini o'zgartirmaydi
-          // amount faqat buyurtma sonini ko'rsatadi, mavjud mahsulot emas
+          // MUHIM: quantity va available holatini HECH QACHON o'zgartirmaydi
+          // "Buyurtma uchun" mahsulotlar real mahsulot emas, faqat buyurtma soni
           
-          console.log('🔄 Baker "Buyurtma uchun" (amount) dan bekor qilindi - amount MAJBURIY kamaytirildi:', {
+          console.log('🔄 Baker "Buyurtma uchun" bekor qilindi - FAQAT amount kamaytirildi:', {
             oldAmount: currentAmount,
             newAmount,
             orderQuantity,
             amountReduction: currentAmount - newAmount,
-            quantityUnchanged: cake.quantity || 0,
-            availableUnchanged: cake.available,
-            inStockUnchanged: cake.inStockQuantity || 0,
-            rule: 'amount bekor qilinganda faqat amount kamayadi, quantity o\'zgartirilmaydi'
+            quantityUNTOUCHED: cake.quantity || 0,
+            availableUNTOUCHED: cake.available,
+            inStockUNTOUCHED: cake.inStockQuantity || 0,
+            rule: 'BUYURTMA UCHUN bekor qilinganda quantity ga qaytarilmaydi'
           });
         }
         
       } else if (cake.productType === 'ready') {
-        // Shop mahsulotlari - faqat "Hozir mavjud" dan sotiladi
+        // Shop mahsulotlari - faqat "Hozir mavjud" dan sotiladi (fromStock doim true)
         if (fromStock) {
           // inStockQuantity dan BUTUNLAY olib tashlab, quantity ga qaytarish
           const currentInStock = cake.inStockQuantity || 0;
@@ -1219,6 +1219,9 @@ class DataService {
             newAvailable: updateData.available,
             statusChange: newQuantity > 0 ? 'Tugagan -> Mavjud' : 'Tugagan'
           });
+        } else {
+          // Shop mahsulotlari uchun fromStock false bo'lishi mumkin emas
+          console.warn('⚠️ Shop mahsulot uchun fromStock: false - bu noto\'g\'ri holat');
         }
       }
 
