@@ -322,46 +322,35 @@ class ProductService {
             statusChange: newQuantity > 0 ? '"Buyurtma uchun" -> "Hozir mavjud"' : 'Mavjud emas'
           });
         } else {
-          // Operator tomonidan bekor qilingan "Buyurtma uchun" mahsulot
-          const currentAmount = cake.amount || 0;
+          // Operator tomonidan bekor qilingan "Buyurtma uchun" mahsulot - FAQAT rejectAmount oshadi
           const currentRejectAmount = cake.rejectAmount || 0;
+          const newRejectAmount = currentRejectAmount + orderQuantity;
 
-          // Amount dan kamayib rejectAmount ga o'tish
-          const actualReduction = Math.min(orderQuantity, currentAmount);
-          const newAmount = Math.max(0, currentAmount - actualReduction);
-          const newRejectAmount = currentRejectAmount + actualReduction;
-
-          updateData.amount = newAmount;
           updateData.rejectAmount = newRejectAmount;
 
-          // CRITICAL: quantity, inStockQuantity va available holatini o'zgartirmaslik
+          // CRITICAL: amount, quantity, inStockQuantity va available holatini o'zgartirmaslik
           // "Buyurtma uchun" mahsulotlar virtual buyurtma, real zaxira emas
 
-          console.log('🚫 OPERATOR BEKOR QILISH "Buyurtma uchun" - amount -> rejectAmount:', {
-            oldAmount: currentAmount,
-            newAmount,
+          console.log('🚫 OPERATOR BEKOR QILISH "Buyurtma uchun" - FAQAT rejectAmount oshadi:', {
             oldRejectAmount: currentRejectAmount,
             newRejectAmount,
             orderQuantity,
-            actualReduction,
-            amountReduction: currentAmount - newAmount,
-            rejectAmountIncrease: actualReduction,
+            rejectAmountIncrease: orderQuantity,
+            amountUNTOUCHED: cake.amount || 0,
             quantityUNTOUCHED: cake.quantity || 0,
             availableUNTOUCHED: cake.available,
             inStockUNTOUCHED: cake.inStockQuantity || 0,
-            rule: 'OPERATOR BEKOR QILISH: amount kamaydi va rejectAmount oshadi, quantity o\'zgarmas'
+            rule: 'OPERATOR BEKOR QILISH: FAQAT rejectAmount oshadi, boshqa maydonlar o\'zgarmas'
           });
 
           // Operator bekor qilish ma'lumotini saqlash
-          if (actualReduction > 0) {
-            updateData.lastRejection = {
-              rejectedQuantity: actualReduction,
-              rejectedAt: Timestamp.now(),
-              reason: 'order_cancelled_by_operator',
-              operatorAction: 'cancelled_from_order_management'
-            };
-            console.log('📝 Operator bekor qilish ma\'lumoti qo\'shildi:', updateData.lastRejection);
-          }
+          updateData.lastRejection = {
+            rejectedQuantity: orderQuantity,
+            rejectedAt: Timestamp.now(),
+            reason: 'order_cancelled_by_operator',
+            operatorAction: 'cancelled_from_order_management'
+          };
+          console.log('📝 Operator bekor qilish ma\'lumoti qo\'shildi:', updateData.lastRejection);
         }
 
       } else if (cake.productType === 'ready') {
