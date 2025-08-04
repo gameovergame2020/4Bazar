@@ -323,11 +323,11 @@ class ProductService {
             statusChange: newQuantity > 0 ? '"Buyurtma uchun" -> "Hozir mavjud"' : 'Mavjud emas'
           });
         } else {
-          // "Buyurtma uchun" dan rad etilindi - amount kamayadi va rejectAmount oshadi
+          // Operator tomonidan bekor qilingan "Buyurtma uchun" mahsulot - amount kamayadi va rejectAmount oshadi
           const currentAmount = cake.amount || 0;
           const currentRejectAmount = cake.rejectAmount || 0;
           
-          // Amount dan kamayib rejectAmount ga o'tish
+          // OPERATOR BEKOR QILISH: Amount dan kamayib rejectAmount ga o'tish
           const actualReduction = Math.min(orderQuantity, currentAmount);
           const newAmount = Math.max(0, currentAmount - actualReduction);
           const newRejectAmount = currentRejectAmount + actualReduction;
@@ -338,7 +338,7 @@ class ProductService {
           // CRITICAL: quantity, inStockQuantity va available holatini o'zgartirmaslik
           // "Buyurtma uchun" mahsulotlar virtual buyurtma, real zaxira emas
           
-          console.log('🚫 Baker "Buyurtma uchun" RAD ETILDI - amount -> rejectAmount:', {
+          console.log('🚫 OPERATOR BEKOR QILISH "Buyurtma uchun" - amount -> rejectAmount:', {
             oldAmount: currentAmount,
             newAmount,
             oldRejectAmount: currentRejectAmount,
@@ -350,17 +350,18 @@ class ProductService {
             quantityUNTOUCHED: cake.quantity || 0,
             availableUNTOUCHED: cake.available,
             inStockUNTOUCHED: cake.inStockQuantity || 0,
-            rule: 'RAD ETILGAN: amount kamaydi va rejectAmount oshadi'
+            rule: 'OPERATOR BEKOR QILISH: amount kamaydi va rejectAmount oshadi'
           });
           
-          // Agar amount kamaysa, bu rad etilgan buyurtma ekanligini ko'rsatish
+          // Operator bekor qilish ma'lumotini saqlash
           if (actualReduction > 0) {
             updateData.lastRejection = {
               rejectedQuantity: actualReduction,
               rejectedAt: Timestamp.now(),
-              reason: 'order_rejected_by_operator'
+              reason: 'order_cancelled_by_operator',
+              operatorAction: 'cancelled_from_order_management'
             };
-            console.log('📝 Rad etish ma\'lumoti qo\'shildi:', updateData.lastRejection);
+            console.log('📝 Operator bekor qilish ma\'lumoti qo\'shildi:', updateData.lastRejection);
           }
         }
         
@@ -388,15 +389,23 @@ class ProductService {
             statusChange: newQuantity > 0 ? 'Tugagan -> Mavjud' : 'Tugagan'
           });
         } else {
-          // Shop mahsulotlari uchun rad etish holati - rejectAmount ga qo'shish
+          // Shop mahsulotlari uchun operator bekor qilish - rejectAmount ga qo'shish
           const currentRejectAmount = cake.rejectAmount || 0;
           updateData.rejectAmount = currentRejectAmount + orderQuantity;
           
-          console.log('🚫 Shop mahsulot RAD ETILDI - rejectAmount oshdi:', {
+          // Operator bekor qilish ma'lumotini saqlash
+          updateData.lastRejection = {
+            rejectedQuantity: orderQuantity,
+            rejectedAt: Timestamp.now(),
+            reason: 'order_cancelled_by_operator',
+            operatorAction: 'cancelled_from_order_management'
+          };
+          
+          console.log('🚫 OPERATOR BEKOR QILISH Shop mahsulot - rejectAmount oshdi:', {
             oldRejectAmount: currentRejectAmount,
             newRejectAmount: updateData.rejectAmount,
             rejectedQuantity: orderQuantity,
-            rule: 'Shop mahsulot rad etilganda faqat rejectAmount oshadi'
+            rule: 'Operator bekor qilish: Shop mahsulot uchun faqat rejectAmount oshadi'
           });
         }
       }
@@ -424,9 +433,13 @@ class ProductService {
           console.log('🔴 OPERATOR BEKOR QILISH: Mahsulot "Mavjud emas" holatiga o\'tdi');
         }
 
-        // Rad etish holati uchun maxsus log
+        // Operator bekor qilish holatlarini ajratish
         if (!fromStock && updateData.rejectAmount) {
-          console.log('🚫 OPERATOR RAD ETISH: amount kamaydi, rejectAmount oshdi');
+          if (updateData.lastRejection?.reason === 'order_cancelled_by_operator') {
+            console.log('🚫 OPERATOR BEKOR QILISH: amount kamaydi, rejectAmount oshdi');
+          } else {
+            console.log('🚫 OPERATOR RAD ETISH: amount kamaydi, rejectAmount oshdi');
+          }
         }
 
         // MUHIM: Operator amaliyoti uchun maxsus force update
