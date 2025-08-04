@@ -184,10 +184,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   value={cakeForm.quantity}
                   onChange={(e) => setCakeForm(prev => ({ ...prev, quantity: e.target.value }))}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  placeholder="Mavjud tortlar soni"
+                  placeholder="Kamida 1 ta kiritish kerak"
                   min="1"
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  "Hozir mavjud" uchun kamida 1 ta mahsulot soni kiritish majburiy
+                </p>
               </div>
             )}
           </div>

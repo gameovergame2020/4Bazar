@@ -98,19 +98,25 @@ export const useBakerForm = (userData: any, loadData: () => Promise<void>) => {
         productType: 'baked' as const,
         rating: 0,
         reviewCount: 0,
-        available: cakeForm.available && quantity !== undefined && quantity > 0,
+        available: cakeForm.available,
         ingredients: cakeForm.ingredients.split(',').map(i => i.trim()).filter(i => i),
         discount: parseFloat(cakeForm.discount) || 0,
         amount: 0,
         inStockQuantity: 0
       };
 
-      if (quantity !== undefined) {
+      // Quantity ni to'g'ri belgilash
+      if (cakeForm.available && quantity !== undefined && quantity > 0) {
         newCake.quantity = quantity;
-      }
-
-      if (cakeForm.available && quantity <= 0) {
-        alert('Diqqat: Mahsulot soni 0 yoki kamroq bo\'lgani uchun avtomatik "Buyurtma uchun" rejimiga o\'tkazildi.');
+        newCake.available = true;
+      } else if (cakeForm.available && (!quantity || quantity <= 0)) {
+        // Foydalanuvchi "Hozir mavjud" tanlagan, lekin quantity 0 yoki bo'sh
+        alert('Diqqat: "Hozir mavjud" uchun kamida 1 ta mahsulot soni kiritish kerak!');
+        return;
+      } else {
+        // "Buyurtma uchun" rejimi
+        newCake.quantity = undefined;
+        newCake.available = false;
       }
 
       await dataService.addCake(newCake);

@@ -175,8 +175,13 @@ class DataService {
         // Baker mahsulotlari
         cakeData.inStockQuantity = cake.inStockQuantity !== undefined ? cake.inStockQuantity : 0;
         cakeData.amount = cake.amount !== undefined ? cake.amount : 0;
-        // Available holati faqat inStockQuantity > 0 bo'lsa true
-        cakeData.available = (cakeData.inStockQuantity > 0);
+        
+        // Available holati: quantity mavjud va > 0 bo'lsa true
+        if (cake.quantity !== undefined && cake.quantity > 0) {
+          cakeData.available = true;
+        } else {
+          cakeData.available = false;
+        }
       } else if (cake.productType === 'ready') {
         // Shop mahsulotlari
         cakeData.inStockQuantity = cake.inStockQuantity !== undefined ? cake.inStockQuantity : 0;
