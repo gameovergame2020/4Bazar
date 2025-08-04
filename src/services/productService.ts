@@ -1,4 +1,3 @@
-
 import { 
   collection, 
   doc, 
@@ -33,7 +32,7 @@ class ProductService {
         cakeData.inStockQuantity = cake.inStockQuantity !== undefined ? cake.inStockQuantity : 0;
         cakeData.amount = cake.amount !== undefined ? cake.amount : 0;
         cakeData.rejectAmount = cake.rejectAmount !== undefined ? cake.rejectAmount : 0;
-        
+
         // Available holati: quantity mavjud va > 0 bo'lsa true
         if (cake.quantity !== undefined && cake.quantity > 0) {
           cakeData.available = true;
@@ -187,15 +186,15 @@ class ProductService {
       // Baker mahsulotlari uchun
       if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
         const currentQuantity = cake.quantity || 0;
-        
+
         if (currentQuantity >= orderQuantity) {
           // "Hozir mavjud" dan olish - quantity kamayadi, inStockQuantity oshadi
           const newQuantity = currentQuantity - orderQuantity;
           updateData.quantity = newQuantity;
-          
+
           // Quantity dan inStockQuantity ga o'tkazish
           updateData.inStockQuantity = (cake.inStockQuantity || 0) + orderQuantity;
-          
+
           // Agar quantity 0 bo'lsa, avtomatik "Buyurtma uchun" ga o'tish
           if (newQuantity === 0) {
             updateData.available = false;
@@ -203,7 +202,7 @@ class ProductService {
           } else {
             updateData.available = true;
           }
-          
+
           fromStock = true;
           console.log('✅ Baker "Hozir mavjud" dan sotildi - quantity -> inStockQuantity:', {
             oldQuantity: currentQuantity,
@@ -229,17 +228,17 @@ class ProductService {
             rule: 'Buyurtma uchun - faqat amount oshadi'
           });
         }
-        
+
       } else if (cake.productType === 'ready') {
         // Shop mahsulotlari - quantity dan inStockQuantity ga o'tkazish
         const currentQuantity = cake.quantity || 0;
         const newQuantity = Math.max(0, currentQuantity - orderQuantity);
-        
+
         updateData.quantity = newQuantity;
-        
+
         // Quantity dan inStockQuantity ga o'tkazish
         updateData.inStockQuantity = (cake.inStockQuantity || 0) + orderQuantity;
-        
+
         // Agar quantity 0 bo'lsa, mahsulot mavjud emas
         if (newQuantity === 0) {
           updateData.available = false;
@@ -247,9 +246,9 @@ class ProductService {
         } else {
           updateData.available = true;
         }
-        
+
         fromStock = true; // Shop mahsulotlari doim stock dan
-        
+
         console.log('✅ Shop mahsulot sotildi - quantity -> inStockQuantity:', {
           oldQuantity: currentQuantity,
           newQuantity,
@@ -279,7 +278,7 @@ class ProductService {
   async revertOrderQuantity(cakeId: string, orderQuantity: number, fromStock: boolean = false): Promise<void> {
     try {
       console.log('🔄 Operator buyurtmani bekor qildi, mahsulot sonini qaytarish:', { cakeId, orderQuantity, fromStock });
-      
+
       const cake = await this.getCakeById(cakeId);
       if (!cake) {
         console.error('❌ Mahsulot topilmadi:', cakeId);
@@ -299,20 +298,20 @@ class ProductService {
 
       // Baker mahsulotlari uchun
       if (cake.productType === 'baked' || (cake.bakerId && !cake.shopId)) {
-        
+
         if (fromStock) {
           // "Hozir mavjud" dan sotilgan mahsulot operator tomonidan bekor qilindi
           // inStockQuantity dan quantity ga qaytarish
           const currentInStock = cake.inStockQuantity || 0;
           const newInStockQuantity = Math.max(0, currentInStock - orderQuantity);
           const newQuantity = (cake.quantity || 0) + orderQuantity;
-          
+
           updateData.inStockQuantity = newInStockQuantity;
           updateData.quantity = newQuantity;
-          
+
           // MUHIM: Quantity > 0 bo'lganda avtomatik "Hozir mavjud" ga qaytarish
           updateData.available = newQuantity > 0;
-          
+
           console.log('✅ Baker "Hozir mavjud" dan bekor qilindi - inStockQuantity -> quantity:', {
             oldQuantity: cake.quantity || 0,
             newQuantity,
@@ -323,21 +322,21 @@ class ProductService {
             statusChange: newQuantity > 0 ? '"Buyurtma uchun" -> "Hozir mavjud"' : 'Mavjud emas'
           });
         } else {
-          // Operator tomonidan bekor qilingan "Buyurtma uchun" mahsulot - amount kamayadi va rejectAmount oshadi
+          // Operator tomonidan bekor qilingan "Buyurtma uchun" mahsulot
           const currentAmount = cake.amount || 0;
           const currentRejectAmount = cake.rejectAmount || 0;
-          
-          // OPERATOR BEKOR QILISH: Amount dan kamayib rejectAmount ga o'tish
+
+          // Amount dan kamayib rejectAmount ga o'tish
           const actualReduction = Math.min(orderQuantity, currentAmount);
           const newAmount = Math.max(0, currentAmount - actualReduction);
           const newRejectAmount = currentRejectAmount + actualReduction;
-          
+
           updateData.amount = newAmount;
           updateData.rejectAmount = newRejectAmount;
-          
+
           // CRITICAL: quantity, inStockQuantity va available holatini o'zgartirmaslik
           // "Buyurtma uchun" mahsulotlar virtual buyurtma, real zaxira emas
-          
+
           console.log('🚫 OPERATOR BEKOR QILISH "Buyurtma uchun" - amount -> rejectAmount:', {
             oldAmount: currentAmount,
             newAmount,
@@ -350,9 +349,9 @@ class ProductService {
             quantityUNTOUCHED: cake.quantity || 0,
             availableUNTOUCHED: cake.available,
             inStockUNTOUCHED: cake.inStockQuantity || 0,
-            rule: 'OPERATOR BEKOR QILISH: amount kamaydi va rejectAmount oshadi'
+            rule: 'OPERATOR BEKOR QILISH: amount kamaydi va rejectAmount oshadi, quantity o\'zgarmas'
           });
-          
+
           // Operator bekor qilish ma'lumotini saqlash
           if (actualReduction > 0) {
             updateData.lastRejection = {
@@ -364,7 +363,7 @@ class ProductService {
             console.log('📝 Operator bekor qilish ma\'lumoti qo\'shildi:', updateData.lastRejection);
           }
         }
-        
+
       } else if (cake.productType === 'ready') {
         // Shop mahsulotlari - faqat "Hozir mavjud" dan sotiladi (fromStock doim true)
         if (fromStock) {
@@ -372,13 +371,13 @@ class ProductService {
           const currentInStock = cake.inStockQuantity || 0;
           const newInStockQuantity = Math.max(0, currentInStock - orderQuantity);
           const newQuantity = (cake.quantity || 0) + orderQuantity;
-          
+
           updateData.inStockQuantity = newInStockQuantity;
           updateData.quantity = newQuantity;
-          
+
           // MUHIM: Quantity > 0 bo'lganda avtomatik mavjud ga qaytarish
           updateData.available = newQuantity > 0;
-          
+
           console.log('✅ Shop mahsulot bekor qilindi - inStockQuantity -> quantity:', {
             oldQuantity: cake.quantity || 0,
             newQuantity,
@@ -392,7 +391,7 @@ class ProductService {
           // Shop mahsulotlari uchun operator bekor qilish - rejectAmount ga qo'shish
           const currentRejectAmount = cake.rejectAmount || 0;
           updateData.rejectAmount = currentRejectAmount + orderQuantity;
-          
+
           // Operator bekor qilish ma'lumotini saqlash
           updateData.lastRejection = {
             rejectedQuantity: orderQuantity,
@@ -400,7 +399,7 @@ class ProductService {
             reason: 'order_cancelled_by_operator',
             operatorAction: 'cancelled_from_order_management'
           };
-          
+
           console.log('🚫 OPERATOR BEKOR QILISH Shop mahsulot - rejectAmount oshdi:', {
             oldRejectAmount: currentRejectAmount,
             newRejectAmount: updateData.rejectAmount,
@@ -422,10 +421,10 @@ class ProductService {
       // Ma'lumotlarni yangilash
       if (Object.keys(updateData).length > 0) {
         updateData.updatedAt = Timestamp.now();
-        
+
         await this.updateCake(cakeId, updateData);
         console.log('✅ Operator rad etish/bekor qilish: mahsulot muvaffaqiyatli yangilandi:', updateData);
-        
+
         // Status o'zgarishi haqida aniq log
         if (updateData.available === true && !cake.available) {
           console.log('🟢 OPERATOR BEKOR QILISH: Mahsulot "Hozir mavjud" holatiga qaytarildi');
@@ -452,10 +451,10 @@ class ProductService {
             forceUpdate: Date.now(),
             statusChangeReason: fromStock ? 'operator_cancelled_order' : 'operator_rejected_order'
           };
-          
+
           await this.updateCake(cakeId, operatorActionData);
           console.log('🔄 Operator amaliyoti: Real-time yangilanish trigger qilindi');
-          
+
         } catch (triggerError) {
           console.warn('⚠️ Operator amaliyoti: Real-time trigger da xato:', triggerError);
         }
@@ -473,7 +472,7 @@ class ProductService {
   async rejectOrderQuantity(cakeId: string, orderQuantity: number, rejectionReason?: string): Promise<void> {
     try {
       console.log('🚫 Buyurtma rad etilmoqda:', { cakeId, orderQuantity, rejectionReason });
-      
+
       const cake = await this.getCakeById(cakeId);
       if (!cake) {
         console.error('❌ Mahsulot topilmadi:', cakeId);
@@ -496,10 +495,10 @@ class ProductService {
 
       const currentAmount = cake.amount || 0;
       const currentRejectAmount = cake.rejectAmount || 0;
-      
+
       // Amount dan kamayib rejectAmount ga o'tish
       const actualRejection = Math.min(orderQuantity, currentAmount);
-      
+
       if (actualRejection <= 0) {
         console.warn('⚠️ Rad etish uchun yetarli amount mavjud emas');
         throw new Error('Rad etish uchun yetarli buyurtma miqdori mavjud emas');
@@ -538,10 +537,10 @@ class ProductService {
           forceUpdate: Date.now(),
           statusChangeReason: 'manual_order_rejection'
         };
-        
+
         await this.updateCake(cakeId, rejectionTriggerData);
         console.log('🔄 Rad etish: Real-time yangilanish trigger qilindi');
-        
+
       } catch (triggerError) {
         console.warn('⚠️ Rad etish: Real-time trigger da xato:', triggerError);
       }
@@ -699,7 +698,7 @@ class ProductService {
                 orderBy('createdAt', 'desc'),
                 limit(25)
               );
-              
+
               return onSnapshot(simpleQuery, (snapshot) => {
                 if (!isActive) return;
                 const cakes = snapshot.docs.map(doc => ({
