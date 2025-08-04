@@ -25,12 +25,12 @@ import CheckoutPage from './CheckoutPage';
 import ProductDetailModal from './ProductDetailModal';
 import BakerProfile from './BakerProfile';
 import ProfileManager from './ProfileManager';
-import BakerDashboard from './BakerDashboard';
-import ShopDashboard from './ShopDashboard';
-import CourierDashboard from './CourierDashboard';
-import AdminDashboard from './AdminDashboard';
-import OperatorDashboard from './OperatorDashboard';
-import CustomerProfile from './CustomerProfile';
+import BakerDashboard from './dashboards/BakerDashboard';
+import ShopDashboard from './dashboards/ShopDashboard';
+import CourierDashboard from './dashboards/CourierDashboard';
+import AdminDashboard from './dashboards/AdminDashboard';
+import OperatorDashboard from './dashboards/OperatorDashboard';
+import CustomerProfile from './profiles/CustomerProfile';
 
 const HomePage = () => {
   const { userData, isAuthenticated, updateUser } = useAuth();
