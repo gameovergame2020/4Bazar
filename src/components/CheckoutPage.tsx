@@ -170,45 +170,74 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const initializeYandexMap = async () => {
     try {
       console.log('🚀 Yandex Maps ishga tushirilmoqda...');
+      setGeocodingError(null);
 
+      // API kalitini tekshirish
+      const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
+      if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_')) {
+        setGeocodingError('Yandex Maps API kaliti mavjud emas. .env faylida VITE_YANDEX_MAPS_API_KEY ni to\'ldiring.');
+        return;
+      }
+
+      // Yandex Maps ni yuklash
       await yandexMapsService.loadYandexMaps();
       setIsYmapsLoaded(true);
+      console.log('✅ Yandex Maps service yuklandi');
 
+      // ymaps.ready() ni kutish
       await new Promise<void>((resolve, reject) => {
         if (!window.ymaps) {
-          reject(new Error('ymaps object not found'));
+          reject(new Error('window.ymaps mavjud emas'));
           return;
         }
 
         window.ymaps.ready(() => {
-          console.log('✅ Yandex Maps tayyor');
+          console.log('✅ Yandex Maps API tayyor');
           resolve();
         });
       });
 
+      // Xaritani yaratish
       if (mapRef.current && !mapInstanceRef.current) {
         try {
+          console.log('🗺️ Xarita yaratilmoqda...');
+          
           mapInstanceRef.current = new window.ymaps.Map(mapRef.current, {
-            center: [41.311158, 69.240562],
+            center: [41.311158, 69.240562], // Toshkent koordinatalari
             zoom: 12,
             controls: ['zoomControl', 'fullscreenControl', 'geolocationControl']
           });
 
-          console.log('🗺️ Xarita yaratildi');
+          console.log('✅ Xarita muvaffaqiyatli yaratildi');
           setIsMapInitialized(true);
           setGeocodingError(null);
 
+          // Xarita click hodisasini qo'shish
           mapInstanceRef.current.events.add('click', handleMapClick);
 
         } catch (mapError) {
           console.error('❌ Xarita yaratishda xato:', mapError);
-          setGeocodingError('Xaritani yaratishda xato yuz berdi');
+          setGeocodingError('Xaritani yaratishda xato yuz berdi: ' + mapError.message);
         }
       }
 
     } catch (error) {
       console.error('❌ Yandex Maps ishga tushirishda xato:', error);
-      setGeocodingError('Xaritani yuklashda xato yuz berdi. API kalitini tekshiring.');
+      
+      let errorMessage = 'Xaritani yuklashda xato yuz berdi';
+      if (error && typeof error === 'object' && error.message) {
+        if (error.message.includes('API kaliti')) {
+          errorMessage = 'API kaliti noto\'g\'ri. .env faylida VITE_YANDEX_MAPS_API_KEY ni tekshiring.';
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'Internet aloqasi muammosi. Qaytadan urinib ko\'ring.';
+        } else {
+          errorMessage = `Xato: ${error.message}`;
+        }
+      }
+      
+      setGeocodingError(errorMessage);
+      setIsYmapsLoaded(false);
+      setIsMapInitialized(false);
     }
   };
 

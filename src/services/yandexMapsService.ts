@@ -56,9 +56,11 @@ class YandexMapsService {
 
   private attemptLoad(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      // Agar allaqachon yuklangan bo'lsa
+      // Agar window.ymaps allaqachon mavjud bo'lsa
       if (window.ymaps && window.ymaps.ready) {
+        console.log('✅ Yandex Maps allaqachon mavjud');
         window.ymaps.ready(() => {
+          console.log('✅ ymaps.ready() bajarildi');
           resolve();
         });
         return;
@@ -67,57 +69,77 @@ class YandexMapsService {
       // Mavjud skriptlarni tekshirish
       const existingScript = document.querySelector('script[src*="api-maps.yandex.ru"]');
       if (existingScript) {
+        console.log('🔄 Mavjud Yandex Maps skripti topildi, yuklanishini kutmoqda...');
+        
+        // Mavjud skript allaqachon yuklangan bo'lishi mumkin
+        if (window.ymaps && window.ymaps.ready) {
+          window.ymaps.ready(() => resolve());
+          return;
+        }
+
         // Mavjud skript yuklanishini kutish
-        existingScript.addEventListener('load', () => {
+        const loadHandler = () => {
           if (window.ymaps && window.ymaps.ready) {
             window.ymaps.ready(() => resolve());
           } else {
-            reject(new Error('Yandex Maps obyekti topilmadi'));
+            reject(new Error('Yandex Maps obyekti yuklangandan keyin topilmadi'));
           }
-        });
-        existingScript.addEventListener('error', () => {
-          reject(new Error('Yandex Maps skriptini yuklashda xato'));
-        });
+          existingScript.removeEventListener('load', loadHandler);
+          existingScript.removeEventListener('error', errorHandler);
+        };
+
+        const errorHandler = () => {
+          reject(new Error('Mavjud Yandex Maps skriptini yuklashda xato'));
+          existingScript.removeEventListener('load', loadHandler);
+          existingScript.removeEventListener('error', errorHandler);
+        };
+
+        existingScript.addEventListener('load', loadHandler);
+        existingScript.addEventListener('error', errorHandler);
         return;
       }
+
+      // API kalitini tekshirish
+      const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
+      
+      if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_') || apiKey.trim() === '') {
+        reject(new Error('Yandex Maps API kaliti to\'g\'ri konfiguratsiya qilinmagan. .env faylida VITE_YANDEX_MAPS_API_KEY ni to\'ldiring.'));
+        return;
+      }
+
+      console.log('🗺️ Yangi Yandex Maps skripti yuklanmoqda...');
 
       // Yangi skript yaratish
       const script = document.createElement('script');
-      const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
-      
-      if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_')) {
-        reject(new Error('Yandex Maps API kaliti to\'g\'ri konfiguratsiya qilinmagan'));
-        return;
-      }
-
-      console.log('🗺️ Yandex Maps yuklanmoqda...');
-
       script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=uz_UZ&load=package.full`;
       script.type = 'text/javascript';
       script.async = true;
+      script.defer = true;
 
       const timeoutId = setTimeout(() => {
         script.remove();
-        reject(new Error('Yandex Maps skriptini yuklash vaqti tugadi'));
+        reject(new Error('Yandex Maps skriptini yuklash vaqti tugadi (15 sekund)'));
       }, 15000);
 
       script.onload = () => {
         clearTimeout(timeoutId);
-        console.log('✅ Yandex Maps skriti yuklandi');
+        console.log('✅ Yandex Maps skripti muvaffaqiyatli yuklandi');
         
         if (window.ymaps && window.ymaps.ready) {
           window.ymaps.ready(() => {
+            console.log('✅ ymaps.ready() muvaffaqiyatli bajarildi');
             resolve();
           });
         } else {
-          reject(new Error('Yandex Maps obyekti mavjud emas'));
+          reject(new Error('Yandex Maps skripti yuklandi, lekin window.ymaps obyekti mavjud emas'));
         }
       };
 
-      script.onerror = () => {
+      script.onerror = (error) => {
         clearTimeout(timeoutId);
         script.remove();
-        reject(new Error('Yandex Maps skriptini yuklashda tarmoq xatosi'));
+        console.error('❌ Skript yuklash xatosi:', error);
+        reject(new Error('Yandex Maps skriptini yuklashda tarmoq xatosi. API kalitini tekshiring.'));
       };
 
       document.head.appendChild(script);
