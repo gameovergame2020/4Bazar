@@ -158,7 +158,7 @@ class ProductService {
     }
   }
 
-  // Buyurtma berilganda mahsulot miqdorini kamaytirish va amount oshirish
+  // Buyurtma berilganda mahsulot miqdorini kamaytirish va inStockQuantity oshirish
   async processOrderQuantity(cakeId: string, orderQuantity: number): Promise<{ fromStock: boolean }> {
     try {
       const cake = await this.getCakeById(cakeId);
@@ -185,11 +185,11 @@ class ProductService {
         const currentQuantity = cake.quantity || 0;
         
         if (currentQuantity >= orderQuantity) {
-          // "Hozir mavjud" dan olish mumkin - FAQAT inStockQuantity oshadi
+          // "Hozir mavjud" dan olish - quantity kamayadi, inStockQuantity oshadi
           const newQuantity = currentQuantity - orderQuantity;
           updateData.quantity = newQuantity;
           
-          // FAQAT inStockQuantity ni oshirish (sotilgan mahsulotlar kuzatuvi)
+          // Quantity dan inStockQuantity ga o'tkazish
           updateData.inStockQuantity = (cake.inStockQuantity || 0) + orderQuantity;
           
           // Agar quantity 0 bo'lsa, avtomatik "Buyurtma uchun" ga o'tish
@@ -201,13 +201,14 @@ class ProductService {
           }
           
           fromStock = true;
-          console.log('✅ Baker "Hozir mavjud" dan olindi - FAQAT inStockQuantity oshirildi:', {
+          console.log('✅ Baker "Hozir mavjud" dan sotildi - quantity -> inStockQuantity:', {
             oldQuantity: currentQuantity,
             newQuantity,
-            inStockQuantity: updateData.inStockQuantity,
+            oldInStockQuantity: cake.inStockQuantity || 0,
+            newInStockQuantity: updateData.inStockQuantity,
+            transferredAmount: orderQuantity,
             available: updateData.available,
-            amountUNTOUCHED: cake.amount || 0,
-            rule: 'Hozir mavjud dan buyurtma - faqat inStockQuantity oshadi'
+            rule: 'Quantity kamaydi, inStockQuantity oshadi'
           });
         } else {
           // "Hozir mavjud" yetmaydi - "Buyurtma uchun" dan olish - FAQAT amount oshadi
@@ -221,18 +222,18 @@ class ProductService {
             amountIncrease: updateData.amount - currentAmount,
             quantityUnchanged: cake.quantity || 0,
             inStockQuantityUNTOUCHED: cake.inStockQuantity || 0,
-            rule: 'Buyurtma uchun - faqat amount oshadi, inStockQuantity tegmaydi'
+            rule: 'Buyurtma uchun - faqat amount oshadi'
           });
         }
         
       } else if (cake.productType === 'ready') {
-        // Shop mahsulotlari - faqat "Hozir mavjud" dan - FAQAT inStockQuantity oshadi
+        // Shop mahsulotlari - quantity dan inStockQuantity ga o'tkazish
         const currentQuantity = cake.quantity || 0;
         const newQuantity = Math.max(0, currentQuantity - orderQuantity);
         
         updateData.quantity = newQuantity;
         
-        // FAQAT inStockQuantity ni oshirish (sotilgan mahsulotlar kuzatuvi)
+        // Quantity dan inStockQuantity ga o'tkazish
         updateData.inStockQuantity = (cake.inStockQuantity || 0) + orderQuantity;
         
         // Agar quantity 0 bo'lsa, mahsulot mavjud emas
@@ -245,13 +246,14 @@ class ProductService {
         
         fromStock = true; // Shop mahsulotlari doim stock dan
         
-        console.log('✅ Shop mahsulot sotildi - FAQAT inStockQuantity oshirildi:', {
+        console.log('✅ Shop mahsulot sotildi - quantity -> inStockQuantity:', {
           oldQuantity: currentQuantity,
           newQuantity,
-          inStockQuantity: updateData.inStockQuantity,
+          oldInStockQuantity: cake.inStockQuantity || 0,
+          newInStockQuantity: updateData.inStockQuantity,
+          transferredAmount: orderQuantity,
           available: updateData.available,
-          amountUNTOUCHED: cake.amount || 0,
-          rule: 'Shop mahsulot - faqat inStockQuantity oshadi, amount tegmaydi'
+          rule: 'Quantity kamaydi, inStockQuantity oshadi'
         });
       }
 
@@ -295,7 +297,7 @@ class ProductService {
         
         if (fromStock) {
           // "Hozir mavjud" dan sotilgan mahsulot operator tomonidan bekor qilindi
-          // inStockQuantity dan BUTUNLAY olib tashlab, quantity ga qaytarish
+          // inStockQuantity dan quantity ga qaytarish
           const currentInStock = cake.inStockQuantity || 0;
           const newInStockQuantity = Math.max(0, currentInStock - orderQuantity);
           const newQuantity = (cake.quantity || 0) + orderQuantity;
@@ -306,12 +308,12 @@ class ProductService {
           // MUHIM: Quantity > 0 bo'lganda avtomatik "Hozir mavjud" ga qaytarish
           updateData.available = newQuantity > 0;
           
-          console.log('✅ Baker "Hozir mavjud" dan bekor qilindi - quantity qaytarildi:', {
+          console.log('✅ Baker "Hozir mavjud" dan bekor qilindi - inStockQuantity -> quantity:', {
             oldQuantity: cake.quantity || 0,
             newQuantity,
             oldInStock: currentInStock,
             newInStock: newInStockQuantity,
-            orderQuantity,
+            transferredBack: orderQuantity,
             newAvailable: updateData.available,
             statusChange: newQuantity > 0 ? '"Buyurtma uchun" -> "Hozir mavjud"' : 'Mavjud emas'
           });
@@ -340,7 +342,7 @@ class ProductService {
       } else if (cake.productType === 'ready') {
         // Shop mahsulotlari - faqat "Hozir mavjud" dan sotiladi (fromStock doim true)
         if (fromStock) {
-          // inStockQuantity dan BUTUNLAY olib tashlab, quantity ga qaytarish
+          // inStockQuantity dan quantity ga qaytarish
           const currentInStock = cake.inStockQuantity || 0;
           const newInStockQuantity = Math.max(0, currentInStock - orderQuantity);
           const newQuantity = (cake.quantity || 0) + orderQuantity;
@@ -351,12 +353,12 @@ class ProductService {
           // MUHIM: Quantity > 0 bo'lganda avtomatik mavjud ga qaytarish
           updateData.available = newQuantity > 0;
           
-          console.log('✅ Shop mahsulot bekor qilindi - quantity qaytarildi:', {
+          console.log('✅ Shop mahsulot bekor qilindi - inStockQuantity -> quantity:', {
             oldQuantity: cake.quantity || 0,
             newQuantity,
             oldInStock: currentInStock,
             newInStock: newInStockQuantity,
-            orderQuantity,
+            transferredBack: orderQuantity,
             newAvailable: updateData.available,
             statusChange: newQuantity > 0 ? 'Tugagan -> Mavjud' : 'Tugagan'
           });
