@@ -407,9 +407,9 @@ const BakerDashboard = () => {
       if (status === 'cancelled' && order) {
         // fromStock ma'lumotini dataService dan foydalanish
         await dataService.revertOrderQuantity(order.cakeId, order.quantity, order.fromStock || false);
-        
+
         console.log('✅ Buyurtma bekor qilindi, mahsulot quantity to\'g\'ri qaytarildi');
-        
+
         // Local state update uchun cake ma'lumotlarini olish
         const cake = myCakes.find(c => c.id === order.cakeId);
         if (cake) {
@@ -771,7 +771,7 @@ const BakerDashboard = () => {
                     {cake.available ? 'Mavjud' : 'Buyurtma'}
                   </span>
                   {cake.available && cake.quantity !== undefined && cake.quantity <= 0 && (
-                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-600">
+                    <span className="px-2 py-1 rounded-full text-xs font-red-100 text-red-600">
                       Tugagan
                     </span>
                   )}
