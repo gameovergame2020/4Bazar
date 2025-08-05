@@ -1,8 +1,31 @@
-
 import React, { useState, useEffect } from 'react';
-import { X, Star, TrendingUp, TrendingDown, User, Award, AlertTriangle, Download, Calendar, MapPin, Phone, Mail, Eye, Ban, CheckCircle, Clock, DollarSign, Package } from 'lucide-react';
+import { X, Star, TrendingUp, TrendingDown, User, Award, AlertTriangle, Download, Calendar, MapPin, Phone, Mail, Eye, Ban, CheckCircle, Clock, DollarSign, Package, ShoppingBag } from 'lucide-react';
 import { dataService } from '../../services/dataService';
 import { useAuth } from '../../hooks/useAuth';
+
+interface OrderItem {
+  cakeId: string;
+  quantity: number;
+  price: number;
+  name: string;
+}
+
+interface Order {
+  id: string;
+  orderUniqueId?: string;
+  customerId: string;
+  cakeName: string;
+  quantity: number;
+  totalPrice: number;
+  status: 'pending' | 'accepted' | 'preparing' | 'delivered' | 'cancelled';
+  createdAt: Date;
+  rating?: number;
+  note?: string;
+  deliveryAddress?: string;
+  customerPhone?: string;
+  cancelReason?: string;
+  items?: OrderItem[];
+}
 
 interface UserRating {
   userId: string;
@@ -39,6 +62,8 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserRating | null>(null);
   const [timeFilter, setTimeFilter] = useState<'all' | 'month' | 'week' | 'today'>('all');
+  const [showUserOrders, setShowUserOrders] = useState(false);
+  const [userOrders, setUserOrders] = useState<Order[]>([]);
 
   const loadUserRatings = async () => {
     try {
@@ -56,21 +81,21 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
         .map(user => {
         const userOrders = allOrders.filter(order => {
           const orderDate = order.createdAt;
-          return order.customerId === user.id && 
+          return order.customerId === user.id &&
                  (timeFilter === 'all' || orderDate >= filterDate);
         });
 
         const completedOrders = userOrders.filter(order => order.status === 'delivered');
         const cancelledOrders = userOrders.filter(order => order.status === 'cancelled');
         const pendingOrders = userOrders.filter(order => ['pending', 'accepted', 'preparing'].includes(order.status));
-        
+
         const totalSpent = completedOrders.reduce((sum, order) => sum + order.totalPrice, 0);
-        const averageRating = completedOrders.length > 0 
-          ? completedOrders.reduce((sum, order) => sum + (order.rating || 0), 0) / completedOrders.length 
+        const averageRating = completedOrders.length > 0
+          ? completedOrders.reduce((sum, order) => sum + (order.rating || 0), 0) / completedOrders.length
           : 0;
 
         const lastOrder = userOrders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
-        
+
         // Foydalanuvchi turini aniqlash
         let userType: UserRating['userType'] = 'New';
         if (userOrders.length >= 15 && totalSpent >= 1000000) userType = 'VIP';
@@ -131,6 +156,20 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
     }
   };
 
+  const getUserOrders = async (userId: string) => {
+    try {
+      const allOrders = await dataService.getOrders();
+      const ordersForUser = allOrders.filter(order => order.customerId === userId).map(order => ({
+        ...order,
+        createdAt: new Date(order.createdAt)
+      }));
+      setUserOrders(ordersForUser);
+      setShowUserOrders(true);
+    } catch (error) {
+      console.error('Foydalanuvchi buyurtmalarini yuklashda xato:', error);
+    }
+  };
+
   const getFilterDate = (filter: string): Date => {
     const now = new Date();
     switch (filter) {
@@ -162,13 +201,13 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
       if (filter === 'problem' && user.userType !== 'Problem') return false;
       if (filter === 'blocked' && !user.isBlocked) return false;
       if (filter === 'active' && user.isBlocked) return false;
-      
+
       // Qidiruv bo'yicha filtrlash
-      if (searchQuery && !user.userName.toLowerCase().includes(searchQuery.toLowerCase()) && 
+      if (searchQuery && !user.userName.toLowerCase().includes(searchQuery.toLowerCase()) &&
           !user.userEmail.toLowerCase().includes(searchQuery.toLowerCase())) {
         return false;
       }
-      
+
       return true;
     })
     .sort((a, b) => {
@@ -207,7 +246,7 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
     ].join(',')).join('\n');
 
     const headers = [
-      'Ism', 'Email', 'Telefon', 'Jami buyurtma', 'Yakunlangan', 'Bekor qilingan', 
+      'Ism', 'Email', 'Telefon', 'Jami buyurtma', 'Yakunlangan', 'Bekor qilingan',
       'Jami sarflangan', 'Reyting', 'Tur', 'Chastota', 'Ro\'yxatdan o\'tgan', 'Oxirgi buyurtma'
     ].join(',');
 
@@ -223,14 +262,14 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
     try {
       const newStatus = currentStatus ? 'active' : 'blocked';
       await dataService.updateUserStatus(userId, newStatus);
-      
+
       // Listni yangilash
-      setUsers(prev => prev.map(user => 
-        user.userId === userId 
+      setUsers(prev => prev.map(user =>
+        user.userId === userId
           ? { ...user, isBlocked: !currentStatus }
           : user
       ));
-      
+
       if (selectedUser?.userId === userId) {
         setSelectedUser(prev => prev ? { ...prev, isBlocked: !currentStatus } : null);
       }
@@ -267,6 +306,40 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
 
   const formatMoney = (amount: number) => {
     return new Intl.NumberFormat('uz-UZ').format(amount) + ' so\'m';
+  };
+
+  const getOrderStatusColor = (status: Order['status']) => {
+    switch (status) {
+      case 'delivered':
+        return 'bg-green-100 text-green-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      case 'pending':
+        return 'bg-gray-100 text-gray-800';
+      case 'accepted':
+        return 'bg-blue-100 text-blue-800';
+      case 'preparing':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getOrderStatusText = (status: Order['status']) => {
+    switch (status) {
+      case 'delivered':
+        return 'Yetkazilgan';
+      case 'cancelled':
+        return 'Bekor qilingan';
+      case 'pending':
+        return 'Kutilmoqda';
+      case 'accepted':
+        return 'Qabul qilingan';
+      case 'preparing':
+        return 'Tayyorlanmoqda';
+      default:
+        return 'Noma\'lum';
+    }
   };
 
   if (!isOpen) return null;
@@ -324,8 +397,8 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
               <button
                 onClick={() => setFilter('all')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filter === 'all' 
-                    ? 'bg-blue-500 text-white' 
+                  filter === 'all'
+                    ? 'bg-blue-500 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -334,8 +407,8 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
               <button
                 onClick={() => setFilter('vip')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filter === 'vip' 
-                    ? 'bg-yellow-500 text-white' 
+                  filter === 'vip'
+                    ? 'bg-yellow-500 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -344,8 +417,8 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
               <button
                 onClick={() => setFilter('problem')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filter === 'problem' 
-                    ? 'bg-red-500 text-white' 
+                  filter === 'problem'
+                    ? 'bg-red-500 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -354,8 +427,8 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
               <button
                 onClick={() => setFilter('blocked')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filter === 'blocked' 
-                    ? 'bg-gray-500 text-white' 
+                  filter === 'blocked'
+                    ? 'bg-gray-500 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -390,11 +463,11 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
               <div className="p-6">
                 <div className="grid gap-3">
                   {filteredAndSortedUsers.map((user, index) => (
-                    <div 
-                      key={user.userId} 
+                    <div
+                      key={user.userId}
                       className={`rounded-xl p-4 cursor-pointer transition-all ${
-                        selectedUser?.userId === user.userId 
-                          ? 'bg-blue-50 border-2 border-blue-200' 
+                        selectedUser?.userId === user.userId
+                          ? 'bg-blue-50 border-2 border-blue-200'
                           : 'bg-gray-50 hover:bg-gray-100'
                       } ${user.isBlocked ? 'opacity-60' : ''}`}
                       onClick={() => setSelectedUser(user)}
@@ -579,6 +652,7 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
                   <h5 className="font-semibold text-gray-900 mb-3">Harakatlar</h5>
                   <div className="space-y-2">
                     <button
+                      onClick={() => getUserOrders(selectedUser.userId)}
                       className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                     >
                       <Eye size={16} />
@@ -611,6 +685,127 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
           )}
         </div>
       </div>
+
+      {/* User Orders Modal */}
+      {showUserOrders && selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {selectedUser.userName} - Buyurtmalar
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Jami {userOrders.length} ta buyurtma
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowUserOrders(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto p-6">
+              {userOrders.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <ShoppingBag className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-500">Bu foydalanuvchida buyurtmalar yo'q</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {userOrders.map((order) => (
+                    <div key={order.id} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <span className="font-semibold text-gray-900">
+                              #{order.orderUniqueId || order.id?.slice(-6)}
+                            </span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getOrderStatusColor(order.status)}`}>
+                              {getOrderStatusText(order.status)}
+                            </span>
+                            {order.rating && (
+                              <div className="flex items-center space-x-1">
+                                <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                                <span className="text-sm text-gray-600">{order.rating}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <h4 className="font-medium text-gray-900 mb-2">{order.cakeName}</h4>
+
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-600">Miqdor:</span>
+                              <span className="ml-2 font-medium">{order.quantity} ta</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">Narx:</span>
+                              <span className="ml-2 font-medium">{formatMoney(order.totalPrice)}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">Sana:</span>
+                              <span className="ml-2 font-medium">
+                                {order.createdAt.toLocaleDateString('uz-UZ')}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">Vaqt:</span>
+                              <span className="ml-2 font-medium">
+                                {order.createdAt.toLocaleTimeString('uz-UZ', {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            </div>
+                          </div>
+
+                          {order.note && (
+                            <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                              <span className="text-sm text-gray-600">Izoh:</span>
+                              <p className="text-sm text-gray-900 mt-1">{order.note}</p>
+                            </div>
+                          )}
+
+                          {order.deliveryAddress && (
+                            <div className="mt-3 p-3 bg-green-50 rounded-lg">
+                              <div className="flex items-start space-x-2">
+                                <MapPin className="w-4 h-4 text-green-600 mt-0.5" />
+                                <div>
+                                  <span className="text-sm text-gray-600">Yetkazish manzili:</span>
+                                  <p className="text-sm text-gray-900">{order.deliveryAddress}</p>
+                                  {order.customerPhone && (
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      Tel: {order.customerPhone}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {order.cancelReason && (
+                            <div className="mt-3 p-3 bg-red-50 rounded-lg">
+                              <span className="text-sm text-gray-600">Bekor qilish sababi:</span>
+                              <p className="text-sm text-gray-900 mt-1">{order.cancelReason}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
