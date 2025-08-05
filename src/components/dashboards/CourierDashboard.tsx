@@ -37,6 +37,7 @@ interface Order {
   orderTime: string;
   priority: 'normal' | 'urgent';
   distance?: string;
+  estimatedTime?: string;
   deliveryFee: number;
 }
 
@@ -136,7 +137,8 @@ const CourierDashboard = () => {
 
           // Kuryer joylashuvi (demo)
           const courierPlacemark = new window.ymaps.Placemark([41.2995, 69.2401], {
-            balloonContent: `<strong>${userData?.name || 'Kuryer'}</strong><br/>Hozirgi joylashuv`
+            balloonContent: `<strong>${userData?.name || 'Kuryer'}</strong><br/>Hozirgi joylashuv`,
+            type: 'courier'
           }, {
             preset: 'islands#blueCircleDotIcon'
           });
@@ -144,6 +146,46 @@ const CourierDashboard = () => {
           map.geoObjects.add(courierPlacemark);
           setYandexMap(map);
           setMapLoaded(true);
+
+          // Barcha faol buyurtmalarni xaritaga qo'shish
+          setTimeout(() => {
+            activeOrders.forEach(order => {
+              if (order.coordinates) {
+                const orderPlacemark = new window.ymaps.Placemark(order.coordinates, {
+                  balloonContent: `
+                    <div style="padding: 10px;">
+                      <strong>${order.customerName}</strong><br/>
+                      <small>${order.id}</small><br/>
+                      ${order.address}<br/>
+                      <strong>${formatPrice(order.total)}</strong><br/>
+                      <span style="color: ${order.priority === 'urgent' ? '#ef4444' : '#059669'};">
+                        ${order.priority === 'urgent' ? 'Shoshilinch' : 'Oddiy'}
+                      </span>
+                    </div>
+                  `,
+                  type: 'order'
+                }, {
+                  preset: order.priority === 'urgent' ? 'islands#redIcon' : 'islands#greenIcon'
+                });
+
+                map.geoObjects.add(orderPlacemark);
+              }
+            });
+
+            // Xaritani barcha buyurtmalarni qamrab olish uchun sozlash
+            if (activeOrders.length > 0) {
+              const bounds = [[41.2995, 69.2401]]; // Kuryer joylashuvi
+              activeOrders.forEach(order => {
+                if (order.coordinates) {
+                  bounds.push(order.coordinates);
+                }
+              });
+              
+              if (bounds.length > 1) {
+                map.setBounds(bounds, { checkZoomRange: true, zoomMargin: 50 });
+              }
+            }
+          }, 500);
         });
       }
     } catch (error) {
@@ -153,9 +195,9 @@ const CourierDashboard = () => {
 
   const addOrderToMap = (order: Order) => {
     if (yandexMap && order.coordinates) {
-      // Eski belgilarni tozalash (buyurtma belgilari)
+      // Eski belgilarni tozalash (buyurtma belgilari va yo'llarni)
       yandexMap.geoObjects.each((geoObject: any) => {
-        if (geoObject.properties && geoObject.properties.get('type') === 'order') {
+        if (geoObject.properties && (geoObject.properties.get('type') === 'order' || geoObject.properties.get('type') === 'route')) {
           yandexMap.geoObjects.remove(geoObject);
         }
       });
@@ -185,6 +227,55 @@ const CourierDashboard = () => {
     }
   };
 
+  const calculateAndShowRoute = async (order: Order) => {
+    if (!yandexMap || !order.coordinates) return;
+
+    try {
+      // Kuryer joylashuvi (demo - haqiqatda GPS dan olinadi)
+      const courierLocation = [41.2995, 69.2401];
+      
+      // Yo'lni hisoblash
+      const route = new window.ymaps.multiRouter.MultiRoute({
+        referencePoints: [
+          courierLocation,
+          order.coordinates
+        ],
+        params: {
+          routingMode: 'auto'
+        }
+      }, {
+        boundsAutoApply: true,
+        routeActiveStrokeWidth: 6,
+        routeActiveStrokeColor: '#4f46e5'
+      });
+
+      // Yo'l ma'lumotlarini olish
+      route.model.events.add('requestsuccess', () => {
+        const activeRoute = route.getActiveRoute();
+        if (activeRoute) {
+          const distance = Math.round(activeRoute.properties.get('distance').value / 1000 * 10) / 10;
+          const duration = Math.round(activeRoute.properties.get('duration').value / 60);
+          
+          // Buyurtma ma'lumotlarini yangilash
+          setActiveOrders(prev => prev.map(o => 
+            o.id === order.id 
+              ? { ...o, distance: `${distance} km`, estimatedTime: `${duration} min` }
+              : o
+          ));
+
+          console.log(`Masofa: ${distance} km, Vaqt: ${duration} daqiqa`);
+        }
+      });
+
+      // Xaritaga yo'lni qo'shish
+      route.properties.set('type', 'route');
+      yandexMap.geoObjects.add(route);
+
+    } catch (error) {
+      console.error('Yo\'lni hisoblashda xato:', error);
+    }
+  };
+
   const handleOrderSelect = (order: Order) => {
     setSelectedOrder(order);
     addOrderToMap(order);
@@ -199,6 +290,14 @@ const CourierDashboard = () => {
       order.id === orderId ? { ...order, status: newStatus } : order
     );
     setActiveOrders(updatedOrders);
+
+    // Agar buyurtma "delivering" holatiga o'tkazilsa, yo'lni hisoblash
+    if (newStatus === 'delivering') {
+      const order = updatedOrders.find(o => o.id === orderId);
+      if (order) {
+        await calculateAndShowRoute(order);
+      }
+    }
 
     if (newStatus === 'delivered') {
       setActiveOrders(prev => prev.filter(order => order.id !== orderId));
@@ -363,6 +462,12 @@ const CourierDashboard = () => {
                         <div className="flex items-center space-x-2 text-xs text-slate-500">
                           <MapPin size={10} />
                           <span>{order.distance}</span>
+                          {order.estimatedTime && (
+                            <>
+                              <span>•</span>
+                              <span className="text-blue-600">{order.estimatedTime}</span>
+                            </>
+                          )}
                           <span>•</span>
                           <span className={order.status === 'ready' ? 'text-green-600' : 'text-blue-600'}>
                             {order.status === 'ready' ? 'Tayyor' : 'Yetkazilmoqda'}
@@ -400,6 +505,7 @@ const CourierDashboard = () => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
+                            calculateAndShowRoute(order);
                             handleOrderStatusUpdate(order.id, 'delivering');
                           }}
                           className="flex items-center justify-center space-x-1 px-2 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded text-xs font-medium transition-all"
