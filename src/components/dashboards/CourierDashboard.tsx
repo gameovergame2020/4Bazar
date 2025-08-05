@@ -275,19 +275,99 @@ const CourierDashboard = () => {
         </div>
 
         <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-purple-500 rounded-lg">
-              <Star size={18} className="text-white" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-purple-500 rounded-lg">
+                <Star size={18} className="text-white" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-purple-900">{stats.averageRating}</p>
+                <p className="text-purple-700 text-sm font-medium">Reyting</p>
+              </div>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-purple-900">{stats.averageRating}</p>
-              <p className="text-purple-700 text-sm font-medium">Reyting</p>
+            <div className="flex items-center space-x-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  size={14}
+                  className={`${
+                    star <= Math.floor(stats.averageRating)
+                      ? 'text-yellow-400 fill-current'
+                      : 'text-gray-300'
+                  }`}
+                />
+              ))}
             </div>
           </div>
         </div>
       </div>
 
-      
+      {/* Reyting ma'lumotlari */}
+      <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-slate-900">Reyting ma'lumotlari</h3>
+          <div className="flex items-center space-x-2">
+            <Star className="text-yellow-400 fill-current" size={20} />
+            <span className="text-xl font-bold text-slate-900">{stats.averageRating}</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl p-4 border border-yellow-200">
+            <div className="text-center">
+              <div className="flex justify-center items-center space-x-1 mb-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    size={20}
+                    className={`${
+                      star <= Math.floor(stats.averageRating)
+                        ? 'text-yellow-400 fill-current'
+                        : 'text-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="text-2xl font-bold text-yellow-900">{stats.averageRating}/5.0</p>
+              <p className="text-yellow-700 text-sm">O'rtacha reyting</p>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+            <div className="text-center">
+              <CheckCircle size={32} className="text-green-600 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-green-900">{stats.onTimePercentage}%</p>
+              <p className="text-green-700 text-sm">O'z vaqtida yetkazish</p>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+            <div className="text-center">
+              <Package size={32} className="text-blue-600 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-blue-900">{stats.totalDeliveries}</p>
+              <p className="text-blue-700 text-sm">Jami yetkazish</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Reyting bo'yicha tavsiyalar */}
+        <div className="mt-4 p-4 bg-slate-50 rounded-xl">
+          <div className="flex items-start space-x-3">
+            <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+              <Star size={16} className="text-blue-600" />
+            </div>
+            <div>
+              <h4 className="font-medium text-slate-900 mb-1">Reytingni oshirish uchun:</h4>
+              <ul className="text-sm text-slate-600 space-y-1">
+                <li>• Buyurtmalarni o'z vaqtida yetkazing</li>
+                <li>• Mijozlar bilan muloyim muomala qiling</li>
+                <li>• Mahsulotlar holatini saqlang</li>
+                <li>• Telefon qo'ng'iroqlariga tez javob bering</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Buyurtmalar boshqaruvi */}
       <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200">
