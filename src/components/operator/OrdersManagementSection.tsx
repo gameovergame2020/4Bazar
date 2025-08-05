@@ -392,30 +392,67 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   const [yandexMap, setYandexMap] = React.useState<any>(null);
   const [mapLoaded, setMapLoaded] = React.useState(false);
   const mapRef = React.useRef<HTMLDivElement>(null);
+  const [userInfo, setUserInfo] = React.useState<any>(null);
+  const [blockingUser, setBlockingUser] = React.useState(false);
 
-  // Foydalanuvchining boshqa buyurtmalarini yuklash
+  // Foydalanuvchi ma'lumotlarini va buyurtmalarini yuklash
   React.useEffect(() => {
-    const loadUserOrders = async () => {
+    const loadUserData = async () => {
       if (!order.customerId || activeTab !== 'customer') return;
       
       setLoadingUserOrders(true);
       try {
+        // Foydalanuvchi buyurtmalarini yuklash
         const { orderService } = await import('../../services/orderService');
         const orders = await orderService.getOrdersByUserId(order.customerId);
         
         // Hozirgi buyurtmani chiqarib tashlash
         const otherOrders = orders.filter(o => o.id !== order.id);
         setUserOrders(otherOrders);
+
+        // Foydalanuvchi ma'lumotlarini yuklash
+        const { userService } = await import('../../services/userService');
+        const users = await userService.getUsers();
+        const currentUser = users.find(u => u.id === order.customerId);
+        setUserInfo(currentUser);
+
       } catch (error) {
-        console.error('Foydalanuvchi buyurtmalarini yuklashda xato:', error);
+        console.error('Foydalanuvchi ma\'lumotlarini yuklashda xato:', error);
         setUserOrders([]);
+        setUserInfo(null);
       } finally {
         setLoadingUserOrders(false);
       }
     };
 
-    loadUserOrders();
+    loadUserData();
   }, [order.customerId, order.id, activeTab]);
+
+  // Foydalanuvchini bloklash/blokdan chiqarish
+  const handleToggleUserBlock = async () => {
+    if (!order.customerId || !userInfo) return;
+    
+    setBlockingUser(true);
+    try {
+      const { userService } = await import('../../services/userService');
+      const newBlockedStatus = !userInfo.blocked;
+      
+      await userService.updateUserStatus(order.customerId, { 
+        blocked: newBlockedStatus 
+      });
+      
+      // Local state ni yangilash
+      setUserInfo({ ...userInfo, blocked: newBlockedStatus });
+      
+      console.log(`✅ Foydalanuvchi ${newBlockedStatus ? 'bloklandi' : 'blokdan chiqarildi'}:`, order.customerName);
+      
+    } catch (error) {
+      console.error('❌ Foydalanuvchini bloklashda xato:', error);
+      alert('Xatolik yuz berdi, qayta urinib ko\'ring');
+    } finally {
+      setBlockingUser(false);
+    }
+  };
 
   // Xaritani yuklash
   const initializeMap = async () => {
@@ -714,16 +751,49 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             <div className="space-y-6">
               {/* Mijoz ma'lumotlari */}
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                      <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-3">
+                        <h3 className="text-xl font-bold text-gray-900">{order.customerName}</h3>
+                        {userInfo?.blocked && (
+                          <span className="px-2 py-1 bg-red-100 text-red-600 text-xs font-medium rounded-full">
+                            BLOKLANGAN
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-blue-600 font-medium">{order.customerPhone}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">{order.customerName}</h3>
-                    <p className="text-blue-600 font-medium">{order.customerPhone}</p>
-                  </div>
+                  
+                  {/* Bloklash tugmasi */}
+                  {userInfo && (
+                    <button
+                      onClick={handleToggleUserBlock}
+                      disabled={blockingUser}
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
+                        userInfo.blocked
+                          ? 'bg-green-500 hover:bg-green-600 text-white'
+                          : 'bg-red-500 hover:bg-red-600 text-white'
+                      } disabled:opacity-50`}
+                    >
+                      {blockingUser ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                          <span>Jarayonda...</span>
+                        </div>
+                      ) : userInfo.blocked ? (
+                        'Blokdan chiqarish'
+                      ) : (
+                        'Bloklash'
+                      )}
+                    </button>
+                  )}
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -825,24 +895,85 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
                 )}
 
                 {/* Mijoz statistikasi */}
-                {userOrders.length > 0 && (
-                  <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-green-50 rounded-lg p-4 border border-green-100">
-                      <div className="text-sm text-green-600 font-medium">Jami buyurtmalar</div>
-                      <div className="text-2xl font-bold text-green-800">{userOrders.length + 1}</div>
+                {userOrders.length >= 0 && (
+                  <div className="mt-6">
+                    {/* Buyurtma holatlari statistikasi */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                      {(() => {
+                        const allUserOrders = [...userOrders, order];
+                        const pendingCount = allUserOrders.filter(o => o.status === 'pending').length;
+                        const cancelledCount = allUserOrders.filter(o => o.status === 'cancelled').length;
+                        const acceptedCount = allUserOrders.filter(o => ['accepted', 'preparing', 'ready', 'delivering'].includes(o.status)).length;
+                        const deliveredCount = allUserOrders.filter(o => o.status === 'delivered').length;
+                        
+                        return (
+                          <>
+                            <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-100 text-center">
+                              <div className="text-lg font-bold text-yellow-800">{pendingCount}</div>
+                              <div className="text-xs text-yellow-600">Kutilmoqda</div>
+                            </div>
+                            <div className="bg-red-50 rounded-lg p-3 border border-red-100 text-center">
+                              <div className="text-lg font-bold text-red-800">{cancelledCount}</div>
+                              <div className="text-xs text-red-600">Rad etilgan</div>
+                            </div>
+                            <div className="bg-blue-50 rounded-lg p-3 border border-blue-100 text-center">
+                              <div className="text-lg font-bold text-blue-800">{acceptedCount}</div>
+                              <div className="text-xs text-blue-600">Qabul qilingan</div>
+                            </div>
+                            <div className="bg-green-50 rounded-lg p-3 border border-green-100 text-center">
+                              <div className="text-lg font-bold text-green-800">{deliveredCount}</div>
+                              <div className="text-xs text-green-600">Yetkazilgan</div>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
-                    <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                      <div className="text-sm text-blue-600 font-medium">Jami sarflanma</div>
-                      <div className="text-2xl font-bold text-blue-800">
-                        {(userOrders.reduce((sum, o) => sum + o.totalPrice, 0) + order.totalPrice).toLocaleString('uz-UZ')} so'm
+
+                    {/* Umumiy statistika */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-green-50 rounded-lg p-4 border border-green-100">
+                        <div className="text-sm text-green-600 font-medium">Jami buyurtmalar</div>
+                        <div className="text-2xl font-bold text-green-800">{userOrders.length + 1}</div>
+                      </div>
+                      <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                        <div className="text-sm text-blue-600 font-medium">Jami sarflanma</div>
+                        <div className="text-2xl font-bold text-blue-800">
+                          {(userOrders.reduce((sum, o) => sum + o.totalPrice, 0) + order.totalPrice).toLocaleString('uz-UZ')} so'm
+                        </div>
+                      </div>
+                      <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
+                        <div className="text-sm text-purple-600 font-medium">O'rtacha buyurtma</div>
+                        <div className="text-2xl font-bold text-purple-800">
+                          {Math.round((userOrders.reduce((sum, o) => sum + o.totalPrice, 0) + order.totalPrice) / (userOrders.length + 1)).toLocaleString('uz-UZ')} so'm
+                        </div>
                       </div>
                     </div>
-                    <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
-                      <div className="text-sm text-purple-600 font-medium">O'rtacha buyurtma</div>
-                      <div className="text-2xl font-bold text-purple-800">
-                        {Math.round((userOrders.reduce((sum, o) => sum + o.totalPrice, 0) + order.totalPrice) / (userOrders.length + 1)).toLocaleString('uz-UZ')} so'm
+
+                    {/* Foydalanuvchi holati */}
+                    {userInfo && (
+                      <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-sm text-gray-600">Foydalanuvchi holati:</span>
+                            <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                              userInfo.blocked 
+                                ? 'bg-red-100 text-red-600' 
+                                : 'bg-green-100 text-green-600'
+                            }`}>
+                              {userInfo.blocked ? 'Bloklangan' : 'Faol'}
+                            </span>
+                          </div>
+                          {userInfo.joinDate && (
+                            <div className="text-right">
+                              <div className="text-sm text-gray-600">Qo'shilgan:</div>
+                              <div className="text-xs text-gray-500">
+                                {new Date(userInfo.joinDate).toLocaleDateString('uz-UZ')}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
               </div>
