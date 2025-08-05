@@ -256,7 +256,13 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
               />
             ) : (
               <div>
-                <h2 className="text-lg font-bold text-slate-900">{user.name}</h2>
+                <div className="flex items-center space-x-2 mb-1">
+                  <h2 className="text-lg font-bold text-slate-900">{user.name}</h2>
+                  <div className="flex items-center space-x-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                    <span>Online</span>
+                  </div>
+                </div>
                 <div className="flex items-center space-x-2 mb-1">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium text-white bg-gradient-to-r ${performanceLevel.color}`}>
                     {performanceLevel.level}
@@ -656,25 +662,8 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pb-20">
-      {/* Simplified Header */}
-      <div className="px-4 py-3 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between">
-          <button 
-            onClick={onBack}
-            className="flex items-center space-x-2 text-slate-600 hover:text-indigo-600 transition-colors"
-          >
-            <ArrowLeft size={18} />
-            <span className="text-sm font-medium">Orqaga</span>
-          </button>
-          <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span>Online</span>
-          </div>
-        </div>
-      </div>
-
       {/* Tab Navigation */}
-      <div className="px-4 py-3">
+      <div className="px-4 py-4">
         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-1 shadow-sm border border-white/20 max-w-7xl mx-auto">
           <div className="grid grid-cols-3 gap-1">
             {navigationSections.map((section) => (
