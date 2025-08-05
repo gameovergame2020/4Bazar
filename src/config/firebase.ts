@@ -19,7 +19,13 @@ const firebaseConfig = {
 const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
 const missingKeys = requiredKeys.filter(key => {
   const value = firebaseConfig[key as keyof typeof firebaseConfig];
-  return !value || value.includes('your_') || value === 'undefined';
+  return !value || value === 'undefined' || value.includes('your_');
+});
+
+console.log('🔍 Firebase configuration check:', {
+  config: firebaseConfig,
+  missingKeys,
+  allKeysPresent: missingKeys.length === 0
 });
 
 if (missingKeys.length > 0) {
@@ -49,17 +55,34 @@ console.error = (...args) => {
 try {
   // Agar Firebase konfiguratsiyasi to'liq bo'lsa
   if (missingKeys.length === 0) {
+    console.log('🚀 Firebase initialization starting...');
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
     storage = getStorage(app);
-    analytics = getAnalytics(app);
-    console.log('✅ Firebase muvaffaqiyatli ishga tushirildi');
+    
+    // Analytics faqat production environment'da
+    try {
+      analytics = getAnalytics(app);
+    } catch (analyticsError) {
+      console.warn('⚠️ Analytics initialization failed (normal in development):', analyticsError);
+    }
+    
+    console.log('✅ Firebase muvaffaqiyatli ishga tushirildi', {
+      app: !!app,
+      auth: !!auth,
+      db: !!db,
+      storage: !!storage,
+      analytics: !!analytics
+    });
   } else {
-    console.warn('⚠️ Firebase konfiguratsiyasi to\'liq emas, Firebase xizmatlar o\'chirilgan');
+    console.error('❌ Firebase konfiguratsiyasi to\'liq emas, Firebase xizmatlar ishlamaydi');
+    console.error('Missing keys:', missingKeys);
+    throw new Error(`Firebase configuration incomplete. Missing: ${missingKeys.join(', ')}`);
   }
 } catch (error) {
   console.error('❌ Firebase ishga tushirishda xato:', error);
+  throw error;
 }
 
 // Firebase xizmatlarini eksport qilish

@@ -16,6 +16,18 @@ import {
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from '../../config/firebase';
 
+// Firebase db validation
+if (!db) {
+  console.error('❌ Firebase Firestore (db) is not initialized! Check your .env configuration.');
+  throw new Error('Firebase Firestore is not initialized. Please check your environment variables.');
+}
+
+if (!storage) {
+  console.warn('⚠️ Firebase Storage is not initialized!');
+}
+
+console.log('✅ Firebase services validated:', { db: !!db, storage: !!storage });
+
 export {
   collection,
   doc,
