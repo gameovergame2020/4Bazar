@@ -25,7 +25,7 @@ interface StatsCardsProps {
 
 const StatsCards: React.FC<StatsCardsProps> = ({ stats, onActiveIssuesClick }) => {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-11 gap-4"></div>
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-11 gap-4">
       <div className="bg-white rounded-xl p-4 border border-gray-100">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-blue-100 rounded-lg">
