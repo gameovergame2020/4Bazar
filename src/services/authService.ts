@@ -130,13 +130,27 @@ class AuthService {
   }
 
   // Auth holatini kuzatish
-  onAuthStateChange(callback: (user: User | null) => void) {
+  onAuthStateChange(callback: (user: User | null) => void): () => void {
     if (!auth) {
       console.error('Firebase Auth is not initialized');
+      callback(null); // Null user qaytarish
+      return () => {};
+    }
+
+    try {
+      return onAuthStateChanged(auth, (user) => {
+        try {
+          callback(user);
+        } catch (error) {
+          console.error('Auth state change callback error:', error);
+          callback(null);
+        }
+      });
+    } catch (error) {
+      console.error('Auth state change listener error:', error);
       callback(null);
       return () => {};
     }
-    return onAuthStateChanged(auth, callback);
   }
 
   // Joriy foydalanuvchini olish

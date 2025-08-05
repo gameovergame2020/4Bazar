@@ -9,30 +9,56 @@ export const useAuth = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+    
     try {
       const unsubscribe = authService.onAuthStateChange(async (firebaseUser) => {
+        if (!mounted) return;
+        
         setUser(firebaseUser);
 
         if (firebaseUser) {
           try {
             const data = await authService.getUserData(firebaseUser.uid);
-            setUserData(data);
+            if (mounted) {
+              setUserData(data);
+              setError(null);
+            }
           } catch (err) {
             console.error('Foydalanuvchi ma\'lumotlarini olishda xatolik:', err);
-            setError('Ma\'lumotlarni yuklashda xatolik');
+            if (mounted) {
+              // Network xatosi bo'lsa, silent fail
+              if (err?.toString?.().includes('ERR_NAME_NOT_RESOLVED') || 
+                  err?.toString?.().includes('identitytoolkit.googleapis.com')) {
+                console.warn('Network xatosi: Offline rejimda ishlash');
+                setError(null);
+              } else {
+                setError('Ma\'lumotlarni yuklashda xatolik');
+              }
+            }
           }
         } else {
-          setUserData(null);
+          if (mounted) {
+            setUserData(null);
+            setError(null);
+          }
         }
 
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       });
 
-      return () => unsubscribe();
+      return () => {
+        mounted = false;
+        unsubscribe();
+      };
     } catch (err) {
       console.error('Auth state change listener error:', err);
-      setError('Firebase xizmatlar ishga tushirilmagan');
-      setLoading(false);
+      if (mounted) {
+        setError('Firebase xizmatlar ishga tushirilmagan');
+        setLoading(false);
+      }
     }
   }, []);
 

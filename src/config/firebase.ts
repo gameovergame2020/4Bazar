@@ -44,26 +44,44 @@ let db: any = null;
 let storage: any = null;
 let analytics: any = null;
 
-// BloomFilter xatolarini suppress qilish
+// Network va BloomFilter xatolarini suppress qilish
 const originalConsoleError = console.error;
 console.error = (...args) => {
-  if (args[0]?.includes?.('BloomFilter error') || 
-      args[0]?.includes?.('@firebase/firestore: Firestore')) {
-    return; // BloomFilter xatolarini yashirish
+  const errorMsg = args[0]?.toString?.() || '';
+  if (errorMsg.includes('BloomFilter error') || 
+      errorMsg.includes('@firebase/firestore: Firestore') ||
+      errorMsg.includes('ERR_NAME_NOT_RESOLVED') ||
+      errorMsg.includes('identitytoolkit.googleapis.com')) {
+    return; // Network va BloomFilter xatolarini yashirish
   }
   originalConsoleError.apply(console, args);
 };
 
 try {
   console.log('🚀 Firebase initialization starting...');
+  
+  // Environment ni tekshirish
+  const isDevelopment = import.meta.env.DEV;
+  console.log('Environment:', isDevelopment ? 'Development' : 'Production');
+  
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
   storage = getStorage(app);
   
+  // Auth ni offline mode uchun sozlash
+  if (auth) {
+    // Offline holatda ham ishlashi uchun
+    auth.settings = {
+      appVerificationDisabledForTesting: isDevelopment
+    };
+  }
+  
   // Analytics faqat production environment'da
   try {
-    analytics = getAnalytics(app);
+    if (!isDevelopment) {
+      analytics = getAnalytics(app);
+    }
   } catch (analyticsError) {
     console.warn('⚠️ Analytics initialization failed (normal in development):', analyticsError);
   }
@@ -73,12 +91,17 @@ try {
     auth: !!auth,
     db: !!db,
     storage: !!storage,
-    analytics: !!analytics
+    analytics: !!analytics,
+    environment: isDevelopment ? 'dev' : 'prod'
   });
 } catch (error) {
   console.error('❌ Firebase ishga tushirishda xato:', error);
   console.error('Config used:', firebaseConfig);
-  throw error;
+  
+  // Default fallback values
+  if (!app) {
+    console.warn('⚠️ Firebase app fallback mode');
+  }
 }
 
 // Firebase xizmatlarini eksport qilish
