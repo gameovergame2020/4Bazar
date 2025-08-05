@@ -527,56 +527,7 @@ const CourierDashboard = () => {
           </div>
         </div>
 
-        {/* Statistika */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200">
-            <div className="flex items-center space-x-2">
-              <div className="p-1.5 bg-blue-500 rounded-lg">
-                <Package size={14} className="text-white" />
-              </div>
-              <div>
-                <p className="text-xl font-bold text-blue-900">{stats.todayDeliveries}</p>
-                <p className="text-blue-700 text-xs font-medium">Bugun</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 border border-orange-200">
-            <div className="flex items-center space-x-2">
-              <div className="p-1.5 bg-orange-500 rounded-lg">
-                <AlertCircle size={14} className="text-white" />
-              </div>
-              <div>
-                <p className="text-xl font-bold text-orange-900">{stats.activeOrders}</p>
-                <p className="text-orange-700 text-xs font-medium">Faol</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 border border-purple-200">
-            <div className="flex items-center space-x-2">
-              <div className="p-1.5 bg-purple-500 rounded-lg">
-                <Star size={14} className="text-white" />
-              </div>
-              <div>
-                <p className="text-xl font-bold text-purple-900">{stats.averageRating}</p>
-                <p className="text-purple-700 text-xs font-medium">Reyting</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 border border-green-200">
-            <div className="flex items-center space-x-2">
-              <div className="p-1.5 bg-green-500 rounded-lg">
-                <span className="text-white text-sm font-bold">₿</span>
-              </div>
-              <div>
-                <p className="text-lg font-bold text-green-900">{Math.round(stats.todayEarnings / 1000)}K</p>
-                <p className="text-green-700 text-xs font-medium">Daromad</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        
       </div>
     </div>
   );
