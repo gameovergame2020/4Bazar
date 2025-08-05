@@ -314,6 +314,7 @@ function App() {
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 sm:px-4 py-2 sm:py-3 z-50">
         <div className="flex justify-around max-w-6xl mx-auto">
+          {/* First Tab - Dashboard/Bosh sahifa */}
           <button
             onClick={() => setActivePage('home')}
             className={`flex flex-col items-center py-1 sm:py-2 px-2 sm:px-4 rounded-lg transition-colors ${
@@ -327,8 +328,16 @@ function App() {
               {isAuthenticated && userData?.role && userData.role !== 'customer' ? 'Dashboard' : 'Bosh sahifa'}
             </span>
           </button>
+
+          {/* Second Tab - Community/Restoranlar */}
           <button
-            onClick={() => setActivePage(isAuthenticated && userData?.role && userData.role !== 'customer' ? 'community' : 'restaurants')}
+            onClick={() => {
+              if (isAuthenticated && userData?.role && userData.role !== 'customer') {
+                setActivePage('community');
+              } else {
+                setActivePage('restaurants');
+              }
+            }}
             className={`flex flex-col items-center py-1 sm:py-2 px-2 sm:px-4 rounded-lg transition-colors ${
               (activePage === 'restaurants' || activePage === 'community')
                 ? 'text-orange-600 bg-orange-50'
@@ -340,6 +349,8 @@ function App() {
               {isAuthenticated && userData?.role && userData.role !== 'customer' ? 'Community' : 'Restoranlar'}
             </span>
           </button>
+
+          {/* Third Tab - Profil */}
           <button
             onClick={() => setActivePage('profile')}
             className={`flex flex-col items-center py-1 sm:py-2 px-2 sm:px-4 rounded-lg transition-colors ${
