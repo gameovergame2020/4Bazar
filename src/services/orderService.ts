@@ -1,4 +1,3 @@
-
 import { 
   collection, 
   doc, 
@@ -44,9 +43,9 @@ class OrderService {
           where('orderUniqueId', '==', uniqueId),
           limit(1)
         );
-        
+
         const querySnapshot = await getDocs(existingOrderQuery);
-        
+
         if (querySnapshot.empty) {
           isUnique = true;
           console.log(`✅ 8 belgilik noyob ID topildi: ${uniqueId}`);
@@ -76,11 +75,11 @@ class OrderService {
     try {
       // 8 belgilik alphanumeric noyob buyurtma ID yaratish
       const uniqueOrderId = await this.generateUniqueOrderId();
-      
+
       console.log('🆔 8 belgilik noyob buyurtma ID yaratildi:', uniqueOrderId);
       console.log('🍰 Mahsulot ID:', order.cakeId);
       console.log('👤 Customer ID (User ID):', order.customerId);
-      
+
       const orderData: any = {
         ...order,
         orderUniqueId: uniqueOrderId, // 8 belgilik alphanumeric noyob ID
@@ -97,11 +96,11 @@ class OrderService {
 
       // Firebase'ga buyurtma qo'shish
       const docRef = await addDoc(collection(db, 'orders'), orderData);
-      
+
       console.log('✅ Firebase hujjat ID:', docRef.id);
       console.log('🆔 Noyob buyurtma ID:', uniqueOrderId);
       console.log('👤 Customer ID bilan bog\'langan:', order.customerId);
-      
+
       // Buyurtma yaratilganda mahsulot quantity ni avtomatik yangilash
       let fromStock = false;
       try {
@@ -120,7 +119,7 @@ class OrderService {
         });
         console.log('✅ fromStock field buyurtmaga qo\'shildi');
       }
-      
+
       return { docId: docRef.id, orderUniqueId: uniqueOrderId };
     } catch (error) {
       console.error('Buyurtma yaratishda xatolik:', error);
@@ -162,7 +161,7 @@ class OrderService {
       querySnapshot.docs.forEach((doc) => {
         try {
           const data = doc.data();
-          
+
           // Strict customerId checking
           if (data.customerId !== cleanUserId) {
             console.warn('⚠️ Customer ID noto\'g\'ri:', data.customerId, '!=', cleanUserId);
@@ -174,7 +173,7 @@ class OrderService {
             console.warn('⚠️ Noto\'g\'ri buyurtma ma\'lumotlari:', doc.id);
             return;
           }
-          
+
           const order: Order = {
             id: doc.id,
             orderUniqueId: data.orderUniqueId || doc.id,
@@ -204,7 +203,7 @@ class OrderService {
       });
 
       console.log(`✅ User (${cleanUserId}): ${orders.length} ta buyurtma yuklandi`);
-      
+
       // Verify all orders belong to correct user
       const invalidOrders = orders.filter(order => order.customerId !== cleanUserId);
       if (invalidOrders.length > 0) {
@@ -212,16 +211,16 @@ class OrderService {
       }
 
       return orders;
-      
+
     } catch (error) {
       console.error('❌ Foydalanuvchi buyurtmalarini yuklashda xato:', error);
-      
+
       // Detailed error logging
       if (error instanceof Error) {
         console.error('❌ Xato detallari:', error.message);
         console.error('❌ Stack trace:', error.stack);
       }
-      
+
       return [];
     }
   }
@@ -272,7 +271,7 @@ class OrderService {
       }
 
       const orderData = orderDoc.data() as Order;
-      
+
       console.log('🚫 Buyurtma bekor qilindi:', {
         orderId,
         cakeId: orderData.cakeId,
@@ -288,7 +287,7 @@ class OrderService {
       try {
         // fromStock qiymati bo'yicha to'g'ri qaytarish
         const fromStockValue = orderData.fromStock === true;
-        
+
         console.log('🔍 Buyurtma bekor qilish detallari:', {
           orderId,
           fromStock: orderData.fromStock,
@@ -296,13 +295,13 @@ class OrderService {
           cakeId: orderData.cakeId,
           quantity: orderData.quantity
         });
-        
+
         if (fromStockValue) {
           console.log('📦 "Hozir mavjud" dan bekor qilingan - quantity qaytariladi');
         } else {
           console.log('📦 "Buyurtma uchun" dan bekor qilingan - amount kamayadi, rejectAmount oshadi');
         }
-        
+
         await productService.revertOrderQuantity(orderData.cakeId, orderData.quantity, fromStockValue);
         console.log('✅ Buyurtma bekor qilindi, mahsulot holati to\'g\'ri yangilandi');
       } catch (revertError) {
@@ -533,12 +532,12 @@ class OrderService {
     let isSubscriptionActive = true;
     let retryCount = 0;
     const maxRetries = 3;
-    
+
     const createSubscription = () => {
       if (!isSubscriptionActive) return null;
-      
+
       let q;
-      
+
       try {
         if (filters?.customerId) {
           console.log('🔄 Real-time subscription: Customer ID bo\'yicha', filters.customerId);
@@ -559,17 +558,23 @@ class OrderService {
           );
         }
 
+        // Firebase initialization check
+        if (!db) {
+          console.error('❌ Firebase Firestore is not initialized');
+          return () => {}; // Return empty unsubscribe function
+        }
+
         return onSnapshot(q, 
           (querySnapshot) => {
             if (!isSubscriptionActive) return;
-            
+
             try {
               const filterText = filters?.customerId ? `Customer ID (${filters.customerId})` : 'Umumiy';
               console.log(`📥 Real-time Orders (${filterText}): ${querySnapshot.docs.length} ta hujjat keldi`);
-              
+
               const orders: Order[] = [];
               const changedDocs = querySnapshot.docChanges();
-              
+
               // Change log
               changedDocs.forEach((change) => {
                 if (change.type === 'modified') {
@@ -581,12 +586,12 @@ class OrderService {
               querySnapshot.docs.forEach((doc) => {
                 try {
                   const data = doc.data();
-                  
+
                   // Customer filter bo'lsa, yana bir marta tekshirish
                   if (filters?.customerId && data.customerId !== filters.customerId) {
                     return; // Skip this order
                   }
-                  
+
                   const order: Order = {
                     id: doc.id,
                     orderUniqueId: data.orderUniqueId,
@@ -628,15 +633,15 @@ class OrderService {
           }, 
           (error) => {
             if (!isSubscriptionActive) return;
-            
+
             console.error('❌ Real-time orders subscription xatosi:', error);
             retryCount++;
-            
+
             if (retryCount <= maxRetries) {
               // Retry with exponential backoff
               const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000);
               console.log(`🔄 Orders subscription qayta urinish... (${retryCount}/${maxRetries}) - ${retryDelay}ms kutish`);
-              
+
               setTimeout(() => {
                 if (isSubscriptionActive) {
                   try {
