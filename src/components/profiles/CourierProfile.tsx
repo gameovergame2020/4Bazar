@@ -52,7 +52,7 @@ interface CourierProfileProps {
 }
 
 const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate }) => {
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeSection, setActiveSection] = useState('info');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
@@ -179,8 +179,8 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
 
   const performanceLevel = getPerformanceLevel();
 
-  // Asosiy Dashboard
-  const renderDashboard = () => (
+  // Asosiy Ma'lumotlar Bo'limi
+  const renderInfo = () => (
     <div className="space-y-4">
       {/* Performance Header */}
       <div className={`bg-gradient-to-r ${performanceLevel.color} rounded-2xl p-4 text-white relative overflow-hidden`}>
@@ -212,257 +212,6 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
         </div>
       </div>
 
-      {/* Career Progress */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <h4 className="font-semibold text-slate-900 mb-3">Martaba rivojlanishi</h4>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-slate-600 text-sm">Keyingi daraja</span>
-            <span className="font-bold text-blue-600">Pro Kuryer</span>
-          </div>
-          <div className="w-full bg-slate-200 rounded-full h-2">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full" style={{width: '75%'}}></div>
-          </div>
-          <div className="flex justify-between text-xs text-slate-500">
-            <span>75% bajarildi</span>
-            <span>25 ta yetkazish qoldi</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Achievements */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <h4 className="font-semibold text-slate-900 mb-3">So'nggi yutuqlar</h4>
-        <div className="space-y-2">
-          <div className="flex items-center space-x-3 p-2 bg-yellow-50 rounded-lg">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Award size={16} className="text-yellow-600" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-slate-900">100+ Yetkazish</p>
-              <p className="text-xs text-slate-500">Yuz martalik yutuq</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3 p-2 bg-blue-50 rounded-lg">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Star size={16} className="text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-slate-900">Tez Yetkazish</p>
-              <p className="text-xs text-slate-500">15 daqiqada yetkazish</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Profile Quick Actions */}
-      <div className="grid grid-cols-2 gap-3">
-        <button 
-          onClick={() => setActiveSection('profile')}
-          className="bg-white rounded-xl p-4 border border-slate-200 hover:shadow-md transition-all group"
-        >
-          <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-            <Edit2 size={20} className="text-blue-600" />
-          </div>
-          <h4 className="font-medium text-slate-900 text-sm mb-1">Tahrirlash</h4>
-          <p className="text-xs text-slate-500">Ma'lumotlar</p>
-        </button>
-
-        <button 
-          onClick={() => setActiveSection('community')}
-          className="bg-white rounded-xl p-4 border border-slate-200 hover:shadow-md transition-all group"
-        >
-          <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-            <Users size={20} className="text-green-600" />
-          </div>
-          <h4 className="font-medium text-slate-900 text-sm mb-1">Jamiyat</h4>
-          <p className="text-xs text-slate-500">Aloqa</p>
-        </button>
-
-        <button className="bg-white rounded-xl p-4 border border-slate-200 hover:shadow-md transition-all group">
-          <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-            <Download size={20} className="text-purple-600" />
-          </div>
-          <h4 className="font-medium text-slate-900 text-sm mb-1">Export</h4>
-          <p className="text-xs text-slate-500">Ma'lumotlar</p>
-        </button>
-
-        <button className="bg-white rounded-xl p-4 border border-slate-200 hover:shadow-md transition-all group">
-          <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-            <HelpCircle size={20} className="text-orange-600" />
-          </div>
-          <h4 className="font-medium text-slate-900 text-sm mb-1">Yordam</h4>
-          <p className="text-xs text-slate-500">Qo'llab-quvvatlash</p>
-        </button>
-      </div>
-
-      {/* Weekly Performance */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <h4 className="font-semibold text-slate-900 mb-3">Haftalik natijalar</h4>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600 text-sm">Haftalik yetkazish</span>
-            <span className="font-bold text-slate-900">{stats.weeklyDeliveries}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600 text-sm">O'rtacha reyting</span>
-            <div className="flex items-center space-x-1">
-              <Star size={14} className="fill-current text-yellow-500" />
-              <span className="font-bold text-yellow-600">{stats.averageRating}</span>
-            </div>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600 text-sm">Samaradorlik</span>
-            <span className="font-bold text-green-600">{stats.successRate}%</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Community sahifasi
-  const renderCommunity = () => (
-    <div className="space-y-4">
-      {/* Community Stats */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <h3 className="font-semibold text-slate-900 mb-3">Hamjamiyat</h3>
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div>
-            <Users size={20} className="text-blue-600 mx-auto mb-1" />
-            <p className="text-lg font-bold text-slate-900">1,234</p>
-            <p className="text-xs text-slate-600">A'zolar</p>
-          </div>
-          <div>
-            <MessageCircle size={20} className="text-green-600 mx-auto mb-1" />
-            <p className="text-lg font-bold text-slate-900">567</p>
-            <p className="text-xs text-slate-600">Postlar</p>
-          </div>
-          <div>
-            <Award size={20} className="text-yellow-600 mx-auto mb-1" />
-            <p className="text-lg font-bold text-slate-900">45</p>
-            <p className="text-xs text-slate-600">Mukofot</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Post */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <div className="flex items-center space-x-3 mb-3">
-          <img 
-            src={user.avatar || 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100'}
-            alt={user.name}
-            className="w-10 h-10 rounded-full object-cover"
-          />
-          <input
-            type="text"
-            placeholder="Nima yangilik bor?"
-            className="flex-1 bg-slate-50 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex space-x-3">
-            <button className="flex items-center space-x-1 text-slate-600 hover:text-blue-600 transition-colors">
-              <Camera size={16} />
-              <span className="text-sm">Rasm</span>
-            </button>
-          </div>
-          <button className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-600 transition-colors">
-            Yuborish
-          </button>
-        </div>
-      </div>
-
-      {/* Recent Posts */}
-      <div className="space-y-3">
-        <div className="bg-white rounded-xl p-4 border border-slate-200">
-          <div className="flex items-center space-x-3 mb-3">
-            <img 
-              src="https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100"
-              alt="Baker"
-              className="w-8 h-8 rounded-full object-cover"
-            />
-            <div>
-              <h4 className="font-medium text-slate-900 text-sm">Aziza Karimova</h4>
-              <p className="text-xs text-slate-500">Baker • 2 soat oldin</p>
-            </div>
-          </div>
-          <p className="text-sm text-slate-700 mb-2">Yangi Red Velvet tortim! 3 soat mehnat natijasi 🍰✨</p>
-          <div className="flex items-center space-x-4 text-xs text-slate-500">
-            <button className="flex items-center space-x-1 hover:text-red-500">
-              <Heart size={14} />
-              <span>45</span>
-            </button>
-            <button className="flex items-center space-x-1 hover:text-blue-500">
-              <MessageCircle size={14} />
-              <span>12</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-4 border border-slate-200">
-          <div className="flex items-center space-x-3 mb-3">
-            <img 
-              src="https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=100"
-              alt="Courier"
-              className="w-8 h-8 rounded-full object-cover"
-            />
-            <div>
-              <h4 className="font-medium text-slate-900 text-sm">Malika Ahmedova</h4>
-              <p className="text-xs text-slate-500">Courier • 4 soat oldin</p>
-            </div>
-          </div>
-          <p className="text-sm text-slate-700 mb-2">Bugun 15 ta buyurtma yetkazdim! Eng tez yetkazish rekordim - 12 daqiqa 🚚💨</p>
-          <div className="flex items-center space-x-4 text-xs text-slate-500">
-            <button className="flex items-center space-x-1 hover:text-red-500">
-              <Heart size={14} />
-              <span>67</span>
-            </button>
-            <button className="flex items-center space-x-1 hover:text-blue-500">
-              <MessageCircle size={14} />
-              <span>18</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Top Couriers */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <h4 className="font-semibold text-slate-900 mb-3">Top Kuryerlar</h4>
-        <div className="space-y-2">
-          <div className="flex items-center space-x-3 p-2 bg-yellow-50 rounded-lg">
-            <span className="text-lg font-bold text-yellow-600">#1</span>
-            <img 
-              src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100"
-              alt="Top courier"
-              className="w-8 h-8 rounded-full object-cover"
-            />
-            <div className="flex-1">
-              <p className="font-medium text-slate-900 text-sm">Sardor Mirzayev</p>
-              <p className="text-xs text-slate-500">2,450 ball</p>
-            </div>
-            <Trophy size={16} className="text-yellow-500" />
-          </div>
-          <div className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
-            <span className="text-lg font-bold text-gray-600">#2</span>
-            <img 
-              src="https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100"
-              alt="Second courier"
-              className="w-8 h-8 rounded-full object-cover"
-            />
-            <div className="flex-1">
-              <p className="font-medium text-slate-900 text-sm">Dilshod Rahimov</p>
-              <p className="text-xs text-slate-500">1,890 ball</p>
-            </div>
-            <Trophy size={16} className="text-gray-500" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Profil Ma'lumotlari
-  const renderProfile = () => (
-    <div className="space-y-4">
       {/* Profile Header */}
       <div className="bg-white rounded-xl p-4 border border-slate-200">
         <div className="flex items-center space-x-3 mb-4">
@@ -617,38 +366,153 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
         </div>
       )}
 
-      {/* Profile Stats */}
+      {/* Career Progress */}
       {!isEditing && (
         <div className="bg-white rounded-xl p-4 border border-slate-200">
-          <h4 className="font-semibold text-slate-900 mb-3">Statistika</h4>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="text-center p-3 bg-blue-50 rounded-lg">
-              <Package size={20} className="text-blue-600 mx-auto mb-1" />
-              <p className="text-lg font-bold text-slate-900">{stats.totalDeliveries}</p>
-              <p className="text-xs text-slate-600">Jami yetkazish</p>
+          <h4 className="font-semibold text-slate-900 mb-3">Martaba rivojlanishi</h4>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-600 text-sm">Keyingi daraja</span>
+              <span className="font-bold text-blue-600">Pro Kuryer</span>
             </div>
-            <div className="text-center p-3 bg-green-50 rounded-lg">
-              <DollarSign size={20} className="text-green-600 mx-auto mb-1" />
-              <p className="text-lg font-bold text-slate-900">{Math.round(stats.totalEarnings / 1000)}K</p>
-              <p className="text-xs text-slate-600">Jami daromad</p>
+            <div className="w-full bg-slate-200 rounded-full h-2">
+              <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full" style={{width: '75%'}}></div>
             </div>
-            <div className="text-center p-3 bg-purple-50 rounded-lg">
-              <Clock size={20} className="text-purple-600 mx-auto mb-1" />
-              <p className="text-lg font-bold text-slate-900">{stats.workingDays}</p>
-              <p className="text-xs text-slate-600">Ish kunlari</p>
-            </div>
-            <div className="text-center p-3 bg-yellow-50 rounded-lg">
-              <Trophy size={20} className="text-yellow-600 mx-auto mb-1" />
-              <p className="text-lg font-bold text-slate-900">{stats.successRate}%</p>
-              <p className="text-xs text-slate-600">Samaradorlik</p>
+            <div className="flex justify-between text-xs text-slate-500">
+              <span>75% bajarildi</span>
+              <span>25 ta yetkazish qoldi</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Settings Section */}
+      {/* Achievements */}
+      {!isEditing && (
+        <div className="bg-white rounded-xl p-4 border border-slate-200">
+          <h4 className="font-semibold text-slate-900 mb-3">So'nggi yutuqlar</h4>
+          <div className="space-y-2">
+            <div className="flex items-center space-x-3 p-2 bg-yellow-50 rounded-lg">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Award size={16} className="text-yellow-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-slate-900">100+ Yetkazish</p>
+                <p className="text-xs text-slate-500">Yuz martalik yutuq</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3 p-2 bg-blue-50 rounded-lg">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Star size={16} className="text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-slate-900">Tez Yetkazish</p>
+                <p className="text-xs text-slate-500">15 daqiqada yetkazish</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // Statistika Bo'limi
+  const renderStats = () => (
+    <div className="space-y-4">
+      {/* Performance Stats */}
       <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <h4 className="font-semibold text-slate-900 mb-3">Sozlamalar</h4>
+        <h4 className="font-semibold text-slate-900 mb-3">Asosiy ko'rsatkichlar</h4>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="text-center p-3 bg-blue-50 rounded-lg">
+            <Package size={20} className="text-blue-600 mx-auto mb-1" />
+            <p className="text-lg font-bold text-slate-900">{stats.totalDeliveries}</p>
+            <p className="text-xs text-slate-600">Jami yetkazish</p>
+          </div>
+          <div className="text-center p-3 bg-green-50 rounded-lg">
+            <DollarSign size={20} className="text-green-600 mx-auto mb-1" />
+            <p className="text-lg font-bold text-slate-900">{formatPrice(stats.totalEarnings)}</p>
+            <p className="text-xs text-slate-600">Jami daromad</p>
+          </div>
+          <div className="text-center p-3 bg-purple-50 rounded-lg">
+            <Clock size={20} className="text-purple-600 mx-auto mb-1" />
+            <p className="text-lg font-bold text-slate-900">{stats.workingDays}</p>
+            <p className="text-xs text-slate-600">Ish kunlari</p>
+          </div>
+          <div className="text-center p-3 bg-yellow-50 rounded-lg">
+            <Trophy size={20} className="text-yellow-600 mx-auto mb-1" />
+            <p className="text-lg font-bold text-slate-900">{stats.successRate}%</p>
+            <p className="text-xs text-slate-600">Samaradorlik</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Today's Stats */}
+      <div className="bg-white rounded-xl p-4 border border-slate-200">
+        <h4 className="font-semibold text-slate-900 mb-3">Bugungi natijalar</h4>
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <span className="text-slate-600 text-sm">Bugungi yetkazish</span>
+            <span className="font-bold text-slate-900">{stats.todayDeliveries}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-600 text-sm">Bugungi daromad</span>
+            <span className="font-bold text-green-600">{formatPrice(stats.todayEarnings)}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-600 text-sm">Faol buyurtmalar</span>
+            <span className="font-bold text-blue-600">{stats.activeOrders}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Weekly Performance */}
+      <div className="bg-white rounded-xl p-4 border border-slate-200">
+        <h4 className="font-semibold text-slate-900 mb-3">Haftalik natijalar</h4>
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <span className="text-slate-600 text-sm">Haftalik yetkazish</span>
+            <span className="font-bold text-slate-900">{stats.weeklyDeliveries}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-600 text-sm">O'rtacha reyting</span>
+            <div className="flex items-center space-x-1">
+              <Star size={14} className="fill-current text-yellow-500" />
+              <span className="font-bold text-yellow-600">{stats.averageRating}</span>
+            </div>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-600 text-sm">Samaradorlik</span>
+            <span className="font-bold text-green-600">{stats.successRate}%</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Monthly Stats */}
+      <div className="bg-white rounded-xl p-4 border border-slate-200">
+        <h4 className="font-semibold text-slate-900 mb-3">Oylik ko'rsatkichlar</h4>
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <span className="text-slate-600 text-sm">Oylik daromad</span>
+            <span className="font-bold text-green-600">{formatPrice(stats.monthlyEarnings)}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-600 text-sm">Bajarilgan buyurtmalar</span>
+            <span className="font-bold text-slate-900">{stats.completedDeliveries}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-600 text-sm">O'rtacha kunlik</span>
+            <span className="font-bold text-slate-900">{Math.round(stats.totalDeliveries / Math.max(stats.workingDays, 1))}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Sozlamalar Bo'limi
+  const renderSettings = () => (
+    <div className="space-y-4">
+      {/* Work Settings */}
+      <div className="bg-white rounded-xl p-4 border border-slate-200">
+        <h4 className="font-semibold text-slate-900 mb-3">Ish sozlamalari</h4>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -701,6 +565,38 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
         </div>
       </div>
 
+      {/* App Settings */}
+      <div className="bg-white rounded-xl p-4 border border-slate-200">
+        <h4 className="font-semibold text-slate-900 mb-3">Ilova sozlamalari</h4>
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Til</label>
+            <select
+              value={settings.language}
+              onChange={(e) => setSettings(prev => ({...prev, language: e.target.value}))}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+            >
+              <option value="uz">O'zbekcha</option>
+              <option value="ru">Русский</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Mavzu</label>
+            <select
+              value={settings.theme}
+              onChange={(e) => setSettings(prev => ({...prev, theme: e.target.value}))}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+            >
+              <option value="light">Yorug'</option>
+              <option value="dark">Qorong'i</option>
+              <option value="auto">Avtomatik</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       {/* Help Section */}
       <div className="bg-white rounded-xl p-4 border border-slate-200">
         <h4 className="font-semibold text-slate-900 mb-3">Yordam</h4>
@@ -719,15 +615,43 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             </div>
             <ChevronRight size={16} className="text-slate-400" />
           </button>
+          <button className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors">
+            <div className="flex items-center space-x-2">
+              <Download size={16} className="text-slate-600" />
+              <span className="text-sm text-slate-700">Ma'lumotlarni export qilish</span>
+            </div>
+            <ChevronRight size={16} className="text-slate-400" />
+          </button>
+        </div>
+      </div>
+
+      {/* Security Section */}
+      <div className="bg-white rounded-xl p-4 border border-slate-200">
+        <h4 className="font-semibold text-slate-900 mb-3">Xavfsizlik</h4>
+        <div className="space-y-2">
+          <button className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors">
+            <div className="flex items-center space-x-2">
+              <Lock size={16} className="text-slate-600" />
+              <span className="text-sm text-slate-700">Parolni o'zgartirish</span>
+            </div>
+            <ChevronRight size={16} className="text-slate-400" />
+          </button>
+          <button className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors">
+            <div className="flex items-center space-x-2">
+              <Shield size={16} className="text-slate-600" />
+              <span className="text-sm text-slate-700">Xavfsizlik sozlamalari</span>
+            </div>
+            <ChevronRight size={16} className="text-slate-400" />
+          </button>
         </div>
       </div>
     </div>
   );
 
   const navigationSections = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'community', label: 'Community', icon: Users },
-    { id: 'profile', label: 'Profil', icon: User }
+    { id: 'info', label: 'Ma\'lumotlar', icon: User },
+    { id: 'stats', label: 'Statistika', icon: BarChart3 },
+    { id: 'settings', label: 'Sozlamalar', icon: Settings }
   ];
 
   return (
@@ -745,9 +669,9 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
               </button>
               <div>
                 <h1 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-                  Kuryer
+                  Kuryer Profili
                 </h1>
-                <p className="text-xs text-slate-500">Professional panel</p>
+                <p className="text-xs text-slate-500">Shaxsiy ma'lumotlar va sozlamalar</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -784,9 +708,9 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
 
       {/* Main Content */}
       <div className="px-4 max-w-7xl mx-auto">
-        {activeSection === 'dashboard' && renderDashboard()}
-        {activeSection === 'community' && renderCommunity()}
-        {activeSection === 'profile' && renderProfile()}
+        {activeSection === 'info' && renderInfo()}
+        {activeSection === 'stats' && renderStats()}
+        {activeSection === 'settings' && renderSettings()}
       </div>
     </div>
   );
