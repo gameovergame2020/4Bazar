@@ -9,7 +9,8 @@ import { dataService, Order } from '../../services/dataService';
 import { notificationService } from '../../services/notificationService';
 
 const CourierDashboard = () => {
-  const { userData } = useAuth();
+  const { userData, logout } = useAuth();
+  const { showProfile, openUserProfile, closeProfile } = useProfileManager();
   const [loading, setLoading] = useState(true);
   const [activeDeliveries, setActiveDeliveries] = useState<Order[]>([]);
   const [completedDeliveries, setCompletedDeliveries] = useState<Order[]>([]);
