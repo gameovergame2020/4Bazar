@@ -16,6 +16,10 @@ class AuthService {
   // Telefon raqam bilan ro'yhatdan o'tish (email o'rniga telefon ishlatamiz)
   async registerWithPhone(phone: string, password: string, name: string, role: UserRole = 'customer'): Promise<UserData> {
     try {
+      if (!auth || !db) {
+        throw new Error('Firebase xizmatlar ishga tushirilmagan. Firebase konfiguratsiyasini tekshiring.');
+      }
+
       // Firebase Auth email formatini talab qiladi, shuning uchun telefon raqamni email formatiga o'tkazamiz
       const emailFormat = `${phone.replace(/[^0-9]/g, '')}@tortbazar.local`;
 
@@ -56,6 +60,10 @@ class AuthService {
   // Telefon raqam bilan kirish
   async loginWithPhone(phone: string, password: string): Promise<UserData> {
     try {
+      if (!auth || !db) {
+        throw new Error('Firebase xizmatlar ishga tushirilmagan. Firebase konfiguratsiyasini tekshiring.');
+      }
+
       const emailFormat = `${phone.replace(/[^0-9]/g, '')}@tortbazar.local`;
 
       const userCredential = await signInWithEmailAndPassword(auth, emailFormat, password);
@@ -78,6 +86,10 @@ class AuthService {
   // Chiqish
   async logout(): Promise<void> {
     try {
+      if (!auth) {
+        console.warn('Firebase Auth is not initialized');
+        return;
+      }
       await signOut(auth);
     } catch (error) {
       console.error('Chiqishda xatolik:', error);
@@ -119,11 +131,20 @@ class AuthService {
 
   // Auth holatini kuzatish
   onAuthStateChange(callback: (user: User | null) => void) {
+    if (!auth) {
+      console.warn('Firebase Auth is not initialized');
+      callback(null);
+      return () => {}; // Return empty unsubscribe function
+    }
     return onAuthStateChanged(auth, callback);
   }
 
   // Joriy foydalanuvchini olish
   getCurrentUser(): User | null {
+    if (!auth) {
+      console.warn('Firebase Auth is not initialized');
+      return null;
+    }
     return auth.currentUser;
   }
 

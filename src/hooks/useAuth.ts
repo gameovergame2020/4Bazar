@@ -9,25 +9,31 @@ export const useAuth = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = authService.onAuthStateChange(async (firebaseUser) => {
-      setUser(firebaseUser);
+    try {
+      const unsubscribe = authService.onAuthStateChange(async (firebaseUser) => {
+        setUser(firebaseUser);
 
-      if (firebaseUser) {
-        try {
-          const data = await authService.getUserData(firebaseUser.uid);
-          setUserData(data);
-        } catch (err) {
-          console.error('Foydalanuvchi ma\'lumotlarini olishda xatolik:', err);
-          setError('Ma\'lumotlarni yuklashda xatolik');
+        if (firebaseUser) {
+          try {
+            const data = await authService.getUserData(firebaseUser.uid);
+            setUserData(data);
+          } catch (err) {
+            console.error('Foydalanuvchi ma\'lumotlarini olishda xatolik:', err);
+            setError('Ma\'lumotlarni yuklashda xatolik');
+          }
+        } else {
+          setUserData(null);
         }
-      } else {
-        setUserData(null);
-      }
 
+        setLoading(false);
+      });
+
+      return () => unsubscribe();
+    } catch (err) {
+      console.error('Auth state change listener error:', err);
+      setError('Firebase xizmatlar ishga tushirilmagan');
       setLoading(false);
-    });
-
-    return () => unsubscribe();
+    }
   }, []);
 
   const login = async (phone: string, password: string) => {
