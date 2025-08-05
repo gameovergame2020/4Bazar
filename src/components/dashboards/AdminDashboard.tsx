@@ -62,6 +62,8 @@ const AdminDashboard = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [selectedTab, setSelectedTab] = useState<'overview' | 'users' | 'orders' | 'system' | 'settings' | 'statistics' | 'departments' | 'username-requests'>('overview');
   const [showSettings, setShowSettings] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [profileType, setProfileType] = useState<{user: UserData, type: string} | null>(null);
 
   // Bo'limlar uchun formalar
   const [showDepartmentForm, setShowDepartmentForm] = useState(false);
@@ -113,7 +115,25 @@ const AdminDashboard = () => {
     }
   }, [userData]);
 
-  const { openUserProfile } = useProfileManager();
+  const openUserProfile = (user: UserData) => {
+    setProfileType({ user, type: user.role });
+    setShowProfile(true);
+  };
+
+  const closeProfile = () => {
+    setShowProfile(false);
+    setProfileType(null);
+  };
+
+  const updateUser = async (updates: Partial<UserData>) => {
+    try {
+      await dataService.updateUser(userData.id, updates);
+      // Reload data to reflect changes
+      loadData();
+    } catch (error) {
+      console.error('Foydalanuvchini yangilashda xato:', error);
+    }
+  };
 
   const loadData = async () => {
     try {
