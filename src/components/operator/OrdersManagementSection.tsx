@@ -386,9 +386,36 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   getOrderStatusColor,
   getOrderStatusText
 }) => {
+  const [userOrders, setUserOrders] = React.useState<Order[]>([]);
+  const [loadingUserOrders, setLoadingUserOrders] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<'order' | 'customer'>('order');
+
+  // Foydalanuvchining boshqa buyurtmalarini yuklash
+  React.useEffect(() => {
+    const loadUserOrders = async () => {
+      if (!order.customerId || activeTab !== 'customer') return;
+      
+      setLoadingUserOrders(true);
+      try {
+        const { orderService } = await import('../../services/orderService');
+        const orders = await orderService.getOrdersByUserId(order.customerId);
+        
+        // Hozirgi buyurtmani chiqarib tashlash
+        const otherOrders = orders.filter(o => o.id !== order.id);
+        setUserOrders(otherOrders);
+      } catch (error) {
+        console.error('Foydalanuvchi buyurtmalarini yuklashda xato:', error);
+        setUserOrders([]);
+      } finally {
+        setLoadingUserOrders(false);
+      }
+    };
+
+    loadUserOrders();
+  }, [order.customerId, order.id, activeTab]);
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Buyurtma tafsilotlari</h3>
           <button
@@ -399,9 +426,37 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
           </button>
         </div>
 
+        {/* Tabs */}
+        <div className="flex border-b border-gray-200 mb-6">
+          <button
+            onClick={() => setActiveTab('order')}
+            className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+              activeTab === 'order'
+                ? 'border-yellow-500 text-yellow-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Buyurtma ma'lumotlari
+          </button>
+          <button
+            onClick={() => setActiveTab('customer')}
+            className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+              activeTab === 'customer'
+                ? 'border-yellow-500 text-yellow-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Mijoz haqida
+          </button>
+        </div>
+
+        {/* Tab Content */}
         <div className="space-y-4">
-          <div>
-            <h4 className="font-medium text-gray-900 mb-2">{order.cakeName}</h4>
+          {activeTab === 'order' ? (
+            // Buyurtma ma'lumotlari tab
+            <>
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">{order.cakeName}</h4>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Buyurtma ID:</span>
@@ -562,6 +617,146 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
               <span>Qo'ng'iroq</span>
             </button>
           </div>
+            </>
+          ) : (
+            // Mijoz haqida tab
+            <div className="space-y-6">
+              {/* Mijoz ma'lumotlari */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">{order.customerName}</h3>
+                    <p className="text-blue-600 font-medium">{order.customerPhone}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white rounded-lg p-4 border border-blue-100">
+                    <div className="text-sm text-gray-600 mb-1">Mijoz ID</div>
+                    <div className="font-mono text-sm text-gray-800">{order.customerId?.slice(-8) || 'N/A'}</div>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border border-blue-100">
+                    <div className="text-sm text-gray-600 mb-1">Oxirgi buyurtma</div>
+                    <div className="font-medium text-gray-800">
+                      {order.createdAt.toLocaleDateString('uz-UZ')}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 bg-white rounded-lg p-4 border border-blue-100">
+                  <div className="text-sm text-gray-600 mb-1">Yetkazib berish manzili</div>
+                  <div className="text-gray-800">{order.deliveryAddress}</div>
+                  {order.coordinates && (
+                    <button
+                      onClick={() => {
+                        const coords = order.coordinates;
+                        if (coords && coords.lat && coords.lng) {
+                          window.open(`https://yandex.uz/maps/?pt=${coords.lng},${coords.lat}&z=16&l=map`, '_blank');
+                        }
+                      }}
+                      className="mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center space-x-1"
+                    >
+                      <MapPin size={14} />
+                      <span>Xaritada ko'rish</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Boshqa buyurtmalar */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-lg font-semibold text-gray-900">Boshqa buyurtmalar</h4>
+                  {loadingUserOrders && (
+                    <div className="flex items-center space-x-2 text-gray-500">
+                      <div className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-blue-600 rounded-full"></div>
+                      <span className="text-sm">Yuklanmoqda...</span>
+                    </div>
+                  )}
+                </div>
+
+                {loadingUserOrders ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin h-8 w-8 border-2 border-gray-300 border-t-blue-600 rounded-full mx-auto"></div>
+                  </div>
+                ) : userOrders.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg">
+                    <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2M4 13h2m-2 0v5a2 2 0 002 2h2" />
+                    </svg>
+                    <p className="text-gray-500 font-medium">Boshqa buyurtmalar topilmadi</p>
+                    <p className="text-sm text-gray-400 mt-1">Bu mijozning birinchi buyurtmasi</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-80 overflow-y-auto">
+                    {userOrders.slice(0, 10).map((userOrder) => (
+                      <div key={userOrder.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:bg-gray-100 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <span className="font-medium text-gray-900">#{userOrder.orderUniqueId || userOrder.id?.slice(-6)}</span>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getOrderStatusColor(userOrder.status)}`}>
+                                {getOrderStatusText(userOrder.status)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700 font-medium">{userOrder.cakeName}</p>
+                            <div className="flex items-center justify-between mt-2">
+                              <span className="text-sm text-gray-600">{userOrder.quantity} ta</span>
+                              <span className="text-sm font-semibold text-gray-900">
+                                {userOrder.totalPrice.toLocaleString('uz-UZ')} so'm
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xs text-gray-500">
+                              {userOrder.createdAt.toLocaleDateString('uz-UZ')}
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              {userOrder.createdAt.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {userOrders.length > 10 && (
+                      <div className="text-center py-2">
+                        <span className="text-sm text-gray-500">
+                          Yana {userOrders.length - 10} ta buyurtma bor...
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Mijoz statistikasi */}
+                {userOrders.length > 0 && (
+                  <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-green-50 rounded-lg p-4 border border-green-100">
+                      <div className="text-sm text-green-600 font-medium">Jami buyurtmalar</div>
+                      <div className="text-2xl font-bold text-green-800">{userOrders.length + 1}</div>
+                    </div>
+                    <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                      <div className="text-sm text-blue-600 font-medium">Jami sarflanma</div>
+                      <div className="text-2xl font-bold text-blue-800">
+                        {(userOrders.reduce((sum, o) => sum + o.totalPrice, 0) + order.totalPrice).toLocaleString('uz-UZ')} so'm
+                      </div>
+                    </div>
+                    <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm text-purple-600 font-medium">O'rtacha buyurtma</div>
+                      <div className="text-2xl font-bold text-purple-800">
+                        {Math.round((userOrders.reduce((sum, o) => sum + o.totalPrice, 0) + order.totalPrice) / (userOrders.length + 1)).toLocaleString('uz-UZ')} so'm
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
