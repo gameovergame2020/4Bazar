@@ -16,24 +16,25 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-ZEY7PY1BVX"
 };
 
-// Firebase konfiguratsiyasini tekshirish
+// Environment variables tekshirish
+console.log('🔍 Environment variables debug:', {
+  VITE_FIREBASE_API_KEY: import.meta.env.VITE_FIREBASE_API_KEY,
+  VITE_FIREBASE_AUTH_DOMAIN: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  VITE_FIREBASE_PROJECT_ID: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  allEnvVars: import.meta.env
+});
+
+// Firebase konfiguratsiyasini tekshirish - faqat real missing values uchun
 const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
 const missingKeys = requiredKeys.filter(key => {
   const value = firebaseConfig[key as keyof typeof firebaseConfig];
-  return !value || value === 'undefined' || value.includes('your_');
+  return !value || value === '' || value === 'undefined';
 });
 
-console.log('🔍 Firebase configuration check:', {
+console.log('🔍 Firebase configuration:', {
   config: firebaseConfig,
   missingKeys,
   allKeysPresent: missingKeys.length === 0
-});
-
-// Environment variables tekshirish
-console.log('🔍 Environment variables:', {
-  VITE_FIREBASE_API_KEY: import.meta.env.VITE_FIREBASE_API_KEY ? '✅ Set' : '❌ Missing',
-  VITE_FIREBASE_AUTH_DOMAIN: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ? '✅ Set' : '❌ Missing',
-  VITE_FIREBASE_PROJECT_ID: import.meta.env.VITE_FIREBASE_PROJECT_ID ? '✅ Set' : '❌ Missing'
 });
 
 // Firebase ilovasini ishga tushirish
@@ -76,6 +77,7 @@ try {
   });
 } catch (error) {
   console.error('❌ Firebase ishga tushirishda xato:', error);
+  console.error('Config used:', firebaseConfig);
   throw error;
 }
 
