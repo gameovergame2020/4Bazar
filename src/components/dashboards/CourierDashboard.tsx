@@ -1,9 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { useProfileManager } from '../../hooks/useProfileManager';
-import ProfileManager from '../ProfileManager';
-import SettingsPage from '../SettingsPage';
 import { dataService } from '../../services/dataService';
 import {
   Package,
@@ -11,25 +8,12 @@ import {
   DollarSign,
   Star,
   Clock,
-  TrendingUp,
   Navigation,
   CheckCircle,
   AlertCircle,
   Phone,
-  MessageCircle,
-  User,
-  Settings,
-  LogOut,
   Play,
   Pause,
-  Target,
-  Award,
-  Calendar,
-  BarChart3,
-  Zap,
-  Bell,
-  ArrowRight,
-  Filter,
   Search,
   RefreshCw
 } from 'lucide-react';
@@ -55,14 +39,12 @@ interface Order {
 }
 
 const CourierDashboard = () => {
-  const { userData, logout } = useAuth();
-  const { showProfile, openUserProfile, closeProfile } = useProfileManager();
+  const { userData } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(false);
   const [activeOrders, setActiveOrders] = useState<Order[]>([]);
   const [completedOrders, setCompletedOrders] = useState<Order[]>([]);
-  const [selectedView, setSelectedView] = useState<'active' | 'completed' | 'stats'>('active');
-  const [showSettings, setShowSettings] = useState(false);
+  const [selectedView, setSelectedView] = useState<'active' | 'completed'>('active');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'ready' | 'delivering'>('all');
 
@@ -197,36 +179,7 @@ const CourierDashboard = () => {
     return matchesSearch && matchesFilter;
   });
 
-  // Profil ko'rsatilsa
-  if (showProfile && userData) {
-    return (
-      <ProfileManager
-        user={userData}
-        profileType="courier"
-        onBack={closeProfile}
-        onUpdate={() => {}}
-      />
-    );
-  }
-
-  // Sozlamalar ko'rsatilsa
-  if (showSettings && userData) {
-    return (
-      <SettingsPage
-        user={{
-          id: userData.id,
-          name: userData.name,
-          email: userData.email || '',
-          phone: userData.phone,
-          avatar: userData.avatar || '',
-          joinDate: userData.joinDate,
-          totalOrders: stats.totalDeliveries,
-          favoriteCount: 0
-        }}
-        onBack={() => setShowSettings(false)}
-      />
-    );
-  }
+  
 
   if (loading) {
     return (
@@ -269,32 +222,17 @@ const CourierDashboard = () => {
             </div>
           </div>
           
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={handleStatusToggle}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                isOnline 
-                  ? 'bg-red-500 hover:bg-red-600 text-white' 
-                  : 'bg-green-500 hover:bg-green-600 text-white'
-              }`}
-            >
-              {isOnline ? <Pause size={16} /> : <Play size={16} />}
-              <span className="hidden sm:inline">{isOnline ? 'To\'xtatish' : 'Boshlash'}</span>
-            </button>
-            
-            <button
-              onClick={() => openUserProfile(userData)}
-              className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-            >
-              <User size={18} />
-            </button>
-            <button
-              onClick={() => setShowSettings(true)}
-              className="p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-all"
-            >
-              <Settings size={18} />
-            </button>
-          </div>
+          <button
+            onClick={handleStatusToggle}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
+              isOnline 
+                ? 'bg-red-500 hover:bg-red-600 text-white' 
+                : 'bg-green-500 hover:bg-green-600 text-white'
+            }`}
+          >
+            {isOnline ? <Pause size={16} /> : <Play size={16} />}
+            <span className="hidden sm:inline">{isOnline ? 'To\'xtatish' : 'Boshlash'}</span>
+          </button>
         </div>
       </div>
 
