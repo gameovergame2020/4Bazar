@@ -74,7 +74,8 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
         else if (userOrders.length >= 5) userType = 'Regular';
 
         // Buyurtma chastotasini hisoblash (oylik)
-        const daysSinceRegistration = Math.max(1, (now.getTime() - user.joinDate.getTime()) / (1000 * 60 * 60 * 24));
+        const joinDate = user.joinDate instanceof Date ? user.joinDate : new Date(user.joinDate || Date.now());
+        const daysSinceRegistration = Math.max(1, (now.getTime() - joinDate.getTime()) / (1000 * 60 * 60 * 24));
         const orderFrequency = (userOrders.length / daysSinceRegistration) * 30; // oylik
 
         // O'rtacha buyurtma qiymati
@@ -98,14 +99,14 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
           userEmail: user.email,
           userPhone: user.phone,
           userAddress: user.address,
-          registrationDate: user.joinDate,
+          registrationDate: joinDate,
           totalOrders: userOrders.length,
           completedOrders: completedOrders.length,
           cancelledOrders: cancelledOrders.length,
           pendingOrders: pendingOrders.length,
           averageRating: Math.round(averageRating * 10) / 10,
           totalSpent,
-          lastOrderDate: lastOrder?.createdAt || user.joinDate,
+          lastOrderDate: lastOrder?.createdAt || joinDate,
           userType,
           averageOrderValue,
           orderFrequency: Math.round(orderFrequency * 100) / 100,

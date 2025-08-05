@@ -1,13 +1,12 @@
-
-import { 
-  collection, 
-  doc, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  getDocs, 
-  query, 
-  where, 
+import {
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  getDocs,
+  query,
+  where,
   orderBy,
   Timestamp,
   db
@@ -16,9 +15,9 @@ import { UserData } from './shared/types';
 
 class UserService {
   // Barcha foydalanuvchilarni olish
-  async getUsers(filters?: { 
+  async getUsers(filters?: {
     role?: string;
-    blocked?: boolean; 
+    blocked?: boolean;
   }): Promise<UserData[]> {
     try {
       let q = query(collection(db, 'users'));
@@ -36,14 +35,14 @@ class UserService {
         return {
           id: doc.id,
           ...data,
-          joinDate: data.createdAt?.toDate()?.toISOString() || data.joinDate || new Date().toISOString(),
-          createdAt: data.createdAt?.toDate() || new Date(),
-          updatedAt: data.updatedAt?.toDate() || new Date(),
+          joinDate: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.joinDate || data.createdAt || Date.now()),
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now()),
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt || Date.now()),
           blocked: data.blocked || false,
           active: data.active !== undefined ? data.active : true
         } as UserData;
       });
-      
+
       console.log('UserService getUsers natijasi:', users);
       return users;
     } catch (error) {
@@ -86,7 +85,7 @@ class UserService {
     try {
       // Foydalanuvchining barcha ma'lumotlarini o'chirish
       await deleteDoc(doc(db, 'users', userId));
-      
+
       // Foydalanuvchining buyurtmalarini ham o'chirish yoki arxivlash mumkin
       // Bu yerda faqat users collection dan o'chiramiz
     } catch (error) {
@@ -139,7 +138,7 @@ class UserService {
     try {
       const q = query(collection(db, 'departments'), orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
-      
+
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
@@ -184,19 +183,22 @@ class UserService {
   async getDepartmentMembers(departmentId: string): Promise<UserData[]> {
     try {
       const q = query(
-        collection(db, 'users'), 
+        collection(db, 'users'),
         where('departmentId', '==', departmentId),
         orderBy('name', 'asc')
       );
-      
+
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        joinDate: doc.data().createdAt?.toDate()?.toISOString() || new Date().toISOString(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        updatedAt: doc.data().updatedAt?.toDate() || new Date()
-      } as UserData));
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          joinDate: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.joinDate || data.createdAt || Date.now()),
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now()),
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt || Date.now())
+        } as UserData;
+      });
     } catch (error) {
       console.error('❌ Bo\'lim xodimlarini olishda xatolik:', error);
       return [];
