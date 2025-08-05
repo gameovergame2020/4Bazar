@@ -14,8 +14,6 @@ import {
   Clock,
   Star,
   User,
-  Maximize2,
-  Minimize2,
   RefreshCw,
   AlertCircle
 } from 'lucide-react';
@@ -53,7 +51,6 @@ const CourierDashboard = () => {
   const [isOnline, setIsOnline] = useState(false);
   const [activeOrders, setActiveOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [mapFullscreen, setMapFullscreen] = useState(false);
   const [yandexMap, setYandexMap] = useState<any>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -312,15 +309,6 @@ const CourierDashboard = () => {
     return new Intl.NumberFormat('uz-UZ').format(price) + ' so\'m';
   };
 
-  const toggleMapFullscreen = () => {
-    setMapFullscreen(!mapFullscreen);
-    setTimeout(() => {
-      if (yandexMap) {
-        yandexMap.container.fitToViewport();
-      }
-    }, 300);
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
@@ -333,75 +321,62 @@ const CourierDashboard = () => {
   }
 
   return (
-    <div className={`${mapFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`}>
-      <div className={`${mapFullscreen ? 'h-screen' : 'space-y-4 pb-6'}`}>
+    <div className="space-y-4 pb-6">
         
-        {/* Header - faqat kichik ekranda ko'rsatish */}
-        {!mapFullscreen && (
-          <div className="bg-gradient-to-r from-white to-slate-50 rounded-2xl p-4 border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <img 
-                    src={userData?.avatar || 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100'}
-                    alt={userData?.name}
-                    className="w-12 h-12 rounded-xl object-cover border-2 border-white shadow-md"
-                  />
-                  <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}>
-                    {isOnline && <div className="w-full h-full bg-green-400 rounded-full animate-pulse"></div>}
-                  </div>
+        {/* Header */}
+        <div className="bg-gradient-to-r from-white to-slate-50 rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <img 
+                  src={userData?.avatar || 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100'}
+                  alt={userData?.name}
+                  className="w-12 h-12 rounded-xl object-cover border-2 border-white shadow-md"
+                />
+                <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}>
+                  {isOnline && <div className="w-full h-full bg-green-400 rounded-full animate-pulse"></div>}
                 </div>
-                <div>
-                  <h2 className="text-lg font-bold text-slate-900">{userData?.name}</h2>
-                  <div className="flex items-center space-x-2 text-sm">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      isOnline ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {isOnline ? 'Faol' : 'Nofaol'}
-                    </span>
-                    <span className="text-slate-500">•</span>
-                    <div className="flex items-center space-x-1">
-                      <Star size={12} className="text-yellow-400 fill-current" />
-                      <span className="text-slate-600">{stats.averageRating}</span>
-                    </div>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">{userData?.name}</h2>
+                <div className="flex items-center space-x-2 text-sm">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    isOnline ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {isOnline ? 'Faol' : 'Nofaol'}
+                  </span>
+                  <span className="text-slate-500">•</span>
+                  <div className="flex items-center space-x-1">
+                    <Star size={12} className="text-yellow-400 fill-current" />
+                    <span className="text-slate-600">{stats.averageRating}</span>
                   </div>
                 </div>
               </div>
-              
-              <button
-                onClick={handleStatusToggle}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                  isOnline 
-                    ? 'bg-red-500 hover:bg-red-600 text-white' 
-                    : 'bg-green-500 hover:bg-green-600 text-white'
-                }`}
-              >
-                {isOnline ? <Pause size={16} /> : <Play size={16} />}
-                <span className="hidden sm:inline">{isOnline ? 'To\'xtatish' : 'Boshlash'}</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Asosiy kontent - Map va Orders */}
-        <div className={`${mapFullscreen ? 'h-full' : 'grid grid-cols-1 lg:grid-cols-3 gap-4'}`}>
-          
-          {/* Xarita */}
-          <div className={`${mapFullscreen ? 'h-full' : 'lg:col-span-2 h-96 lg:h-[600px]'} relative bg-white rounded-2xl border border-slate-200 overflow-hidden`}>
-            <div className="absolute top-4 right-4 z-10 flex space-x-2">
-              <button
-                onClick={toggleMapFullscreen}
-                className="p-2 bg-white/90 hover:bg-white rounded-lg shadow-md border transition-all"
-                title={mapFullscreen ? 'Kichraytirish' : 'Kengaytirish'}
-              >
-                {mapFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-              </button>
             </div>
             
+            <button
+              onClick={handleStatusToggle}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                isOnline 
+                  ? 'bg-red-500 hover:bg-red-600 text-white' 
+                  : 'bg-green-500 hover:bg-green-600 text-white'
+              }`}
+            >
+              {isOnline ? <Pause size={16} /> : <Play size={16} />}
+              <span className="hidden sm:inline">{isOnline ? 'To\'xtatish' : 'Boshlash'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Asosiy kontent - Map va Orders */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          
+          {/* Xarita */}
+          <div className="lg:col-span-2 h-96 lg:h-[600px] relative bg-white rounded-2xl border border-slate-200 overflow-hidden">
             <div 
               ref={mapRef} 
               className="w-full h-full"
-              style={{ minHeight: mapFullscreen ? '100vh' : '400px' }}
+              style={{ minHeight: '400px' }}
             />
             
             {!mapLoaded && (
@@ -415,7 +390,7 @@ const CourierDashboard = () => {
           </div>
 
           {/* Buyurtmalar paneli */}
-          <div className={`${mapFullscreen ? 'absolute top-4 left-4 w-80 max-h-[calc(100vh-2rem)] overflow-y-auto' : ''} bg-white rounded-2xl p-4 border border-slate-200`}>
+          <div className="bg-white rounded-2xl p-4 border border-slate-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-slate-900">Faol buyurtmalar</h3>
               <div className="flex items-center space-x-2">
@@ -552,8 +527,242 @@ const CourierDashboard = () => {
           </div>
         </div>
 
-        {/* Statistika - faqat kichik ekranda */}
-        {!mapFullscreen && (
+        {/* Statistika */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200">
+            <div className="flex items-center space-x-2">
+              <div className="p-1.5 bg-blue-500 rounded-lg">
+                <Package size={14} className="text-white" />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-blue-900">{stats.todayDeliveries}</p>
+                <p className="text-blue-700 text-xs font-medium">Bugun</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 border border-orange-200">
+            <div className="flex items-center space-x-2">
+              <div className="p-1.5 bg-orange-500 rounded-lg">
+                <AlertCircle size={14} className="text-white" />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-orange-900">{stats.activeOrders}</p>
+                <p className="text-orange-700 text-xs font-medium">Faol</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 border border-purple-200">
+            <div className="flex items-center space-x-2">
+              <div className="p-1.5 bg-purple-500 rounded-lg">
+                <Star size={14} className="text-white" />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-purple-900">{stats.averageRating}</p>
+                <p className="text-purple-700 text-xs font-medium">Reyting</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 border border-green-200">
+            <div className="flex items-center space-x-2">
+              <div className="p-1.5 bg-green-500 rounded-lg">
+                <span className="text-white text-sm font-bold">₿</span>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-green-900">{Math.round(stats.todayEarnings / 1000)}K</p>
+                <p className="text-green-700 text-xs font-medium">Daromad</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+          <div className="bg-gradient-to-r from-white to-slate-50 rounded-2xl p-4 border border-slate-200 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <img 
+                    src={userData?.avatar || 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100'}
+                    alt={userData?.name}
+                    className="w-12 h-12 rounded-xl object-cover border-2 border-white shadow-md"
+                  />
+                  <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}>
+                    {isOnline && <div className="w-full h-full bg-green-400 rounded-full animate-pulse"></div>}
+                  </div>
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">{userData?.name}</h2>
+                  <div className="flex items-center space-x-2 text-sm">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      isOnline ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {isOnline ? 'Faol' : 'Nofaol'}
+                    </span>
+                    <span className="text-slate-500">•</span>
+                    <div className="flex items-center space-x-1">
+                      <Star size={12} className="text-yellow-400 fill-current" />
+                      <span className="text-slate-600">{stats.averageRating}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <button
+                onClick={handleStatusToggle}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                  isOnline 
+                    ? 'bg-red-500 hover:bg-red-600 text-white' 
+                    : 'bg-green-500 hover:bg-green-600 text-white'
+                }`}
+              >
+                {isOnline ? <Pause size={16} /> : <Play size={16} />}
+                <span className="hidden sm:inline">{isOnline ? 'To\'xtatish' : 'Boshlash'}</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-slate-900">Faol buyurtmalar</h3>
+              <div className="flex items-center space-x-2">
+                <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
+                  {activeOrders.length}
+                </span>
+                <button
+                  onClick={loadDashboardData}
+                  className="p-1 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-all"
+                >
+                  <RefreshCw size={14} />
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {activeOrders.length === 0 ? (
+                <div className="text-center py-8">
+                  <Package size={32} className="text-slate-300 mx-auto mb-2" />
+                  <p className="text-slate-500 text-sm">Buyurtma yo'q</p>
+                </div>
+              ) : (
+                activeOrders.map((order) => (
+                  <div 
+                    key={order.id} 
+                    className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                      selectedOrder?.id === order.id 
+                        ? 'border-blue-300 bg-blue-50' 
+                        : 'border-slate-200 bg-slate-50 hover:border-slate-300'
+                    }`}
+                    onClick={() => handleOrderSelect(order)}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <h4 className="font-semibold text-slate-900 text-sm">{order.customerName}</h4>
+                          {order.priority === 'urgent' && (
+                            <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded">
+                              Shoshilinch
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-600 mb-1">#{order.id}</p>
+                        <div className="flex items-center space-x-2 text-xs text-slate-500">
+                          <MapPin size={10} />
+                          <span>{order.distance}</span>
+                          {order.estimatedTime && (
+                            <>
+                              <span>•</span>
+                              <span className="text-blue-600">{order.estimatedTime}</span>
+                            </>
+                          )}
+                          <span>•</span>
+                          <span className={order.status === 'ready' ? 'text-green-600' : 'text-blue-600'}>
+                            {order.status === 'ready' ? 'Tayyor' : 'Yetkazilmoqda'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-sm font-bold text-slate-900">{Math.round(order.total / 1000)}K</span>
+                      </div>
+                    </div>
+
+                    {/* Buyurtma amallar */}
+                    <div className="grid grid-cols-3 gap-1.5 mt-2">
+                      <a
+                        href={`tel:${order.customerPhone}`}
+                        className="flex items-center justify-center space-x-1 px-2 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-medium transition-all"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Phone size={12} />
+                        <span>Tel</span>
+                      </a>
+                      
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`https://maps.google.com/maps?q=${encodeURIComponent(order.address)}`, '_blank');
+                        }}
+                        className="flex items-center justify-center space-x-1 px-2 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs font-medium transition-all"
+                      >
+                        <Navigation size={12} />
+                        <span>Yo'l</span>
+                      </button>
+
+                      {order.status === 'ready' ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            calculateAndShowRoute(order);
+                            handleOrderStatusUpdate(order.id, 'delivering');
+                          }}
+                          className="flex items-center justify-center space-x-1 px-2 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded text-xs font-medium transition-all"
+                        >
+                          <Play size={12} />
+                          <span>Start</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOrderStatusUpdate(order.id, 'delivered');
+                          }}
+                          className="flex items-center justify-center space-x-1 px-2 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-medium transition-all"
+                        >
+                          <CheckCircle size={12} />
+                          <span>Done</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Tanlangan buyurtma tafsilotlari */}
+            {selectedOrder && (
+              <div className="mt-4 p-3 bg-slate-50 rounded-xl border">
+                <h4 className="font-medium text-slate-900 mb-2 text-sm">Buyurtma tafsilotlari</h4>
+                <div className="space-y-1 text-xs text-slate-600">
+                  <p><MapPin size={10} className="inline mr-1" />{selectedOrder.address}</p>
+                  <p><Package size={10} className="inline mr-1" />
+                    {selectedOrder.items.map((item, index) => (
+                      <span key={item.id}>
+                        {item.quantity}x {item.name}
+                        {index < selectedOrder.items.length - 1 ? ', ' : ''}
+                      </span>
+                    ))}
+                  </p>
+                  <p className="font-medium text-slate-900">{formatPrice(selectedOrder.total)}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200">
               <div className="flex items-center space-x-2">
@@ -603,9 +812,7 @@ const CourierDashboard = () => {
               </div>
             </div>
           </div>
-        )}
-      </div>
-    </div>
+        
   );
 };
 
