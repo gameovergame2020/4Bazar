@@ -7,6 +7,13 @@ import SettingsPage from '../SettingsPage';
 import { dataService, Order, Cake } from '../../services/dataService';
 import { authService } from '../../services/authService';
 import { UserData } from '../../services/shared/types';
+import MetricsGrid from '../admin/MetricsGrid';
+import UserStatsCard from '../admin/UserStatsCard';
+import RecentOrdersCard from '../admin/RecentOrdersCard';
+import TopProductsCard from '../admin/TopProductsCard';
+import ServerStatusCard from '../admin/ServerStatusCard';
+import DatabaseStatusCard from '../admin/DatabaseStatusCard';
+import SystemLogsCard from '../admin/SystemLogsCard';
 
 interface SystemMetrics {
   totalUsers: number;
@@ -476,173 +483,15 @@ const AdminDashboard = () => {
       {selectedTab === 'overview' && (
         <div className="space-y-6">
           {/* Key Metrics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            <div className="bg-white rounded-xl p-4 border border-gray-100">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Users size={20} className="text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{metrics.totalUsers}</p>
-                  <p className="text-sm text-gray-600">Foydalanuvchilar</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-4 border border-gray-100">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Package size={20} className="text-green-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{metrics.totalOrders}</p>
-                  <p className="text-sm text-gray-600">Buyurtmalar</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-4 border border-gray-100">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <DollarSign size={20} className="text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-lg font-bold text-gray-900">{Math.round((metrics.totalRevenue || 0) / 1000000)}M</p>
-                  <p className="text-sm text-gray-600">Daromad</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-4 border border-gray-100">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-orange-100 rounded-lg">
-                  <Package size={20} className="text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{metrics.totalProducts}</p>
-                  <p className="text-sm text-gray-600">Mahsulotlar</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-4 border border-gray-100">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-indigo-100 rounded-lg">
-                  <Activity size={20} className="text-indigo-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{metrics.activeUsers}</p>
-                  <p className="text-sm text-gray-600">Faol</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-4 border border-gray-100">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Globe size={20} className="text-green-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{metrics.systemUptime}%</p>
-                  <p className="text-sm text-gray-600">Uptime</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-4 border border-gray-100">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-yellow-100 rounded-lg">
-                  <Server size={20} className="text-yellow-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{metrics.serverLoad}%</p>
-                  <p className="text-sm text-gray-600">Server yuki</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-4 border border-gray-100">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-pink-100 rounded-lg">
-                  <Database size={20} className="text-pink-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">{metrics.databaseSize}GB</p>
-                  <p className="text-sm text-gray-600">Ma'lumotlar</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <MetricsGrid metrics={metrics} />
 
           {/* User Distribution */}
-          <div className="bg-white rounded-2xl p-6 border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Foydalanuvchilar taqsimoti</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {Object.entries(userStats).map(([role, count]) => (
-                <div key={role} className="text-center">
-                  <div className={`w-16 h-16 rounded-full mx-auto mb-2 flex items-center justify-center ${getRoleColor(role)}`}>
-                    <span className="text-2xl font-bold">{count}</span>
-                  </div>
-                  <p className="text-sm font-medium text-gray-900">{getRoleText(role)}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          <UserStatsCard userStats={userStats} />
 
           {/* Recent Activity */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl p-6 border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">So'nggi buyurtmalar</h3>
-              <div className="space-y-3">
-                {orders.slice(0, 5).map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                    <div>
-                      <h4 className="font-medium text-gray-900">#{order.id?.slice(-6)}</h4>
-                      <p className="text-sm text-gray-600">{order.customerName}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-gray-900">{formatPrice(order.totalPrice)}</p>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        order.status === 'delivered' ? 'bg-green-100 text-green-600' :
-                        order.status === 'preparing' ? 'bg-yellow-100 text-yellow-600' :
-                        'bg-blue-100 text-blue-600'
-                      }`}>
-                        {order.status === 'delivered' ? 'Yetkazildi' :
-                         order.status === 'preparing' ? 'Tayyorlanmoqda' : 'Kutilmoqda'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Top mahsulotlar</h3>
-              <div className="space-y-3">
-                {cakes.slice(0, 5).map((cake) => (
-                  <div key={cake.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
-                    <img
-                      src={cake.image}
-                      alt={cake.name}
-                      className="w-12 h-12 rounded-lg object-cover"
-                    />
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">{cake.name}</h4>
-                      <p className="text-sm text-gray-600">
-                        {cake.productType === 'baked' ? cake.bakerName : cake.shopName}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-gray-900">{formatPrice(cake.price)}</p>
-                      <div className="flex items-center space-x-1">
-                        <span className="text-yellow-400">★</span>
-                        <span className="text-sm text-gray-600">{cake.rating}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <RecentOrdersCard orders={orders} />
+            <TopProductsCard cakes={cakes} />
           </div>
         </div>
       )}
@@ -1084,85 +933,11 @@ const AdminDashboard = () => {
       {selectedTab === 'system' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl p-6 border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Server holati</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">CPU yuki</span>
-                  <span className="font-medium text-gray-900">{metrics.serverLoad}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-500 h-2 rounded-full"
-                    style={{ width: `${metrics.serverLoad}%` }}
-                  ></div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Xotira</span>
-                  <span className="font-medium text-gray-900">67%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-green-500 h-2 rounded-full" style={{ width: '67%' }}></div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Disk</span>
-                  <span className="font-medium text-gray-900">34%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '34%' }}></div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Ma'lumotlar bazasi</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Hajmi</span>
-                  <span className="font-medium text-gray-900">{metrics.databaseSize} GB</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Jadvallar</span>
-                  <span className="font-medium text-gray-900">12</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Yozuvlar</span>
-                  <span className="font-medium text-gray-900">45,678</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Oxirgi backup</span>
-                  <span className="font-medium text-gray-900">2 soat oldin</span>
-                </div>
-              </div>
-            </div>
+            <ServerStatusCard metrics={metrics} />
+            <DatabaseStatusCard metrics={metrics} />
           </div>
 
-          <div className="bg-white rounded-2xl p-6 border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Tizim loglari</h3>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {[
-                { time: '14:32:15', level: 'INFO', message: 'Yangi foydalanuvchi ro\'yhatdan o\'tdi' },
-                { time: '14:28:42', level: 'WARN', message: 'Server yuki yuqori' },
-                { time: '14:25:18', level: 'INFO', message: 'Buyurtma muvaffaqiyatli yaratildi' },
-                { time: '14:22:03', level: 'ERROR', message: 'To\'lov xatoligi' },
-                { time: '14:18:55', level: 'INFO', message: 'Tizim backup yakunlandi' }
-              ].map((log, index) => (
-                <div key={index} className="flex items-center space-x-4 p-2 bg-gray-50 rounded-lg text-sm">
-                  <span className="text-gray-500 font-mono">{log.time}</span>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    log.level === 'ERROR' ? 'bg-red-100 text-red-600' :
-                    log.level === 'WARN' ? 'bg-yellow-100 text-yellow-600' :
-                    'bg-blue-100 text-blue-600'
-                  }`}>
-                    {log.level}
-                  </span>
-                  <span className="text-gray-700">{log.message}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <SystemLogsCard />
         </div>
       )}
 
