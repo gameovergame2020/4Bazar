@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Monitor, Clock, AlertTriangle, CheckCircle, TrendingUp, Users, MessageCircle, UserCheck, UserX, UserClock } from 'lucide-react';
+import { Monitor, Clock, AlertTriangle, CheckCircle, TrendingUp, Users, MessageCircle, UserCheck, UserX } from 'lucide-react';
 
 interface OperatorStats {
   totalOrders: number;
@@ -141,7 +141,7 @@ const StatsCards: React.FC<StatsCardsProps> = ({ stats, onActiveIssuesClick }) =
       <div className="bg-white rounded-xl p-4 border border-gray-100">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-yellow-100 rounded-lg">
-            <UserClock size={20} className="text-yellow-600" />
+            <Clock size={20} className="text-yellow-600" />
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-900">{stats.userStats?.pendingOrders || 0}</p>
