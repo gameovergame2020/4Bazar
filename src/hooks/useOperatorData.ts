@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { dataService, Order, SupportTicket } from '../services/dataService';
 import { notificationService } from '../services/notificationService';
@@ -20,6 +19,12 @@ interface OperatorStats {
   avgResponseTime: number;
   activeUsers: number;
   customerSatisfaction: number;
+  userStats?: {
+    acceptedOrders: number;
+    cancelledOrders: number;
+    pendingOrders: number;
+    completedOrders: number;
+  };
 }
 
 export const useOperatorData = (userId?: string) => {
@@ -128,7 +133,13 @@ export const useOperatorData = (userId?: string) => {
         resolvedToday,
         avgResponseTime: Math.round(avgResponseTime * 10) / 10,
         activeUsers,
-        customerSatisfaction: Math.round(customerSatisfaction * 10) / 10
+        customerSatisfaction: Math.round(customerSatisfaction * 10) / 10,
+        userStats: {
+          acceptedOrders: allOrders.filter(order => ['accepted', 'preparing', 'ready'].includes(order.status)).length,
+          cancelledOrders: allOrders.filter(order => order.status === 'cancelled').length,
+          pendingOrders: allOrders.filter(order => order.status === 'pending').length,
+          completedOrders: allOrders.filter(order => order.status === 'delivered').length
+        }
       });
 
     } catch (error) {

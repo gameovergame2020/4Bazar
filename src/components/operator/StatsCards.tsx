@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Monitor, Clock, AlertTriangle, CheckCircle, TrendingUp, Users, MessageCircle } from 'lucide-react';
+import { Monitor, Clock, AlertTriangle, CheckCircle, TrendingUp, Users, MessageCircle, UserCheck, UserX, UserClock } from 'lucide-react';
 
 interface OperatorStats {
   totalOrders: number;
@@ -10,6 +10,12 @@ interface OperatorStats {
   avgResponseTime: number;
   activeUsers: number;
   customerSatisfaction: number;
+  userStats: {
+    acceptedOrders: number;
+    cancelledOrders: number;
+    pendingOrders: number;
+    completedOrders: number;
+  };
 }
 
 interface StatsCardsProps {
@@ -19,7 +25,7 @@ interface StatsCardsProps {
 
 const StatsCards: React.FC<StatsCardsProps> = ({ stats, onActiveIssuesClick }) => {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-11 gap-4"></div>
       <div className="bg-white rounded-xl p-4 border border-gray-100">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-blue-100 rounded-lg">
@@ -103,6 +109,43 @@ const StatsCards: React.FC<StatsCardsProps> = ({ stats, onActiveIssuesClick }) =
           <div>
             <p className="text-2xl font-bold text-gray-900">{stats.customerSatisfaction || 0}</p>
             <p className="text-sm text-gray-600">Mijoz mamnuniyati</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Foydalanuvchilar statistikasi */}
+      <div className="bg-white rounded-xl p-4 border border-gray-100">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-green-100 rounded-lg">
+            <UserCheck size={20} className="text-green-600" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">{stats.userStats?.acceptedOrders || 0}</p>
+            <p className="text-sm text-gray-600">Qabul qilingan</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl p-4 border border-gray-100">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-red-100 rounded-lg">
+            <UserX size={20} className="text-red-600" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">{stats.userStats?.cancelledOrders || 0}</p>
+            <p className="text-sm text-gray-600">Bekor qilingan</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl p-4 border border-gray-100">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-yellow-100 rounded-lg">
+            <UserClock size={20} className="text-yellow-600" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">{stats.userStats?.pendingOrders || 0}</p>
+            <p className="text-sm text-gray-600">Kutilmoqda (foydalanuvchilar)</p>
           </div>
         </div>
       </div>
