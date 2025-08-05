@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Star, TrendingUp, TrendingDown, User, Award, AlertTriangle, Download, Calendar, MapPin, Phone, Mail, Eye, Ban, CheckCircle, Clock, DollarSign, Package } from 'lucide-react';
 import { dataService } from '../../services/dataService';
+import { useAuth } from '../../hooks/useAuth';
 
 interface UserRating {
   userId: string;
@@ -30,6 +31,7 @@ interface UserRatingModalProps {
 }
 
 const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) => {
+  const { currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<UserRating[]>([]);
   const [sortBy, setSortBy] = useState<'orders' | 'cancelled' | 'rating' | 'spent' | 'frequency' | 'recent'>('orders');
@@ -49,7 +51,9 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
       const now = new Date();
       const filterDate = getFilterDate(timeFilter);
 
-      const userRatings: UserRating[] = allUsers.map(user => {
+      const userRatings: UserRating[] = allUsers
+        .filter(user => user.id !== currentUser?.uid) // Operator o'zini ko'rsatmasligi uchun
+        .map(user => {
         const userOrders = allOrders.filter(order => {
           const orderDate = order.createdAt;
           return order.customerId === user.id && 
