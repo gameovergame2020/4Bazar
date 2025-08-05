@@ -1,0 +1,63 @@
+❌ Orders subscription yaratishda xatolik: FirebaseError: Expected first argument to collection() to be a CollectionReference, a DocumentReference or FirebaseFirestore
+console.error @ firebase.ts:46
+createSubscription @ orderService.ts:658
+subscribeToOrders @ orderService.ts:663
+(anonymous) @ HomePage.tsx:168
+commitHookEffectListMount @ react-dom_client.js?v=4f0eba4c:16915
+invokePassiveEffectMountInDEV @ react-dom_client.js?v=4f0eba4c:18324
+invokeEffectsInDev @ react-dom_client.js?v=4f0eba4c:19701
+commitDoubleInvokeEffectsInDEV @ react-dom_client.js?v=4f0eba4c:19686
+flushPassiveEffectsImpl @ react-dom_client.js?v=4f0eba4c:19503
+flushPassiveEffects @ react-dom_client.js?v=4f0eba4c:19447
+(anonymous) @ react-dom_client.js?v=4f0eba4c:19328
+workLoop @ react-dom_client.js?v=4f0eba4c:197
+flushWork @ react-dom_client.js?v=4f0eba4c:176
+performWorkUntilDeadline @ react-dom_client.js?v=4f0eba4c:384Understand this error
+firebase.ts:46 Tortlarni yuklashda xatolik: FirebaseError: Expected first argument to collection() to be a CollectionReference, a DocumentReference or FirebaseFirestore
+console.error @ firebase.ts:46
+loadCakes @ HomePage.tsx:107
+await in loadCakes
+(anonymous) @ HomePage.tsx:44
+commitHookEffectListMount @ react-dom_client.js?v=4f0eba4c:16915
+commitPassiveMountOnFiber @ react-dom_client.js?v=4f0eba4c:18156
+commitPassiveMountEffects_complete @ react-dom_client.js?v=4f0eba4c:18129
+commitPassiveMountEffects_begin @ react-dom_client.js?v=4f0eba4c:18119
+commitPassiveMountEffects @ react-dom_client.js?v=4f0eba4c:18109
+flushPassiveEffectsImpl @ react-dom_client.js?v=4f0eba4c:19490
+flushPassiveEffects @ react-dom_client.js?v=4f0eba4c:19447
+(anonymous) @ react-dom_client.js?v=4f0eba4c:19328
+workLoop @ react-dom_client.js?v=4f0eba4c:197
+flushWork @ react-dom_client.js?v=4f0eba4c:176
+performWorkUntilDeadline @ react-dom_client.js?v=4f0eba4c:384Understand this error
+firebase.ts:46 Tortlarni yuklashda xatolik: FirebaseError: Expected first argument to collection() to be a CollectionReference, a DocumentReference or FirebaseFirestore
+console.error @ firebase.ts:46
+loadCakes @ HomePage.tsx:107
+await in loadCakes
+(anonymous) @ HomePage.tsx:115
+commitHookEffectListMount @ react-dom_client.js?v=4f0eba4c:16915
+commitPassiveMountOnFiber @ react-dom_client.js?v=4f0eba4c:18156
+commitPassiveMountEffects_complete @ react-dom_client.js?v=4f0eba4c:18129
+commitPassiveMountEffects_begin @ react-dom_client.js?v=4f0eba4c:18119
+commitPassiveMountEffects @ react-dom_client.js?v=4f0eba4c:18109
+flushPassiveEffectsImpl @ react-dom_client.js?v=4f0eba4c:19490
+flushPassiveEffects @ react-dom_client.js?v=4f0eba4c:19447
+(anonymous) @ react-dom_client.js?v=4f0eba4c:19328
+workLoop @ react-dom_client.js?v=4f0eba4c:197
+flushWork @ react-dom_client.js?v=4f0eba4c:176
+performWorkUntilDeadline @ react-dom_client.js?v=4f0eba4c:384Understand this error
+firebase.ts:46 Tortlarni yuklashda xatolik: FirebaseError: Expected first argument to collection() to be a CollectionReference, a DocumentReference or FirebaseFirestore
+console.error @ firebase.ts:46
+loadCakes @ HomePage.tsx:107
+await in loadCakes
+(anonymous) @ HomePage.tsx:44
+commitHookEffectListMount @ react-dom_client.js?v=4f0eba4c:16915
+invokePassiveEffectMountInDEV @ react-dom_client.js?v=4f0eba4c:18324
+invokeEffectsInDev @ react-dom_client.js?v=4f0eba4c:19701
+commitDoubleInvokeEffectsInDEV @ react-dom_client.js?v=4f0eba4c:19686
+flushPassiveEffectsImpl @ react-dom_client.js?v=4f0eba4c:19503
+flushPassiveEffects @ react-dom_client.js?v=4f0eba4c:19447
+(anonymous) @ react-dom_client.js?v=4f0eba4c:19328
+workLoop @ react-dom_client.js?v=4f0eba4c:197
+flushWork @ react-dom_client.js?v=4f0eba4c:176
+performWorkUntilDeadline @ react-dom_client.js?v=4f0eba4c:384Understand this error
+firebase.ts:46 Tortlarni yuklashda xatolik: FirebaseError: Expected first argument to collection() to be a CollectionReference, a DocumentReference or FirebaseFirestore
