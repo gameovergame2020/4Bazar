@@ -656,33 +656,22 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pb-20">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-lg shadow-sm border-b border-white/20 sticky top-0 z-50">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <div className="flex items-center space-x-3">
-              <button 
-                onClick={onBack}
-                className="group p-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200"
-              >
-                <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-              </button>
-              <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-                  Kuryer Profili
-                </h1>
-                <p className="text-xs text-slate-500">Shaxsiy ma'lumotlar va sozlamalar</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span>Online</span>
-              </div>
-            </div>
+      {/* Simplified Header */}
+      <div className="px-4 py-3 max-w-7xl mx-auto">
+        <div className="flex items-center justify-between">
+          <button 
+            onClick={onBack}
+            className="flex items-center space-x-2 text-slate-600 hover:text-indigo-600 transition-colors"
+          >
+            <ArrowLeft size={18} />
+            <span className="text-sm font-medium">Orqaga</span>
+          </button>
+          <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span>Online</span>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Tab Navigation */}
       <div className="px-4 py-3">
