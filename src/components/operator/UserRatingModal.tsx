@@ -84,9 +84,13 @@ const UserRatingModal: React.FC<UserRatingModalProps> = ({ isOpen, onClose }) =>
         // Sevimli mahsulotlar (eng ko'p buyurtma qilingan)
         const productCounts: { [key: string]: number } = {};
         userOrders.forEach(order => {
-          order.items.forEach(item => {
-            productCounts[item.cakeId] = (productCounts[item.cakeId] || 0) + item.quantity;
-          });
+          if (order.items && Array.isArray(order.items)) {
+            order.items.forEach(item => {
+              if (item && item.cakeId) {
+                productCounts[item.cakeId] = (productCounts[item.cakeId] || 0) + (item.quantity || 1);
+              }
+            });
+          }
         });
         const favoriteProducts = Object.entries(productCounts)
           .sort(([,a], [,b]) => b - a)
