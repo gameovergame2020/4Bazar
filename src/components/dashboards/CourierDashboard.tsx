@@ -69,14 +69,10 @@ const CourierDashboard = () => {
   const [stats, setStats] = useState({
     todayDeliveries: 0,
     todayEarnings: 0,
-    weeklyDeliveries: 0,
-    weeklyEarnings: 0,
-    monthlyEarnings: 0,
-    averageRating: 4.8,
-    totalDeliveries: 0,
-    onTimePercentage: 95,
     activeOrders: 0,
-    completedToday: 0
+    completedToday: 0,
+    averageRating: 4.8,
+    onTimePercentage: 95
   });
 
   // Ma'lumotlarni yuklash
@@ -144,21 +140,17 @@ const CourierDashboard = () => {
       setActiveOrders(mockActiveOrders);
       setCompletedOrders(mockCompletedOrders);
 
-      // Statistikalarni hisoblash
+      // Bugungi ish statistikasi
       const todayDeliveries = mockCompletedOrders.length + 5;
       const todayEarnings = todayDeliveries * 18000;
       
       setStats({
         todayDeliveries,
         todayEarnings,
-        weeklyDeliveries: todayDeliveries * 6,
-        weeklyEarnings: todayEarnings * 6,
-        monthlyEarnings: todayEarnings * 25,
-        averageRating: 4.8,
-        totalDeliveries: 157,
-        onTimePercentage: 96,
         activeOrders: mockActiveOrders.length,
-        completedToday: mockCompletedOrders.length
+        completedToday: mockCompletedOrders.length,
+        averageRating: 4.8,
+        onTimePercentage: 96
       });
 
     } catch (error) {
@@ -303,8 +295,19 @@ const CourierDashboard = () => {
         </div>
       </div>
 
-      {/* Quick Stats */}
+      {/* Today's Work Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 sm:p-3 bg-orange-100 rounded-xl">
+              <AlertCircle size={20} sm:size={24} className="text-orange-600" />
+            </div>
+            <span className="text-orange-600 text-xs sm:text-sm font-medium">Faol</span>
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold text-slate-900">{stats.activeOrders}</p>
+          <p className="text-slate-600 text-xs sm:text-sm">Buyurtmalar</p>
+        </div>
+
         <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200">
           <div className="flex items-center justify-between mb-3">
             <div className="p-2 sm:p-3 bg-blue-100 rounded-xl">
@@ -313,7 +316,7 @@ const CourierDashboard = () => {
             <span className="text-blue-600 text-xs sm:text-sm font-medium">Bugun</span>
           </div>
           <p className="text-2xl sm:text-3xl font-bold text-slate-900">{stats.todayDeliveries}</p>
-          <p className="text-slate-600 text-xs sm:text-sm">Yetkazish</p>
+          <p className="text-slate-600 text-xs sm:text-sm">Yetkazildi</p>
         </div>
 
         <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200">
@@ -329,19 +332,8 @@ const CourierDashboard = () => {
 
         <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200">
           <div className="flex items-center justify-between mb-3">
-            <div className="p-2 sm:p-3 bg-yellow-100 rounded-xl">
-              <Star size={20} sm:size={24} className="text-yellow-600" />
-            </div>
-            <span className="text-yellow-600 text-xs sm:text-sm font-medium">Reyting</span>
-          </div>
-          <p className="text-2xl sm:text-3xl font-bold text-slate-900">{stats.averageRating}</p>
-          <p className="text-slate-600 text-xs sm:text-sm">O'rtacha</p>
-        </div>
-
-        <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200">
-          <div className="flex items-center justify-between mb-3">
             <div className="p-2 sm:p-3 bg-purple-100 rounded-xl">
-              <Target size={20} sm:size={24} className="text-purple-600" />
+              <Clock size={20} sm:size={24} className="text-purple-600" />
             </div>
             <span className="text-purple-600 text-xs sm:text-sm font-medium">Samarali</span>
           </div>
@@ -350,45 +342,9 @@ const CourierDashboard = () => {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <button className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 hover:shadow-lg transition-all group">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-            <Navigation size={20} sm:size={28} className="text-blue-600" />
-          </div>
-          <h4 className="font-semibold text-slate-900 text-sm sm:text-base mb-1">Xarita</h4>
-          <p className="text-xs sm:text-sm text-slate-500">Yo'nalish ko'rish</p>
-        </button>
+      
 
-        <button className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 hover:shadow-lg transition-all group">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-            <MessageCircle size={20} sm:size={28} className="text-green-600" />
-          </div>
-          <h4 className="font-semibold text-slate-900 text-sm sm:text-base mb-1">Aloqa</h4>
-          <p className="text-xs sm:text-sm text-slate-500">Mijozlar bilan</p>
-        </button>
-
-        <button 
-          onClick={() => setSelectedView('stats')}
-          className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 hover:shadow-lg transition-all group"
-        >
-          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-            <BarChart3 size={20} sm:size={28} className="text-purple-600" />
-          </div>
-          <h4 className="font-semibold text-slate-900 text-sm sm:text-base mb-1">Hisobot</h4>
-          <p className="text-xs sm:text-sm text-slate-500">Ish natijasi</p>
-        </button>
-
-        <button className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 hover:shadow-lg transition-all group">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-            <Award size={20} sm:size={28} className="text-orange-600" />
-          </div>
-          <h4 className="font-semibold text-slate-900 text-sm sm:text-base mb-1">Mukofotlar</h4>
-          <p className="text-xs sm:text-sm text-slate-500">Yutuqlarim</p>
-        </button>
-      </div>
-
-      {/* View Selector */}
+      {/* Orders Management */}
       <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0 mb-6">
           <div className="flex items-center space-x-2 bg-slate-100 rounded-xl p-1 w-full sm:w-auto">
@@ -411,16 +367,6 @@ const CourierDashboard = () => {
               }`}
             >
               Tugallangan ({stats.completedToday})
-            </button>
-            <button
-              onClick={() => setSelectedView('stats')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all flex-1 sm:flex-none ${
-                selectedView === 'stats'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Statistika
             </button>
           </div>
 
@@ -599,49 +545,7 @@ const CourierDashboard = () => {
           </div>
         )}
 
-        {selectedView === 'stats' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Haftalik statistika */}
-              <div className="bg-slate-50 rounded-2xl p-6">
-                <h4 className="text-lg font-semibold text-slate-900 mb-4">Haftalik ko'rsatkichlar</h4>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Yetkazishlar soni</span>
-                    <span className="font-bold text-slate-900">{stats.weeklyDeliveries}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Haftalik daromad</span>
-                    <span className="font-bold text-green-600">{formatPrice(stats.weeklyEarnings)}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">O'rtacha kunlik</span>
-                    <span className="font-bold text-blue-600">{formatPrice(stats.weeklyEarnings / 7)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Oylik statistika */}
-              <div className="bg-slate-50 rounded-2xl p-6">
-                <h4 className="text-lg font-semibold text-slate-900 mb-4">Oylik natijalar</h4>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Oylik daromad</span>
-                    <span className="font-bold text-green-600">{formatPrice(stats.monthlyEarnings)}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Jami yetkazishlar</span>
-                    <span className="font-bold text-slate-900">{stats.totalDeliveries}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Vaqtida yetkazish</span>
-                    <span className="font-bold text-purple-600">{stats.onTimePercentage}%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        
       </div>
     </div>
   );

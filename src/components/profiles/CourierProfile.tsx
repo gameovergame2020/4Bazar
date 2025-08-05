@@ -212,95 +212,87 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
         </div>
       </div>
 
-      {/* Today's Quick Stats */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white rounded-xl p-4 border border-slate-200">
-          <div className="flex items-center justify-between mb-2">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Package size={18} className="text-blue-600" />
-            </div>
-            <span className="text-blue-600 text-xs font-medium">Bugun</span>
-          </div>
-          <p className="text-2xl font-bold text-slate-900">{stats.todayDeliveries}</p>
-          <p className="text-slate-600 text-sm">Yetkazish</p>
-        </div>
-
-        <div className="bg-white rounded-xl p-4 border border-slate-200">
-          <div className="flex items-center justify-between mb-2">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <DollarSign size={18} className="text-green-600" />
-            </div>
-            <span className="text-green-600 text-xs font-medium">Bugun</span>
-          </div>
-          <p className="text-xl font-bold text-slate-900">{Math.round(stats.todayEarnings / 1000)}K</p>
-          <p className="text-slate-600 text-sm">Daromad</p>
-        </div>
-      </div>
-
-      {/* Active Orders */}
+      {/* Career Progress */}
       <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="font-semibold text-slate-900">Faol buyurtmalar</h4>
-          <span className="bg-orange-100 text-orange-600 px-2 py-1 rounded-full text-xs font-medium">
-            {stats.activeOrders}
-          </span>
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <div>
-                <p className="text-sm font-medium">Buyurtma #1234</p>
-                <p className="text-xs text-slate-500">Chilonzor tumani</p>
-              </div>
-            </div>
-            <button className="text-blue-600 text-sm font-medium">Ko'rish</button>
+        <h4 className="font-semibold text-slate-900 mb-3">Martaba rivojlanishi</h4>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-slate-600 text-sm">Keyingi daraja</span>
+            <span className="font-bold text-blue-600">Pro Kuryer</span>
           </div>
-          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-              <div>
-                <p className="text-sm font-medium">Buyurtma #1235</p>
-                <p className="text-xs text-slate-500">Yashnobod tumani</p>
-              </div>
-            </div>
-            <button className="text-blue-600 text-sm font-medium">Ko'rish</button>
+          <div className="w-full bg-slate-200 rounded-full h-2">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full" style={{width: '75%'}}></div>
+          </div>
+          <div className="flex justify-between text-xs text-slate-500">
+            <span>75% bajarildi</span>
+            <span>25 ta yetkazish qoldi</span>
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-3">
-        <button className="bg-white rounded-xl p-4 border border-slate-200 hover:shadow-md transition-all group">
-          <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-            <Navigation size={20} className="text-blue-600" />
+      {/* Achievements */}
+      <div className="bg-white rounded-xl p-4 border border-slate-200">
+        <h4 className="font-semibold text-slate-900 mb-3">So'nggi yutuqlar</h4>
+        <div className="space-y-2">
+          <div className="flex items-center space-x-3 p-2 bg-yellow-50 rounded-lg">
+            <div className="p-2 bg-yellow-100 rounded-lg">
+              <Award size={16} className="text-yellow-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-slate-900">100+ Yetkazish</p>
+              <p className="text-xs text-slate-500">Yuz martalik yutuq</p>
+            </div>
           </div>
-          <h4 className="font-medium text-slate-900 text-sm mb-1">Xarita</h4>
-          <p className="text-xs text-slate-500">Yo'nalish</p>
+          <div className="flex items-center space-x-3 p-2 bg-blue-50 rounded-lg">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Star size={16} className="text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-slate-900">Tez Yetkazish</p>
+              <p className="text-xs text-slate-500">15 daqiqada yetkazish</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Profile Quick Actions */}
+      <div className="grid grid-cols-2 gap-3">
+        <button 
+          onClick={() => setActiveSection('profile')}
+          className="bg-white rounded-xl p-4 border border-slate-200 hover:shadow-md transition-all group"
+        >
+          <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+            <Edit2 size={20} className="text-blue-600" />
+          </div>
+          <h4 className="font-medium text-slate-900 text-sm mb-1">Tahrirlash</h4>
+          <p className="text-xs text-slate-500">Ma'lumotlar</p>
         </button>
 
-        <button className="bg-white rounded-xl p-4 border border-slate-200 hover:shadow-md transition-all group">
+        <button 
+          onClick={() => setActiveSection('community')}
+          className="bg-white rounded-xl p-4 border border-slate-200 hover:shadow-md transition-all group"
+        >
           <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-            <MessageCircle size={20} className="text-green-600" />
+            <Users size={20} className="text-green-600" />
           </div>
-          <h4 className="font-medium text-slate-900 text-sm mb-1">Aloqa</h4>
-          <p className="text-xs text-slate-500">Mijozlar</p>
+          <h4 className="font-medium text-slate-900 text-sm mb-1">Jamiyat</h4>
+          <p className="text-xs text-slate-500">Aloqa</p>
         </button>
 
         <button className="bg-white rounded-xl p-4 border border-slate-200 hover:shadow-md transition-all group">
           <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-            <BarChart3 size={20} className="text-purple-600" />
+            <Download size={20} className="text-purple-600" />
           </div>
-          <h4 className="font-medium text-slate-900 text-sm mb-1">Hisobot</h4>
-          <p className="text-xs text-slate-500">Statistika</p>
+          <h4 className="font-medium text-slate-900 text-sm mb-1">Export</h4>
+          <p className="text-xs text-slate-500">Ma'lumotlar</p>
         </button>
 
         <button className="bg-white rounded-xl p-4 border border-slate-200 hover:shadow-md transition-all group">
           <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-            <Award size={20} className="text-orange-600" />
+            <HelpCircle size={20} className="text-orange-600" />
           </div>
-          <h4 className="font-medium text-slate-900 text-sm mb-1">Mukofot</h4>
-          <p className="text-xs text-slate-500">Yutuqlar</p>
+          <h4 className="font-medium text-slate-900 text-sm mb-1">Yordam</h4>
+          <p className="text-xs text-slate-500">Qo'llab-quvvatlash</p>
         </button>
       </div>
 
