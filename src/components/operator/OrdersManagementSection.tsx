@@ -32,6 +32,8 @@ const OrdersManagementSection: React.FC<OrdersManagementSectionProps> = ({
 }) => {
   const [selectedOrderFilter, setSelectedOrderFilter] = useState('all');
   const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const getOrderStatusColor = (status: Order['status']) => {
     switch (status) {
@@ -64,11 +66,31 @@ const OrdersManagementSection: React.FC<OrdersManagementSectionProps> = ({
     return order.status === selectedOrderFilter;
   });
 
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentOrders = filteredOrders.slice(startIndex, endIndex);
+
+  // Reset to first page when filter changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedOrderFilter, itemsPerPage]);
+
   return (
     <div className="bg-white rounded-2xl p-6 border border-gray-100">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Buyurtmalar boshqaruvi</h3>
         <div className="flex items-center space-x-3">
+          <select
+            value={itemsPerPage}
+            onChange={(e) => setItemsPerPage(Number(e.target.value))}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+          >
+            <option value={10}>10 ta ko'rsatish</option>
+            <option value={20}>20 ta ko'rsatish</option>
+            <option value={50}>50 ta ko'rsatish</option>
+          </select>
           <select
             value={selectedOrderFilter}
             onChange={(e) => setSelectedOrderFilter(e.target.value)}
@@ -161,7 +183,7 @@ const OrdersManagementSection: React.FC<OrdersManagementSectionProps> = ({
             </tr>
           </thead>
           <tbody>
-            {filteredOrders.map((order) => (
+            {currentOrders.map((order) => (
               <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="py-3 px-4 font-medium text-gray-900">#{order.orderUniqueId || order.id?.slice(-6)}</td>
                 <td className="py-3 px-4">
@@ -263,6 +285,73 @@ const OrdersManagementSection: React.FC<OrdersManagementSectionProps> = ({
           </div>
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {filteredOrders.length > 0 && totalPages > 1 && (
+        <div className="flex items-center justify-between mt-6 px-4 py-3 border-t border-gray-200">
+          <div className="flex items-center text-sm text-gray-700">
+            <span>
+              {startIndex + 1}-{Math.min(endIndex, filteredOrders.length)} / {filteredOrders.length} buyurtma
+            </span>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Oldingi
+            </button>
+            
+            <div className="flex items-center space-x-1">
+              {[...Array(totalPages)].map((_, index) => {
+                const pageNumber = index + 1;
+                const isCurrentPage = pageNumber === currentPage;
+                
+                // Show first page, last page, current page, and pages around current page
+                if (
+                  pageNumber === 1 ||
+                  pageNumber === totalPages ||
+                  (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                ) {
+                  return (
+                    <button
+                      key={pageNumber}
+                      onClick={() => setCurrentPage(pageNumber)}
+                      className={`px-3 py-1 text-sm font-medium rounded-md ${
+                        isCurrentPage
+                          ? 'bg-yellow-500 text-white'
+                          : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNumber}
+                    </button>
+                  );
+                } else if (
+                  pageNumber === currentPage - 2 ||
+                  pageNumber === currentPage + 2
+                ) {
+                  return (
+                    <span key={pageNumber} className="px-2 py-1 text-sm text-gray-400">
+                      ...
+                    </span>
+                  );
+                }
+                return null;
+              })}
+            </div>
+            
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Keyingi
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Order Details Modal */}
       {selectedOrderForDetails && (
