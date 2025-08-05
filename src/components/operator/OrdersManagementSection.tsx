@@ -389,6 +389,9 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   const [userOrders, setUserOrders] = React.useState<Order[]>([]);
   const [loadingUserOrders, setLoadingUserOrders] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<'order' | 'customer'>('order');
+  const [yandexMap, setYandexMap] = React.useState<any>(null);
+  const [mapLoaded, setMapLoaded] = React.useState(false);
+  const mapRef = React.useRef<HTMLDivElement>(null);
 
   // Foydalanuvchining boshqa buyurtmalarini yuklash
   React.useEffect(() => {
@@ -413,6 +416,72 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
 
     loadUserOrders();
   }, [order.customerId, order.id, activeTab]);
+
+  // Xaritani yuklash
+  const initializeMap = async () => {
+    if (!order.coordinates || !mapRef.current || mapLoaded) return;
+
+    try {
+      const { yandexMapsService } = await import('../../services/yandexMapsService');
+      await yandexMapsService.loadYandexMaps();
+
+      if (!window.ymaps) return;
+
+      window.ymaps.ready(() => {
+        if (!mapRef.current) return;
+
+        const map = new window.ymaps.Map(mapRef.current, {
+          center: [order.coordinates.lat, order.coordinates.lng],
+          zoom: 16,
+          controls: ['zoomControl']
+        });
+
+        const placemark = new window.ymaps.Placemark(
+          [order.coordinates.lat, order.coordinates.lng],
+          {
+            hintContent: 'Yetkazib berish manzili',
+            balloonContent: `
+              <div style="padding: 10px;">
+                <strong>Yetkazib berish manzili:</strong><br>
+                ${order.deliveryAddress}<br><br>
+                <strong>Mijoz:</strong> ${order.customerName}<br>
+                <strong>Telefon:</strong> ${order.customerPhone}
+              </div>
+            `
+          },
+          {
+            preset: 'islands#redIcon'
+          }
+        );
+
+        map.geoObjects.add(placemark);
+        setYandexMap(map);
+        setMapLoaded(true);
+      });
+    } catch (error) {
+      console.error('Xaritani yuklashda xato:', error);
+    }
+  };
+
+  // Xaritani yuklash
+  React.useEffect(() => {
+    if (activeTab === 'order' && order.coordinates) {
+      setTimeout(initializeMap, 100);
+    }
+  }, [activeTab, order.coordinates]);
+
+  // Component o'chirilganda xaritani tozalash
+  React.useEffect(() => {
+    return () => {
+      if (yandexMap) {
+        try {
+          yandexMap.destroy();
+        } catch (error) {
+          console.warn('Xaritani tozalashda xato:', error);
+        }
+      }
+    };
+  }, [yandexMap]);
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -518,6 +587,28 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             {order.coordinates && (
               <div className="mt-2 text-xs text-gray-500">
                 📍 Koordinatalar: {order.coordinates.lat?.toFixed(6)}, {order.coordinates.lng?.toFixed(6)}
+              </div>
+            )}
+
+            {/* Xarita */}
+            {order.coordinates && (
+              <div className="mt-4">
+                <h6 className="font-medium text-gray-900 mb-3">Xaritada joylashuv:</h6>
+                <div className="bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                  <div 
+                    ref={mapRef}
+                    className="w-full h-64"
+                    style={{ minHeight: '256px' }}
+                  />
+                  {!mapLoaded && order.coordinates && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                      <div className="text-center">
+                        <div className="animate-spin h-8 w-8 border-2 border-gray-300 border-t-blue-600 rounded-full mx-auto mb-2"></div>
+                        <p className="text-sm text-gray-600">Xarita yuklanmoqda...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
