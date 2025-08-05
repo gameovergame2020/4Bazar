@@ -72,7 +72,10 @@ const CourierDashboard = () => {
     activeOrders: 0,
     completedToday: 0,
     averageRating: 4.8,
-    onTimePercentage: 95
+    onTimePercentage: 95,
+    totalDeliveries: 0,
+    weeklyDeliveries: 0,
+    monthlyEarnings: 0
   });
 
   // Ma'lumotlarni yuklash
@@ -238,119 +241,123 @@ const CourierDashboard = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6 pb-6">
-      {/* Header - Online/Offline Status */}
-      <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
+      {/* Optimized Header */}
+      <div className="bg-gradient-to-r from-white to-slate-50 rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-sm">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="relative">
               <img 
                 src={userData?.avatar || 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100'}
                 alt={userData?.name}
-                className="w-16 h-16 rounded-2xl object-cover border-4 border-white shadow-lg"
+                className="w-14 h-14 rounded-xl object-cover border-2 border-white shadow-md"
               />
-              <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-3 border-white ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+              <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}>
+                {isOnline && <div className="w-full h-full bg-green-400 rounded-full animate-pulse"></div>}
+              </div>
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Salom, {userData?.name}!</h2>
-              <p className="text-slate-600 text-sm sm:text-base">
-                {isOnline ? 'Siz onlinesiz va buyurtmalar qabul qilishingiz mumkin' : 'Offlaynsiz - buyurtmalar to\'xtatilgan'}
-              </p>
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900">{userData?.name}</h2>
+              <div className="flex items-center space-x-2">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  isOnline ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {isOnline ? 'Faol' : 'Nofaol'}
+                </span>
+                <span className="text-slate-500 text-sm">•</span>
+                <span className="text-slate-500 text-sm">{stats.todayDeliveries} ta yetkazildi</span>
+              </div>
             </div>
           </div>
           
-          <div className="flex items-center space-x-3 w-full sm:w-auto">
+          <div className="flex items-center space-x-2">
             <button
               onClick={handleStatusToggle}
-              className={`flex items-center space-x-2 px-4 sm:px-6 py-3 rounded-xl font-medium transition-all flex-1 sm:flex-none justify-center ${
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
                 isOnline 
                   ? 'bg-red-500 hover:bg-red-600 text-white' 
                   : 'bg-green-500 hover:bg-green-600 text-white'
               }`}
             >
-              {isOnline ? <Pause size={18} /> : <Play size={18} />}
-              <span>{isOnline ? 'To\'xtatish' : 'Boshlash'}</span>
+              {isOnline ? <Pause size={16} /> : <Play size={16} />}
+              <span className="hidden sm:inline">{isOnline ? 'To\'xtatish' : 'Boshlash'}</span>
             </button>
             
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => openUserProfile(userData)}
-                className="p-3 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-              >
-                <User size={20} />
-              </button>
-              <button
-                onClick={() => setShowSettings(true)}
-                className="p-3 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all"
-              >
-                <Settings size={20} />
-              </button>
-              <button
-                onClick={logout}
-                className="p-3 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-              >
-                <LogOut size={20} />
-              </button>
-            </div>
+            <button
+              onClick={() => openUserProfile(userData)}
+              className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+            >
+              <User size={18} />
+            </button>
+            <button
+              onClick={() => setShowSettings(true)}
+              className="p-2 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-all"
+            >
+              <Settings size={18} />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Today's Work Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-2 sm:p-3 bg-orange-100 rounded-xl">
-              <AlertCircle size={20} sm:size={24} className="text-orange-600" />
+      {/* Optimized Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-orange-500 rounded-lg">
+              <AlertCircle size={18} className="text-white" />
             </div>
-            <span className="text-orange-600 text-xs sm:text-sm font-medium">Faol</span>
+            <div>
+              <p className="text-2xl font-bold text-orange-900">{stats.activeOrders}</p>
+              <p className="text-orange-700 text-sm font-medium">Faol buyurtma</p>
+            </div>
           </div>
-          <p className="text-2xl sm:text-3xl font-bold text-slate-900">{stats.activeOrders}</p>
-          <p className="text-slate-600 text-xs sm:text-sm">Buyurtmalar</p>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-2 sm:p-3 bg-blue-100 rounded-xl">
-              <Package size={20} sm:size={24} className="text-blue-600" />
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-500 rounded-lg">
+              <Package size={18} className="text-white" />
             </div>
-            <span className="text-blue-600 text-xs sm:text-sm font-medium">Bugun</span>
+            <div>
+              <p className="text-2xl font-bold text-blue-900">{stats.todayDeliveries}</p>
+              <p className="text-blue-700 text-sm font-medium">Bugun yetkazildi</p>
+            </div>
           </div>
-          <p className="text-2xl sm:text-3xl font-bold text-slate-900">{stats.todayDeliveries}</p>
-          <p className="text-slate-600 text-xs sm:text-sm">Yetkazildi</p>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-2 sm:p-3 bg-green-100 rounded-xl">
-              <DollarSign size={20} sm:size={24} className="text-green-600" />
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-green-500 rounded-lg">
+              <DollarSign size={18} className="text-white" />
             </div>
-            <span className="text-green-600 text-xs sm:text-sm font-medium">Bugun</span>
+            <div>
+              <p className="text-xl font-bold text-green-900">{Math.round(stats.todayEarnings / 1000)}K</p>
+              <p className="text-green-700 text-sm font-medium">Bugungi daromad</p>
+            </div>
           </div>
-          <p className="text-xl sm:text-2xl font-bold text-slate-900">{Math.round(stats.todayEarnings / 1000)}K</p>
-          <p className="text-slate-600 text-xs sm:text-sm">Daromad</p>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-2 sm:p-3 bg-purple-100 rounded-xl">
-              <Clock size={20} sm:size={24} className="text-purple-600" />
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-purple-500 rounded-lg">
+              <Star size={18} className="text-white" />
             </div>
-            <span className="text-purple-600 text-xs sm:text-sm font-medium">Samarali</span>
+            <div>
+              <p className="text-2xl font-bold text-purple-900">{stats.averageRating}</p>
+              <p className="text-purple-700 text-sm font-medium">Reyting</p>
+            </div>
           </div>
-          <p className="text-2xl sm:text-3xl font-bold text-slate-900">{stats.onTimePercentage}%</p>
-          <p className="text-slate-600 text-xs sm:text-sm">Vaqtida</p>
         </div>
       </div>
 
       
 
-      {/* Orders Management */}
-      <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0 mb-6">
-          <div className="flex items-center space-x-2 bg-slate-100 rounded-xl p-1 w-full sm:w-auto">
+      {/* Buyurtmalar boshqaruvi */}
+      <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-1 bg-slate-100 rounded-lg p-1">
             <button
               onClick={() => setSelectedView('active')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all flex-1 sm:flex-none ${
+              className={`px-3 py-2 rounded-md font-medium transition-all text-sm ${
                 selectedView === 'active'
                   ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
@@ -360,7 +367,7 @@ const CourierDashboard = () => {
             </button>
             <button
               onClick={() => setSelectedView('completed')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all flex-1 sm:flex-none ${
+              className={`px-3 py-2 rounded-md font-medium transition-all text-sm ${
                 selectedView === 'completed'
                   ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
@@ -371,31 +378,22 @@ const CourierDashboard = () => {
           </div>
 
           {selectedView === 'active' && (
-            <div className="flex items-center space-x-3 w-full sm:w-auto">
-              <div className="relative flex-1 sm:flex-none">
-                <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Qidiruv..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-48"
+                  className="pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm w-32 sm:w-40"
                 />
               </div>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as any)}
-                className="px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="all">Barchasi</option>
-                <option value="ready">Tayyor</option>
-                <option value="delivering">Yetkazilmoqda</option>
-              </select>
               <button
                 onClick={loadDashboardData}
-                className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
               >
-                <RefreshCw size={18} />
+                <RefreshCw size={16} />
               </button>
             </div>
           )}
@@ -412,97 +410,90 @@ const CourierDashboard = () => {
               </div>
             ) : (
               filteredActiveOrders.map((order) => (
-                <div key={order.id} className="bg-slate-50 rounded-2xl p-4 sm:p-6 border border-slate-200">
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0 mb-4">
-                    <div className="flex items-start space-x-4">
-                      <div className={`p-3 rounded-xl ${
+                <div key={order.id} className="bg-gradient-to-r from-slate-50 to-white rounded-xl p-4 border border-slate-200 hover:shadow-md transition-all">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className={`p-2 rounded-lg ${
                         order.priority === 'urgent' ? 'bg-red-100' : 'bg-blue-100'
                       }`}>
-                        <Package size={24} className={
+                        <Package size={20} className={
                           order.priority === 'urgent' ? 'text-red-600' : 'text-blue-600'
                         } />
                       </div>
                       <div>
                         <div className="flex items-center space-x-2">
-                          <h4 className="font-semibold text-slate-900 text-sm sm:text-base">{order.customerName}</h4>
+                          <h4 className="font-semibold text-slate-900">{order.customerName}</h4>
                           {order.priority === 'urgent' && (
-                            <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+                            <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full">
                               Shoshilinch
                             </span>
                           )}
                         </div>
-                        <p className="text-slate-600 text-xs sm:text-sm mt-1">#{order.id}</p>
-                        <div className="flex items-center space-x-4 mt-2 text-xs sm:text-sm text-slate-500">
+                        <div className="flex items-center space-x-3 mt-1 text-xs text-slate-500">
                           <span className="flex items-center space-x-1">
-                            <MapPin size={14} />
+                            <MapPin size={12} />
                             <span>{order.distance}</span>
                           </span>
-                          <span className="flex items-center space-x-1">
-                            <Clock size={14} />
-                            <span>{new Date(order.orderTime).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}</span>
-                          </span>
+                          <span>#{order.id}</span>
                         </div>
                       </div>
                     </div>
-
-                    <div className="flex flex-col lg:items-end space-y-2">
-                      <span className="text-lg sm:text-xl font-bold text-slate-900">{formatPrice(order.total)}</span>
-                      <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
-                        order.status === 'ready' 
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-blue-100 text-blue-700'
+                    <div className="text-right">
+                      <span className="text-lg font-bold text-slate-900">{formatPrice(order.total)}</span>
+                      <div className={`text-xs font-medium mt-1 ${
+                        order.status === 'ready' ? 'text-green-600' : 'text-blue-600'
                       }`}>
                         {order.status === 'ready' ? 'Tayyor' : 'Yetkazilmoqda'}
-                      </span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-xl p-4 mb-4">
-                    <p className="text-slate-700 text-sm sm:text-base mb-3">
-                      <MapPin size={16} className="inline mr-2 text-slate-400" />
+                  <div className="bg-white rounded-lg p-3 mb-3 border">
+                    <p className="text-slate-700 text-sm mb-2">
+                      <MapPin size={14} className="inline mr-1 text-slate-400" />
                       {order.address}
                     </p>
-                    <div className="space-y-2">
-                      {order.items.map((item) => (
-                        <div key={item.id} className="flex justify-between text-sm">
-                          <span className="text-slate-600">{item.quantity}x {item.name}</span>
-                          <span className="font-medium">{formatPrice(item.price * item.quantity)}</span>
-                        </div>
+                    <div className="text-xs text-slate-600">
+                      {order.items.map((item, index) => (
+                        <span key={item.id}>
+                          {item.quantity}x {item.name}
+                          {index < order.items.length - 1 ? ', ' : ''}
+                        </span>
                       ))}
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                  <div className="grid grid-cols-3 gap-2">
                     <a
                       href={`tel:${order.customerPhone}`}
-                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-medium transition-all flex-1"
+                      className="flex items-center justify-center space-x-1 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all text-sm"
                     >
-                      <Phone size={18} />
+                      <Phone size={14} />
                       <span>Qo'ng'iroq</span>
                     </a>
                     
                     <button
                       onClick={() => window.open(`https://maps.google.com/maps?q=${encodeURIComponent(order.address)}`, '_blank')}
-                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-all flex-1"
+                      className="flex items-center justify-center space-x-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-all text-sm"
                     >
-                      <Navigation size={18} />
+                      <Navigation size={14} />
                       <span>Yo'nalish</span>
                     </button>
 
                     {order.status === 'ready' ? (
                       <button
                         onClick={() => handleOrderStatusUpdate(order.id, 'delivering')}
-                        className="flex items-center justify-center space-x-2 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium transition-all flex-1"
+                        className="flex items-center justify-center space-x-1 px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-all text-sm"
                       >
-                        <Play size={18} />
+                        <Play size={14} />
                         <span>Boshlash</span>
                       </button>
                     ) : (
                       <button
                         onClick={() => handleOrderStatusUpdate(order.id, 'delivered')}
-                        className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-medium transition-all flex-1"
+                        className="flex items-center justify-center space-x-1 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all text-sm"
                       >
-                        <CheckCircle size={18} />
+                        <CheckCircle size={14} />
                         <span>Tugallash</span>
                       </button>
                     )}
