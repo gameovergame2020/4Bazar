@@ -7,12 +7,13 @@ import { getAnalytics } from 'firebase/analytics';
 
 // Firebase konfiguratsiya obyekti
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBcEX52KvfyWY7tpIA6s4gcSVKAjT4Z9GQ",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "tortbazar.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "tortbazar",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "tortbazar.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "637277734867",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:637277734867:web:98dc476e1cc7c202d25126",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-ZEY7PY1BVX"
 };
 
 // Firebase konfiguratsiyasini tekshirish
@@ -28,12 +29,12 @@ console.log('🔍 Firebase configuration check:', {
   allKeysPresent: missingKeys.length === 0
 });
 
-if (missingKeys.length > 0) {
-  console.warn('⚠️ Firebase konfiguratsiyasi to\'liq emas. .env faylini to\'g\'ri to\'ldiring!', {
-    missingKeys,
-    envExample: 'VITE_FIREBASE_API_KEY=your_actual_api_key'
-  });
-}
+// Environment variables tekshirish
+console.log('🔍 Environment variables:', {
+  VITE_FIREBASE_API_KEY: import.meta.env.VITE_FIREBASE_API_KEY ? '✅ Set' : '❌ Missing',
+  VITE_FIREBASE_AUTH_DOMAIN: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ? '✅ Set' : '❌ Missing',
+  VITE_FIREBASE_PROJECT_ID: import.meta.env.VITE_FIREBASE_PROJECT_ID ? '✅ Set' : '❌ Missing'
+});
 
 // Firebase ilovasini ishga tushirish
 let app: any = null;
@@ -53,33 +54,26 @@ console.error = (...args) => {
 };
 
 try {
-  // Agar Firebase konfiguratsiyasi to'liq bo'lsa
-  if (missingKeys.length === 0) {
-    console.log('🚀 Firebase initialization starting...');
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    storage = getStorage(app);
-    
-    // Analytics faqat production environment'da
-    try {
-      analytics = getAnalytics(app);
-    } catch (analyticsError) {
-      console.warn('⚠️ Analytics initialization failed (normal in development):', analyticsError);
-    }
-    
-    console.log('✅ Firebase muvaffaqiyatli ishga tushirildi', {
-      app: !!app,
-      auth: !!auth,
-      db: !!db,
-      storage: !!storage,
-      analytics: !!analytics
-    });
-  } else {
-    console.error('❌ Firebase konfiguratsiyasi to\'liq emas, Firebase xizmatlar ishlamaydi');
-    console.error('Missing keys:', missingKeys);
-    throw new Error(`Firebase configuration incomplete. Missing: ${missingKeys.join(', ')}`);
+  console.log('🚀 Firebase initialization starting...');
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  storage = getStorage(app);
+  
+  // Analytics faqat production environment'da
+  try {
+    analytics = getAnalytics(app);
+  } catch (analyticsError) {
+    console.warn('⚠️ Analytics initialization failed (normal in development):', analyticsError);
   }
+  
+  console.log('✅ Firebase muvaffaqiyatli ishga tushirildi', {
+    app: !!app,
+    auth: !!auth,
+    db: !!db,
+    storage: !!storage,
+    analytics: !!analytics
+  });
 } catch (error) {
   console.error('❌ Firebase ishga tushirishda xato:', error);
   throw error;

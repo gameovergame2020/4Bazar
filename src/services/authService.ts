@@ -132,9 +132,9 @@ class AuthService {
   // Auth holatini kuzatish
   onAuthStateChange(callback: (user: User | null) => void) {
     if (!auth) {
-      console.warn('Firebase Auth is not initialized');
+      console.error('Firebase Auth is not initialized');
       callback(null);
-      return () => {}; // Return empty unsubscribe function
+      return () => {};
     }
     return onAuthStateChanged(auth, callback);
   }
