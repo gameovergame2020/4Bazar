@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Monitor, Clock, AlertTriangle, CheckCircle, TrendingUp, Users, MessageCircle, UserCheck, UserX } from 'lucide-react';
+import { Monitor, Clock, AlertTriangle, CheckCircle, TrendingUp, Users, MessageCircle, UserCheck, UserX, Star } from 'lucide-react';
 
 interface OperatorStats {
   totalOrders: number;
@@ -21,9 +21,10 @@ interface OperatorStats {
 interface StatsCardsProps {
   stats: OperatorStats;
   onActiveIssuesClick?: () => void;
+  onUserRatingClick?: () => void;
 }
 
-const StatsCards: React.FC<StatsCardsProps> = ({ stats, onActiveIssuesClick }) => {
+const StatsCards: React.FC<StatsCardsProps> = ({ stats, onActiveIssuesClick, onUserRatingClick }) => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-11 gap-4">
       <div className="bg-white rounded-xl p-4 border border-gray-100">
@@ -146,6 +147,21 @@ const StatsCards: React.FC<StatsCardsProps> = ({ stats, onActiveIssuesClick }) =
           <div>
             <p className="text-2xl font-bold text-gray-900">{stats.userStats?.pendingOrders || 0}</p>
             <p className="text-sm text-gray-600">Kutilmoqda (foydalanuvchilar)</p>
+          </div>
+        </div>
+      </div>
+
+      <div 
+        className="bg-white rounded-xl p-4 border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
+        onClick={onUserRatingClick}
+      >
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-purple-100 rounded-lg">
+            <Star size={20} className="text-purple-600" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">{stats.customerSatisfaction || 0}</p>
+            <p className="text-sm text-gray-600">Foydalanuvchilar reytingi</p>
           </div>
         </div>
       </div>

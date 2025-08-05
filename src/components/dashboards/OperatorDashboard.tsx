@@ -11,6 +11,7 @@ import StatsCards from '../operator/StatsCards';
 import SupportTicketsSection from '../operator/SupportTicketsSection';
 import OrdersManagementSection from '../operator/OrdersManagementSection';
 import EditOrderModal from '../operator/EditOrderModal';
+import UserRatingModal from '../operator/UserRatingModal';
 
 const OperatorDashboard = () => {
   const { userData, logout, updateUser } = useAuth();
@@ -57,6 +58,10 @@ const OperatorDashboard = () => {
     setSearchResult,
     handleSearchByOrderId
   } = useOrderSearch(setOrders);
+
+  const [activeTab, setActiveTab] = useState<'orders' | 'support'>('orders');
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [showUserRatingModal, setShowUserRatingModal] = useState(false);
 
   const handleActiveIssuesClick = () => {
     const supportSection = document.getElementById('support-tickets-section');
@@ -143,7 +148,11 @@ const OperatorDashboard = () => {
       </div>
 
       {/* Quick Stats */}
-      <StatsCards stats={stats} onActiveIssuesClick={handleActiveIssuesClick} />
+      <StatsCards 
+          stats={stats} 
+          onActiveIssuesClick={() => setActiveTab('support')}
+          onUserRatingClick={() => setShowUserRatingModal(true)}
+        />
 
       {/* Support Tickets */}
       <SupportTicketsSection 
@@ -168,27 +177,15 @@ const OperatorDashboard = () => {
 
       {/* Edit Order Modal */}
       <EditOrderModal
-        editingOrder={editingOrder}
-        orderItems={orderItems}
-        newProductSearchQuery={newProductSearchQuery}
-        editingCustomerInfo={editingCustomerInfo}
-        availableCakes={availableCakes}
-        onClose={() => {
-          setEditingOrder(null);
-          setOrderItems({});
-          setNewProductSearchQuery('');
-          setEditingCustomerInfo({
-            customerId: '',
-            customerName: '',
-            customerPhone: '',
-            deliveryAddress: ''
-          });
-        }}
-        onSave={(availableCakes) => handleSaveOrderChanges(availableCakes)}
-        onAddItem={(cakeId, availableCakes) => handleAddItemToOrder(cakeId, availableCakes)}
-        onRemoveItem={handleRemoveItemFromOrder}
-        setNewProductSearchQuery={setNewProductSearchQuery}
-        setEditingCustomerInfo={setEditingCustomerInfo}
+        isOpen={!!editingOrder}
+        order={editingOrder}
+        onClose={() => setEditingOrder(null)}
+        onSave={handleEditOrder}
+      />
+
+      <UserRatingModal
+        isOpen={showUserRatingModal}
+        onClose={() => setShowUserRatingModal(false)}
       />
     </div>
   );
