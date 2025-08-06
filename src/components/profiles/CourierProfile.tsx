@@ -703,13 +703,13 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                 const IconComponent = getAchievementIcon(achievement.id);
                 
                 return (
-                  <div key={achievement.id} className={`flex-shrink-0 text-center p-3 rounded-xl transition-all ${
+                  <div key={achievement.id} className={`flex-shrink-0 p-2 rounded-xl transition-all ${
                     achievement.unlocked 
                       ? 'bg-white/20 backdrop-blur-sm' 
                       : 'bg-white/5 backdrop-blur-sm opacity-60'
                   }`}>
-                    <div className="relative mb-2">
-                      <div className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center ${
+                    <div className="relative">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                         achievement.unlocked 
                           ? 'bg-white/20 text-white' 
                           : 'bg-white/10 text-white/50'
@@ -722,25 +722,6 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                         </div>
                       )}
                     </div>
-                    
-                    <h5 className="font-medium text-white text-xs mb-1 leading-tight">{achievement.name}</h5>
-                    
-                    {!achievement.unlocked && achievement.progress && (
-                      <div className="w-full bg-white/20 rounded-full h-1 mb-1">
-                        <div 
-                          className="bg-white h-1 rounded-full transition-all"
-                          style={{width: `${achievement.progress}%`}}
-                        ></div>
-                      </div>
-                    )}
-                    
-                    {achievement.unlocked && achievement.date && (
-                      <p className="text-xs text-white/70">{new Date(achievement.date).toLocaleDateString('uz-UZ', { month: 'short', day: 'numeric' })}</p>
-                    )}
-                    
-                    {!achievement.unlocked && achievement.progress && (
-                      <p className="text-xs text-white/60">{achievement.progress}%</p>
-                    )}
                   </div>
                 );
               })}
