@@ -38,7 +38,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
         mapInstanceRef.current = null;
       }
     }
-    
+
     // DOM ni xavfsiz tozalash
     if (mapRef.current) {
       try {
@@ -190,6 +190,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
         {isComponentMounted && (
           <div
             ref={mapRef}
+            id="leaflet-map"
             className="w-full h-64 bg-gray-100 rounded-lg border border-gray-200"
             style={{ minHeight: '300px' }}
           />

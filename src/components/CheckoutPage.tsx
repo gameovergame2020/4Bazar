@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { yandexMapsService } from '../services/yandexMapsService';
+import { leafletMapService } from '../services/leafletMapService';
 import UserInfoForm from './checkout/UserInfoForm';
 import AddressForm from './checkout/AddressForm';
 import OrderSummary from './checkout/OrderSummary';
@@ -96,7 +96,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const [isLoadingGeocoding, setIsLoadingGeocoding] = useState(false);
   const [geocodingError, setGeocodingError] = useState<string | null>(null);
   const [isMapInitialized, setIsMapInitialized] = useState(false);
-  const [isYmapsLoaded, setIsYmapsLoaded] = useState(false);
+  const [isLeafletLoaded, setIsLeafletLoaded] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [orderDetails, setOrderDetails] = useState<{
@@ -107,7 +107,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
-  const placemarkRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Mahsulotlar ro'yxatini yaratish
@@ -180,20 +180,20 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
   // Cleanup function - xavfsiz DOM tozalash
   const cleanup = useCallback(() => {
-    // Placemarkni xavfsiz o'chirish
-    if (placemarkRef.current && mapInstanceRef.current) {
+    // Markerni xavfsiz o'chirish
+    if (markerRef.current && mapInstanceRef.current) {
       try {
-        mapInstanceRef.current.geoObjects.remove(placemarkRef.current);
+        mapInstanceRef.current.removeLayer(markerRef.current);
       } catch (error) {
-        console.warn('Placemark o\'chirishda xato:', error);
+        console.warn('Marker o\'chirishda xato:', error);
       }
-      placemarkRef.current = null;
+      markerRef.current = null;
     }
 
     // Xaritani xavfsiz tozalash
     if (mapInstanceRef.current) {
       try {
-        mapInstanceRef.current.destroy();
+        mapInstanceRef.current.remove();
       } catch (error) {
         console.warn('Xaritani tozalashda xato:', error);
       }
@@ -217,7 +217,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
     const initMap = async () => {
       if (isMounted && !cleanupTriggered) {
-        await initializeYandexMap();
+        await initializeLeafletMap();
       }
     };
 
@@ -275,85 +275,50 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     setUserInfo(prev => ({ ...prev, ...updates }));
   };
 
-  // Yandex Maps ni ishga tushirish
-  const initializeYandexMap = async () => {
+  // Leaflet xaritasini ishga tushirish
+  const initializeLeafletMap = async () => {
     try {
-      console.log('🚀 Yandex Maps ishga tushirilmoqda...');
+      console.log('🚀 Leaflet xaritasi ishga tushirilmoqda...');
       setGeocodingError(null);
 
-      // API kalitini tekshirish
-      const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY;
-      if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_')) {
-        console.error('❌ API kaliti mavjud emas');
-        setGeocodingError('Yandex Maps API kaliti mavjud emas. .env faylida VITE_YANDEX_MAPS_API_KEY ni to\'ldiring.');
-
-        // API kalitisiz ham xaritani ko'rsatish (faqat statik)
-        await initSimpleMap();
-        return;
-      }
-
-      console.log('✅ API kaliti topildi');
-
-      // Yandex Maps servisini static import qilish
-      console.log('✅ yandexMapsService yuklandi');
-
-      // Yandex Maps ni yuklash
-      await yandexMapsService.loadYandexMaps();
-      setIsYmapsLoaded(true);
-      console.log('✅ Yandex Maps API yuklandi');
-
-      // ymaps.ready() ni kutish
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('ymaps.ready() timeout'));
-        }, 10000);
-
-        if (!window.ymaps) {
-          clearTimeout(timeout);
-          reject(new Error('window.ymaps mavjud emas'));
-          return;
-        }
-
-        window.ymaps.ready(() => {
-          clearTimeout(timeout);
-          console.log('✅ Yandex Maps API tayyor');
-          resolve();
-        });
-      });
+      // Leaflet kutubxonasini yuklash
+      await leafletMapService.loadLeaflet();
+      setIsLeafletLoaded(true);
+      console.log('✅ Leaflet API yuklandi');
 
       // Xaritani yaratish
       if (mapRef.current && !mapInstanceRef.current) {
         try {
-          console.log('🗺️ Xarita yaratilmoqda...');
+          console.log('🗺️ Leaflet xaritasi yaratilmoqda...');
 
-          mapInstanceRef.current = new window.ymaps.Map(mapRef.current, {
+          // Eski xarita kontentini tozalash
+          mapRef.current.innerHTML = '';
+
+          mapInstanceRef.current = leafletMapService.createMap(mapRef.current.id || 'leaflet-map', {
             center: [41.311158, 69.240562], // Toshkent koordinatalari
-            zoom: 12,
-            controls: ['zoomControl', 'fullscreenControl', 'geolocationControl']
+            zoom: 12
           });
 
-          console.log('✅ Xarita muvaffaqiyatli yaratildi');
+          console.log('✅ Leaflet xaritasi muvaffaqiyatli yaratildi');
           setIsMapInitialized(true);
           setGeocodingError(null);
 
           // Xarita click hodisasini qo'shish
-          mapInstanceRef.current.events.add('click', handleMapClick);
+          mapInstanceRef.current.on('click', handleLeafletMapClick);
 
         } catch (mapError) {
-          console.error('❌ Xarita yaratishda xato:', mapError);
+          console.error('❌ Leaflet xaritani yaratishda xato:', mapError);
           setGeocodingError('Xaritani yaratishda xato yuz berdi: ' + mapError.message);
           await initSimpleMap();
         }
       }
 
     } catch (error) {
-      console.error('❌ Yandex Maps ishga tushirishda xato:', error);
+      console.error('❌ Leaflet ishga tushirishda xato:', error);
 
       let errorMessage = 'Xaritani yuklashda xato yuz berdi';
       if (error && typeof error === 'object' && error.message) {
-        if (error.message.includes('API kaliti')) {
-          errorMessage = 'API kaliti noto\'g\'ri. .env faylida VITE_YANDEX_MAPS_API_KEY ni tekshiring.';
-        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+        if (error.message.includes('network') || error.message.includes('fetch')) {
           errorMessage = 'Internet aloqasi muammosi. Qaytadan urinib ko\'ring.';
         } else if (error.message.includes('timeout')) {
           errorMessage = 'Xarita yuklash vaqti tugadi. Qaytadan urinib ko\'ring.';
@@ -363,7 +328,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       }
 
       setGeocodingError(errorMessage);
-      setIsYmapsLoaded(false);
+      setIsLeafletLoaded(false);
       setIsMapInitialized(false);
 
       // Fallback - oddiy xarita
@@ -416,87 +381,60 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     }
   };
 
-  // Xarita bosilganda
-  const handleMapClick = async (e: any) => {
+  // Leaflet xarita bosilganda
+  const handleLeafletMapClick = async (e: any) => {
     try {
-      const coords = e.get('coords');
-      console.log('📍 Xaritada bosilgan koordinata:', coords);
+      const { lat, lng } = e.latlng;
+      const coords = [lat, lng];
+      console.log('📍 Leaflet xaritada bosilgan koordinata:', coords);
 
-      setSelectedCoordinates([coords[1], coords[0]]);
+      setSelectedCoordinates([lat, lng]);
 
-      if (placemarkRef.current && mapInstanceRef.current) {
-        mapInstanceRef.current.geoObjects.remove(placemarkRef.current);
+      // Eski markerni o'chirish
+      if (markerRef.current && mapInstanceRef.current) {
+        mapInstanceRef.current.removeLayer(markerRef.current);
       }
 
-      if (mapInstanceRef.current) {
-        placemarkRef.current = new window.ymaps.Placemark(coords, {
-          hintContent: 'Tanlangan manzil',
-          balloonContent: 'Yetkazib berish manzili'
-        }, {
-          preset: 'islands#redDotIcon'
-        });
-
-        mapInstanceRef.current.geoObjects.add(placemarkRef.current);
+      // Yangi marker qo'shish
+      if (mapInstanceRef.current && window.L) {
+        markerRef.current = window.L.marker([lat, lng])
+          .addTo(mapInstanceRef.current)
+          .bindPopup('Yetkazib berish manzili')
+          .openPopup();
       }
 
-      await reverseGeocode(coords);
+      await reverseGeocodeLeaflet([lat, lng]);
 
     } catch (error) {
-      console.error('❌ Xarita click xatosi:', error);
+      console.error('❌ Leaflet xarita click xatosi:', error);
     }
   };
 
-  // Koordinatani manzilga aylantirish
-  const reverseGeocode = async (coords: [number, number]) => {
+  // Leaflet reverse geocoding
+  const reverseGeocodeLeaflet = async (coords: [number, number]) => {
     try {
       setIsLoadingGeocoding(true);
       setGeocodingError(null);
 
-      console.log('🔄 Reverse geocoding boshlanmoqda:', coords);
+      console.log('🔄 Leaflet reverse geocoding boshlanmoqda:', coords);
 
       // Koordinatalarni tekshirish
       if (!coords || coords.length !== 2 || !coords[0] || !coords[1]) {
         throw new Error('Noto\'g\'ri koordinatalar');
       }
 
-      // Yandex Maps servisini tekshirish
-      if (!yandexMapsService.isYmapsReady()) {
-        console.warn('⚠️ Yandex Maps hali tayyor emas');
-        throw new Error('Yandex Maps xizmati mavjud emas');
-      }
+      console.log('📍 Reverse geocoding uchun koordinatalar:', coords);
 
-      console.log('📍 Geocoding uchun koordinatalar:', coords);
+      // Leaflet servisi orqali reverse geocoding
+      const address = await leafletMapService.reverseGeocode(coords[0], coords[1]);
 
-      // yandexMapsService.safeGeocode() dan foydalanish
-      const result = await yandexMapsService.safeGeocode(coords, {
-        kind: 'house',
-        results: 1,
-        lang: 'uz_UZ',
-        timeout: 8000
-      });
+      console.log('✅ Manzil topildi:', address);
 
-      console.log('🔍 Geocoding natijasi:', result);
-
-      if (!result || !result.geoObjects) {
-        throw new Error('Geocoding natijasi noto\'g\'ri');
-      }
-
-      const geoObjectsLength = result.geoObjects.getLength();
-      console.log('📊 Topilgan obyektlar soni:', geoObjectsLength);
-
-      if (geoObjectsLength > 0) {
-        const firstGeoObject = result.geoObjects.get(0);
-        if (firstGeoObject && firstGeoObject.getAddressLine) {
-          const address = firstGeoObject.getAddressLine();
-          console.log('✅ Manzil topildi:', address);
-
-          if (address && address.trim()) {
-            setDeliveryAddress(address);
-            setUserInfo(prev => ({ ...prev, address }));
-            setGeocodingError(null);
-            return;
-          }
-        }
+      if (address && address.trim()) {
+        setDeliveryAddress(address);
+        setUserInfo(prev => ({ ...prev, address }));
+        setGeocodingError(null);
+        return;
       }
 
       console.warn('⚠️ Ushbu koordinata uchun aniq manzil topilmadi');
@@ -506,27 +444,17 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       setGeocodingError('Aniq manzil topilmadi, koordinata sifatida saqlandi');
 
     } catch (error) {
-      console.error('❌ Reverse geocoding xatosi:', error);
+      console.error('❌ Leaflet reverse geocoding xatosi:', error);
 
       let errorMessage = 'Manzilni aniqlashda xato yuz berdi';
 
       if (error && typeof error === 'object') {
-        if (error.message?.includes('API kaliti noto\'g\'ri')) {
-          errorMessage = '🔑 Yandex Maps API kaliti noto\'g\'ri yoki mavjud emas. Developer Console da yangi kalit oling.';
-        } else if (error.message === 'scriptError' || error.message?.includes('scriptError')) {
-          errorMessage = '🔑 API kaliti muammosi: noto\'g\'ri, muddati tugagan yoki tarmoq xatosi. Yandex Developer Console ni tekshiring.';
-        } else if (error.message?.includes('Invalid API key') || error.message?.includes('invalid_key')) {
-          errorMessage = '🔑 API kaliti noto\'g\'ri. Yandex Developer Console dan yangi API kaliti oling.';
-        } else if (error.message?.includes('quota') || error.message?.includes('limit')) {
-          errorMessage = '📊 API cheklovi tugadi. Yandex Developer Console da tarif rejangizni tekshiring.';
-        } else if (error.message === 'Geocoding timeout' || error.message?.includes('timeout')) {
+        if (error.message === 'Reverse geocoding xatosi') {
+          errorMessage = '🌐 Nominatim xizmati vaqtincha mavjud emas. Qaytadan urinib ko\'ring.';
+        } else if (error.message?.includes('timeout')) {
           errorMessage = '⏱️ Xizmat vaqti tugadi. Internetni tekshiring va qaytadan urinib ko\'ring.';
         } else if (error.message === 'Noto\'g\'ri koordinatalar') {
           errorMessage = '📍 Tanlangan koordinatalar noto\'g\'ri';
-        } else if (error.message?.includes('API kaliti noto\'g\'ri konfiguratsiya')) {
-          errorMessage = error.message;
-        } else if (error.message?.includes('muddati tugagan')) {
-          errorMessage = '🔑 API kaliti muddati tugagan. Yangi API kaliti oling.';
         } else if (error.message) {
           errorMessage = `Xato: ${error.message}`;
         }
@@ -546,7 +474,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     }
   };
 
-  // Manzil qidirish (bepul va Yandex)
+  // Manzil qidirish (faqat bepul Nominatim API)
   const searchAddress = async (query: string) => {
     if (!query.trim() || query.length < 3) {
       setAddressSuggestions([]);
@@ -556,78 +484,31 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     try {
       console.log('🔍 Manzil qidirilmoqda:', query);
 
-      // Birinchi bepul Nominatim API orqali harakat qilamiz
-      try {
-        const suggestions = await searchAddressFree(query);
-        if (suggestions.length > 0) {
-          setAddressSuggestions(suggestions);
-          return;
-        }
-      } catch (freeError) {
-        console.warn('⚠️ Bepul qidiruv ishlamadi:', freeError);
-      }
+      // Leaflet servisi orqali bepul Nominatim API dan foydalanish
+      const results = await leafletMapService.searchAddress(query);
 
-      // Agar bepul qidiruv ishlamasa, Yandex Maps ga o'tamiz
-      if (!yandexMapsService.isYmapsReady()) {
-        console.warn('⚠️ Yandex Maps ham tayyor emas');
+      if (results.length > 0) {
+        const suggestions = results
+          .filter(item => item.display_name && item.display_name.includes('Tashkent'))
+          .map(item => item.display_name)
+          .slice(0, 5);
+
+        console.log('✅ Topilgan manzillar:', suggestions);
+        setAddressSuggestions(suggestions);
+      } else {
+        console.log('⚠️ Hech qanday manzil topilmadi');
         setAddressSuggestions([]);
-        return;
       }
-
-      const searchQuery = `Uzbekistan, Tashkent, ${query}`;
-      console.log('🔍 Qidiruv so\'rovi:', searchQuery);
-
-      // yandexMapsService.safeGeocode() dan foydalanish
-      const result = await yandexMapsService.safeGeocode(searchQuery, {
-        kind: 'house',
-        results: 5,
-        lang: 'uz_UZ',
-        boundedBy: [[40.0, 67.0], [42.0, 71.0]],
-        timeout: 8000
-      });
-
-      if (!result || !result.geoObjects) {
-        console.warn('⚠️ Qidiruv natijasi noto\'g\'ri');
-        setAddressSuggestions([]);
-        return;
-      }
-
-      const suggestions: string[] = [];
-      const geoObjectsLength = result.geoObjects.getLength();
-
-      console.log('📊 Topilgan obyektlar soni:', geoObjectsLength);
-
-      for (let i = 0; i < geoObjectsLength; i++) {
-        try {
-          const geoObject = result.geoObjects.get(i);
-          if (geoObject && geoObject.getAddressLine) {
-            const addressLine = geoObject.getAddressLine();
-            if (addressLine && addressLine.trim()) {
-              // Dublikatlarni oldini olish
-              if (!suggestions.includes(addressLine)) {
-                suggestions.push(addressLine);
-              }
-            }
-          }
-        } catch (itemError) {
-          console.warn(`⚠️ ${i}-obyektni olishda xato:`, itemError);
-        }
-      }
-
-      console.log('✅ Topilgan manzillar:', suggestions);
-      setAddressSuggestions(suggestions);
 
     } catch (error) {
       console.error('❌ Manzil qidirishda xato:', error);
       setAddressSuggestions([]);
 
       if (error && typeof error === 'object') {
-        if (error.message === 'scriptError' || error.message?.includes('scriptError')) {
-          setGeocodingError('API kaliti muammosi yoki tarmoq xatosi. Internetni tekshiring');
-        } else if (error.message?.includes('timeout')) {
+        if (error.message?.includes('timeout')) {
           setGeocodingError('Qidiruv vaqti tugadi. Qaytadan urinib ko\'ring');
-        } else if (error.message?.includes('API kaliti')) {
-          setGeocodingError('API kaliti noto\'g\'ri yoki muddati tugagan');
+        } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+          setGeocodingError('Internet aloqasi muammosi. Qaytadan urinib ko\'ring');
         }
       }
     }
@@ -642,49 +523,39 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     try {
       console.log('📍 Tanlangan manzil uchun koordinata qidirilmoqda:', address);
 
-      if (!yandexMapsService.isYmapsReady()) {
-        console.warn('yandexMapsService tayyor emas');
-        return;
-      }
+      // Leaflet servisi orqali koordinata qidirish
+      const results = await leafletMapService.searchAddress(address);
 
-      // yandexMapsService.safeGeocode() dan foydalanish
-      const result = await yandexMapsService.safeGeocode(address, {
-        kind: 'house',
-        results: 1,
-        lang: 'uz_UZ',
-        timeout: 8000
-      });
+      if (results.length > 0) {
+        const firstResult = results[0];
+        const lat = parseFloat(firstResult.lat);
+        const lon = parseFloat(firstResult.lon);
+        const coords = [lat, lon];
 
-      const firstGeoObject = result.geoObjects.get(0);
-      if (firstGeoObject) {
-        const coords = firstGeoObject.geometry.getCoordinates();
         console.log('✅ Koordinata topildi:', coords);
 
-        setSelectedCoordinates([coords[0], coords[1]]);
+        setSelectedCoordinates([lat, lon]);
 
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.setCenter(coords, 15);
+        if (mapInstanceRef.current && window.L) {
+          // Xaritani koordinataga yo'naltirish
+          mapInstanceRef.current.setView([lat, lon], 16);
 
-          if (placemarkRef.current) {
-            mapInstanceRef.current.geoObjects.remove(placemarkRef.current);
+          // Eski markerni o'chirish
+          if (markerRef.current) {
+            mapInstanceRef.current.removeLayer(markerRef.current);
           }
 
-          placemarkRef.current = new window.ymaps.Placemark(coords, {
-            hintContent: 'Tanlangan manzil',
-            balloonContent: address
-          }, {
-            preset: 'islands#redDotIcon'
-          });
-
-          mapInstanceRef.current.geoObjects.add(placemarkRef.current);
+          // Yangi marker qo'shish
+          markerRef.current = window.L.marker([lat, lon])
+            .addTo(mapInstanceRef.current)
+            .bindPopup(address)
+            .openPopup();
         }
       }
 
     } catch (error) {
       console.error('❌ Manzil uchun koordinata topishda xato:', error);
-      if (error && typeof error === 'object' && error.message?.includes('scriptError')) {
-        setGeocodingError('API kaliti muammosi. Yandex Developer Console ni tekshiring');
-      }
+      setGeocodingError('Manzil uchun koordinata topishda xato yuz berdi');
     }
   };
 
@@ -698,7 +569,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     }
 
     debounceTimeoutRef.current = setTimeout(() => {
-      if (mapInstanceRef.current && isMapInitialized && isYmapsLoaded) {
+      if (mapInstanceRef.current && isMapInitialized && isLeafletLoaded) {
         searchAddress(value);
       }
     }, 500);

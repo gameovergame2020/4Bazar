@@ -3,7 +3,7 @@
 declare global {
   interface Window {
     ymaps: any;
-    selectRestaurant: (index: number) => void;
+    L: any; // Leaflet
   }
 }
 
