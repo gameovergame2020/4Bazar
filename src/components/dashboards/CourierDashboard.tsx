@@ -252,56 +252,91 @@ const CourierDashboard = () => {
       console.log(`🚗 Yo'l hisoblanmoqda: Kuryer [${courierLocation}] → Buyurtmachi [${order.coordinates}]`);
 
       // Yo'lni hisoblash
-      const route = new window.ymaps.multiRouter.MultiRoute({
-        referencePoints: [
-          courierLocation,
-          order.coordinates
-        ],
-        params: {
-          routingMode: 'auto',
-          avoidTrafficJams: false
-        }
-      }, {
-        boundsAutoApply: true,
-        routeActiveStrokeWidth: 6,
-        routeActiveStrokeColor: '#4f46e5',
-        routeActiveStrokeOpacity: 0.8,
-        wayPointVisible: false,
-        balloonContentLayout: 'islands#balloonTemplate'
-      });
+      let route;
+      try {
+        route = new window.ymaps.multiRouter.MultiRoute({
+          referencePoints: [
+            courierLocation,
+            order.coordinates
+          ],
+          params: {
+            routingMode: 'auto',
+            avoidTrafficJams: false
+          }
+        }, {
+          boundsAutoApply: false, // Manual bounds control
+          routeActiveStrokeWidth: 6,
+          routeActiveStrokeColor: '#4f46e5',
+          routeActiveStrokeOpacity: 0.8,
+          wayPointVisible: false,
+          balloonContentLayout: 'islands#balloonTemplate'
+        });
+      } catch (routeError) {
+        console.error('❌ Route yaratishda xato:', routeError);
+        return;
+      }
 
       // Yo'l ma'lumotlarini olish
       route.model.events.add('requestsuccess', () => {
-        const activeRoute = route.getActiveRoute();
-        if (activeRoute) {
-          const distance = Math.round(activeRoute.properties.get('distance').value / 1000 * 10) / 10;
-          const duration = Math.round(activeRoute.properties.get('duration').value / 60);
+        try {
+          const activeRoute = route.getActiveRoute();
+          if (activeRoute) {
+            const distance = Math.round(activeRoute.properties.get('distance').value / 1000 * 10) / 10;
+            const duration = Math.round(activeRoute.properties.get('duration').value / 60);
 
-          // Buyurtma ma'lumotlarini yangilash
-          setActiveOrders(prev => prev.map(o => 
-            o.id === order.id 
-              ? { ...o, distance: `${distance} km`, estimatedTime: `${duration} min` }
-              : o
-          ));
+            // Buyurtma ma'lumotlarini yangilash
+            setActiveOrders(prev => prev.map(o => 
+              o.id === order.id 
+                ? { ...o, distance: `${distance} km`, estimatedTime: `${duration} min` }
+                : o
+            ));
 
-          console.log(`✅ Yo'l hisoblandi: ${distance} km, ${duration} daqiqa`);
-          
-          // Xaritani yo'lga moslashtirish
-          yandexMap.setBounds(route.getRoutes().get(0).getBounds(), {
-            checkZoomRange: true,
-            zoomMargin: 50
-          });
+            console.log(`✅ Yo'l hisoblandi: ${distance} km, ${duration} daqiqa`);
+            
+            // Xaritani yo'lga moslashtirish
+            const routes = route.getRoutes();
+            if (routes && routes.get(0)) {
+              yandexMap.setBounds(routes.get(0).getBounds(), {
+                checkZoomRange: true,
+                zoomMargin: 50
+              });
+            }
+          }
+        } catch (err) {
+          console.error('❌ Yo\'l ma\'lumotlarini olishda xato:', err);
         }
       });
 
       route.model.events.add('requestfail', (error: any) => {
         console.error('❌ Yo\'l hisoblashda xato:', error);
-        alert('Yo\'lni hisoblashda xatolik yuz berdi. Internet aloqasini tekshiring.');
+        
+        // Xato turini aniqlash
+        let errorMessage = 'Yo\'lni hisoblashda xatolik yuz berdi.';
+        
+        if (error && error.originalEvent) {
+          const originalError = error.originalEvent;
+          if (originalError.message && originalError.message.includes('API')) {
+            errorMessage = 'API kaliti muammosi. Administrator bilan bog\'laning.';
+          } else if (originalError.status === 403) {
+            errorMessage = 'API ruxsati yo\'q. Administrator bilan bog\'laning.';
+          } else if (originalError.status >= 500) {
+            errorMessage = 'Server xatosi. Keyinroq urinib ko\'ring.';
+          }
+        }
+        
+        console.warn('⚠️ ' + errorMessage);
+        // alert o'rniga console warning ishlatish
       });
 
       // Xaritaga yo'lni qo'shish
-      route.properties.set('type', 'route');
-      yandexMap.geoObjects.add(route);
+      if (route) {
+        try {
+          route.properties.set('type', 'route');
+          yandexMap.geoObjects.add(route);
+        } catch (addError) {
+          console.error('❌ Yo\'lni xaritaga qo\'shishda xato:', addError);
+        }
+      }
 
       // Tanlangan buyurtmani yangilash
       setSelectedOrder(order);
