@@ -819,37 +819,56 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
         <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
           <h4 className="font-semibold text-slate-900 mb-4">Yutuqlar</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {achievements.map(achievement => (
-              <div key={achievement.id} className={`p-4 rounded-xl border-2 transition-all ${
-                achievement.unlocked 
-                  ? 'border-green-200 bg-green-50' 
-                  : 'border-slate-200 bg-slate-50'
-              }`}>
-                <div className="flex items-center space-x-3 mb-2">
-                  <div className={`text-2xl ${achievement.unlocked ? 'grayscale-0' : 'grayscale opacity-50'}`}>
-                    {achievement.icon}
+            {achievements.map(achievement => {
+              const getAchievementIcon = (id: number) => {
+                switch(id) {
+                  case 1: return Trophy;
+                  case 2: return Zap;
+                  case 3: return Star;
+                  case 4: return Route;
+                  case 5: return Heart;
+                  default: return Medal;
+                }
+              };
+
+              const IconComponent = getAchievementIcon(achievement.id);
+              
+              return (
+                <div key={achievement.id} className={`p-4 rounded-xl border-2 transition-all ${
+                  achievement.unlocked 
+                    ? 'border-green-200 bg-green-50' 
+                    : 'border-slate-200 bg-slate-50'
+                }`}>
+                  <div className="flex items-center space-x-3 mb-2">
+                    <div className={`p-2 rounded-lg ${
+                      achievement.unlocked 
+                        ? 'bg-green-100 text-green-600' 
+                        : 'bg-slate-100 text-slate-400'
+                    }`}>
+                      <IconComponent size={24} />
+                    </div>
+                    <div className="flex-1">
+                      <h5 className="font-medium text-slate-900">{achievement.name}</h5>
+                      <p className="text-xs text-slate-600">{achievement.description}</p>
+                    </div>
+                    {achievement.unlocked && (
+                      <CheckCircle size={20} className="text-green-500" />
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <h5 className="font-medium text-slate-900">{achievement.name}</h5>
-                    <p className="text-xs text-slate-600">{achievement.description}</p>
-                  </div>
-                  {achievement.unlocked && (
-                    <CheckCircle size={20} className="text-green-500" />
+                  {!achievement.unlocked && achievement.progress && (
+                    <div className="w-full bg-slate-200 rounded-full h-2">
+                      <div 
+                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all"
+                        style={{width: `${achievement.progress}%`}}
+                      ></div>
+                    </div>
+                  )}
+                  {achievement.unlocked && achievement.date && (
+                    <p className="text-xs text-green-600 mt-1">{achievement.date}</p>
                   )}
                 </div>
-                {!achievement.unlocked && achievement.progress && (
-                  <div className="w-full bg-slate-200 rounded-full h-2">
-                    <div 
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all"
-                      style={{width: `${achievement.progress}%`}}
-                    ></div>
-                  </div>
-                )}
-                {achievement.unlocked && achievement.date && (
-                  <p className="text-xs text-green-600 mt-1">{achievement.date}</p>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
