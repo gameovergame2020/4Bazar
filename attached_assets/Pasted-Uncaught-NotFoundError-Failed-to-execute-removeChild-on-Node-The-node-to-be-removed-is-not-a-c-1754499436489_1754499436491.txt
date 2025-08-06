@@ -1,0 +1,104 @@
+Uncaught NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at removeChild (react-dom_client.js?v=a8240055:8456:26)
+    at commitDeletionEffectsOnFiber (react-dom_client.js?v=a8240055:17510:21)
+    at commitDeletionEffects (react-dom_client.js?v=a8240055:17477:13)
+    at recursivelyTraverseMutationEffects (react-dom_client.js?v=a8240055:17674:17)
+    at commitMutationEffectsOnFiber (react-dom_client.js?v=a8240055:17737:15)
+    at recursivelyTraverseMutationEffects (react-dom_client.js?v=a8240055:17685:15)
+    at commitMutationEffectsOnFiber (react-dom_client.js?v=a8240055:17737:15)
+    at recursivelyTraverseMutationEffects (react-dom_client.js?v=a8240055:17685:15)
+    at commitMutationEffectsOnFiber (react-dom_client.js?v=a8240055:17737:15)
+    at recursivelyTraverseMutationEffects (react-dom_client.js?v=a8240055:17685:15)
+removeChild @ react-dom_client.js?v=a8240055:8456
+commitDeletionEffectsOnFiber @ react-dom_client.js?v=a8240055:17510
+commitDeletionEffects @ react-dom_client.js?v=a8240055:17477
+recursivelyTraverseMutationEffects @ react-dom_client.js?v=a8240055:17674
+commitMutationEffectsOnFiber @ react-dom_client.js?v=a8240055:17737
+recursivelyTraverseMutationEffects @ react-dom_client.js?v=a8240055:17685
+commitMutationEffectsOnFiber @ react-dom_client.js?v=a8240055:17737
+recursivelyTraverseMutationEffects @ react-dom_client.js?v=a8240055:17685
+commitMutationEffectsOnFiber @ react-dom_client.js?v=a8240055:17737
+recursivelyTraverseMutationEffects @ react-dom_client.js?v=a8240055:17685
+commitMutationEffectsOnFiber @ react-dom_client.js?v=a8240055:17699
+recursivelyTraverseMutationEffects @ react-dom_client.js?v=a8240055:17685
+commitMutationEffectsOnFiber @ react-dom_client.js?v=a8240055:17737
+recursivelyTraverseMutationEffects @ react-dom_client.js?v=a8240055:17685
+commitMutationEffectsOnFiber @ react-dom_client.js?v=a8240055:17737
+recursivelyTraverseMutationEffects @ react-dom_client.js?v=a8240055:17685
+commitMutationEffectsOnFiber @ react-dom_client.js?v=a8240055:17737
+recursivelyTraverseMutationEffects @ react-dom_client.js?v=a8240055:17685
+commitMutationEffectsOnFiber @ react-dom_client.js?v=a8240055:17699
+recursivelyTraverseMutationEffects @ react-dom_client.js?v=a8240055:17685
+commitMutationEffectsOnFiber @ react-dom_client.js?v=a8240055:17699
+recursivelyTraverseMutationEffects @ react-dom_client.js?v=a8240055:17685
+commitMutationEffectsOnFiber @ react-dom_client.js?v=a8240055:17737
+recursivelyTraverseMutationEffects @ react-dom_client.js?v=a8240055:17685
+commitMutationEffectsOnFiber @ react-dom_client.js?v=a8240055:17737
+recursivelyTraverseMutationEffects @ react-dom_client.js?v=a8240055:17685
+commitMutationEffectsOnFiber @ react-dom_client.js?v=a8240055:17896
+recursivelyTraverseMutationEffects @ react-dom_client.js?v=a8240055:17685
+commitMutationEffectsOnFiber @ react-dom_client.js?v=a8240055:17699
+recursivelyTraverseMutationEffects @ react-dom_client.js?v=a8240055:17685
+commitMutationEffectsOnFiber @ react-dom_client.js?v=a8240055:17699
+recursivelyTraverseMutationEffects @ react-dom_client.js?v=a8240055:17685
+commitMutationEffectsOnFiber @ react-dom_client.js?v=a8240055:17896
+recursivelyTraverseMutationEffects @ react-dom_client.js?v=a8240055:17685
+commitMutationEffectsOnFiber @ react-dom_client.js?v=a8240055:17794
+commitMutationEffects @ react-dom_client.js?v=a8240055:17663
+commitRootImpl @ react-dom_client.js?v=a8240055:19347
+commitRoot @ react-dom_client.js?v=a8240055:19277
+finishConcurrentRender @ react-dom_client.js?v=a8240055:18805
+performConcurrentWorkOnRoot @ react-dom_client.js?v=a8240055:18718
+workLoop @ react-dom_client.js?v=a8240055:197
+flushWork @ react-dom_client.js?v=a8240055:176
+performWorkUntilDeadline @ react-dom_client.js?v=a8240055:384Understand this error
+firebase.ts:57 The above error occurred in the <div> component:
+
+    at div
+    at div
+    at div
+    at div
+    at AddressForm (http://localhost:5173/src/components/checkout/AddressForm.tsx:19:3)
+    at div
+    at div
+    at div
+    at CheckoutPage (http://localhost:5173/src/components/CheckoutPage.tsx?t=1754499406769:73:25)
+    at HomePage (http://localhost:5173/src/components/HomePage.tsx?t=1754499406769:36:53)
+    at main
+    at div
+    at ThemeProvider (http://localhost:5173/src/contexts/ThemeContext.tsx:46:33)
+    at App (http://localhost:5173/src/App.tsx?t=1754499406769:38:39)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+console.error @ firebase.ts:57
+logCapturedError @ react-dom_client.js?v=a8240055:14032
+update.callback @ react-dom_client.js?v=a8240055:14052
+callCallback @ react-dom_client.js?v=a8240055:11248
+commitUpdateQueue @ react-dom_client.js?v=a8240055:11265
+commitLayoutEffectOnFiber @ react-dom_client.js?v=a8240055:17093
+commitLayoutMountEffects_complete @ react-dom_client.js?v=a8240055:17980
+commitLayoutEffects_begin @ react-dom_client.js?v=a8240055:17969
+commitLayoutEffects @ react-dom_client.js?v=a8240055:17920
+commitRootImpl @ react-dom_client.js?v=a8240055:19353
+commitRoot @ react-dom_client.js?v=a8240055:19277
+performSyncWorkOnRoot @ react-dom_client.js?v=a8240055:18895
+flushSyncCallbacks @ react-dom_client.js?v=a8240055:9119
+commitRootImpl @ react-dom_client.js?v=a8240055:19432
+commitRoot @ react-dom_client.js?v=a8240055:19277
+finishConcurrentRender @ react-dom_client.js?v=a8240055:18805
+performConcurrentWorkOnRoot @ react-dom_client.js?v=a8240055:18718
+workLoop @ react-dom_client.js?v=a8240055:197
+flushWork @ react-dom_client.js?v=a8240055:176
+performWorkUntilDeadline @ react-dom_client.js?v=a8240055:384Understand this error
+react-dom_client.js?v=a8240055:8456 Uncaught NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.
+    at removeChild (react-dom_client.js?v=a8240055:8456:26)
+    at commitDeletionEffectsOnFiber (react-dom_client.js?v=a8240055:17510:21)
+    at commitDeletionEffects (react-dom_client.js?v=a8240055:17477:13)
+    at recursivelyTraverseMutationEffects (react-dom_client.js?v=a8240055:17674:17)
+    at commitMutationEffectsOnFiber (react-dom_client.js?v=a8240055:17737:15)
+    at recursivelyTraverseMutationEffects (react-dom_client.js?v=a8240055:17685:15)
+    at commitMutationEffectsOnFiber (react-dom_client.js?v=a8240055:17737:15)
+    at recursivelyTraverseMutationEffects (react-dom_client.js?v=a8240055:17685:15)
+    at commitMutationEffectsOnFiber (react-dom_client.js?v=a8240055:17737:15)
+    at recursivelyTraverseMutationEffects (react-dom_client.js?v=a8240055:17685:15)
