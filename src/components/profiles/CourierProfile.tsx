@@ -71,6 +71,8 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
   const [activeSection, setActiveSection] = useState('info');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [stats, setStats] = useState({
     totalDeliveries: 0,
     completedDeliveries: 0,
@@ -504,6 +506,35 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
 
   const performanceLevel = getPerformanceLevel();
 
+  // Swipe navigation
+  const minSwipeDistance = 50;
+  
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    const sections = ['info', 'stats', 'settings'];
+    const currentIndex = sections.indexOf(activeSection);
+
+    if (isLeftSwipe && currentIndex < sections.length - 1) {
+      setActiveSection(sections[currentIndex + 1]);
+    }
+    if (isRightSwipe && currentIndex > 0) {
+      setActiveSection(sections[currentIndex - 1]);
+    }
+  };
+
   // Asosiy Ma'lumotlar Bo'limi
   const renderInfo = () => (
     <div className="space-y-4 md:space-y-6">
@@ -696,41 +727,49 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             </div>
           </div>
 
-          {/* Mobile Achievements */}
-          <div className="flex justify-center items-center space-x-2 mb-4 md:hidden">
-            {achievements.slice(0, 5).map(achievement => {
-              const getAchievementIcon = (id: number) => {
-                switch(id) {
-                  case 1: return Trophy;
-                  case 2: return Zap;
-                  case 3: return Star;
-                  case 4: return Route;
-                  case 5: return Heart;
-                  default: return Medal;
-                }
-              };
+          {/* Mobile Achievements with Better Touch */}
+          <div className="mb-4 md:hidden">
+            <div className="flex justify-center items-center space-x-3 mb-2">
+              {achievements.slice(0, 5).map(achievement => {
+                const getAchievementIcon = (id: number) => {
+                  switch(id) {
+                    case 1: return Trophy;
+                    case 2: return Zap;
+                    case 3: return Star;
+                    case 4: return Route;
+                    case 5: return Heart;
+                    default: return Medal;
+                  }
+                };
 
-              const IconComponent = getAchievementIcon(achievement.id);
-              
-              return (
-                <div key={achievement.id} className={`relative ${
-                  achievement.unlocked 
-                    ? 'text-white' 
-                    : 'text-white/40'
-                }`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    achievement.unlocked 
-                      ? 'bg-white/20 backdrop-blur-sm' 
-                      : 'bg-white/10 backdrop-blur-sm'
-                  }`}>
-                    <IconComponent size={14} />
-                  </div>
-                  {achievement.unlocked && (
-                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 rounded-full"></div>
-                  )}
-                </div>
-              );
-            })}
+                const IconComponent = getAchievementIcon(achievement.id);
+                
+                return (
+                  <button
+                    key={achievement.id}
+                    className={`relative touch-manipulation ${
+                      achievement.unlocked 
+                        ? 'text-white' 
+                        : 'text-white/40'
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                      achievement.unlocked 
+                        ? 'bg-white/20 backdrop-blur-sm active:bg-white/30 active:scale-110' 
+                        : 'bg-white/10 backdrop-blur-sm'
+                    }`}>
+                      <IconComponent size={16} />
+                    </div>
+                    {achievement.unlocked && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border border-white/50"></div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-center text-xs text-white/70">
+              {achievements.filter(a => a.unlocked).length}/5 yutuq qo'lga kiritildi
+            </p>
           </div>
 
           {/* Performance Level Progress - Mobile Optimized */}
@@ -750,17 +789,17 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             </div>
           </div>
           
-          {/* Modern Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {/* Mobile-Optimized Stats Grid */}
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 md:gap-4">
             {/* Deliveries Card */}
-            <div className="bg-white/15 backdrop-blur-md rounded-2xl p-5 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-[1.02]">
+            <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 border border-white/20 active:bg-white/20 transition-all duration-200 touch-manipulation">
               <div className="flex items-center justify-between mb-3">
-                <div className="p-2 bg-white/20 rounded-xl">
-                  <Package size={22} className="text-white" />
+                <div className="p-2.5 bg-white/20 rounded-lg">
+                  <Package size={20} className="text-white" />
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-white">{stats.totalDeliveries}</div>
-                  <div className="text-xs text-white/60 uppercase tracking-wide">Jami</div>
+                  <div className="text-xl md:text-2xl font-bold text-white">{stats.totalDeliveries}</div>
+                  <div className="text-xs text-white/70 uppercase tracking-wide">Jami</div>
                 </div>
               </div>
               <div className="flex items-center justify-between">
@@ -770,14 +809,14 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             </div>
             
             {/* Performance Card */}
-            <div className="bg-white/15 backdrop-blur-md rounded-2xl p-5 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-[1.02]">
+            <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 border border-white/20 active:bg-white/20 transition-all duration-200 touch-manipulation">
               <div className="flex items-center justify-between mb-3">
-                <div className="p-2 bg-white/20 rounded-xl">
-                  <Trophy size={22} className="text-white" />
+                <div className="p-2.5 bg-white/20 rounded-lg">
+                  <Trophy size={20} className="text-white" />
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-white">{stats.successRate}%</div>
-                  <div className="text-xs text-white/60 uppercase tracking-wide">Samarali</div>
+                  <div className="text-xl md:text-2xl font-bold text-white">{stats.successRate}%</div>
+                  <div className="text-xs text-white/70 uppercase tracking-wide">Samarali</div>
                 </div>
               </div>
               <div className="flex items-center justify-between">
@@ -787,20 +826,34 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             </div>
             
             {/* Earnings Card */}
-            <div className="bg-white/15 backdrop-blur-md rounded-2xl p-5 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-[1.02] sm:col-span-2 lg:col-span-1">
+            <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 border border-white/20 active:bg-white/20 transition-all duration-200 touch-manipulation md:col-span-2 lg:col-span-1">
               <div className="flex items-center justify-between mb-3">
-                <div className="p-2 bg-white/20 rounded-xl">
-                  <DollarSign size={22} className="text-white" />
+                <div className="p-2.5 bg-white/20 rounded-lg">
+                  <DollarSign size={20} className="text-white" />
                 </div>
                 <div className="text-right">
-                  <div className="text-xl font-bold text-white leading-tight">{formatPrice(stats.totalEarnings)}</div>
-                  <div className="text-xs text-white/60 uppercase tracking-wide">Umumiy</div>
+                  <div className="text-lg md:text-xl font-bold text-white leading-tight">{formatPrice(stats.totalEarnings)}</div>
+                  <div className="text-xs text-white/70 uppercase tracking-wide">Umumiy</div>
                 </div>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-white/80">Bugun</span>
                 <span className="text-lg font-semibold text-white">{formatPrice(stats.todayEarnings)}</span>
               </div>
+            </div>
+          </div>
+
+          {/* Quick Actions - Mobile Only */}
+          <div className="mt-4 md:hidden">
+            <div className="flex space-x-2">
+              <button className="flex-1 flex items-center justify-center space-x-2 py-3 bg-white/20 backdrop-blur-sm text-white rounded-xl font-medium active:bg-white/30 transition-all duration-200 touch-manipulation">
+                <MapPin size={16} />
+                <span className="text-sm">Joylashuvim</span>
+              </button>
+              <button className="flex-1 flex items-center justify-center space-x-2 py-3 bg-white/20 backdrop-blur-sm text-white rounded-xl font-medium active:bg-white/30 transition-all duration-200 touch-manipulation">
+                <Activity size={16} />
+                <span className="text-sm">Faoliyat</span>
+              </button>
             </div>
           </div>
 
@@ -1337,41 +1390,73 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pb-20">
-      {/* Tab Navigation - Mobile Optimized */}
-      <div className="px-3 md:px-4 py-3 md:py-4 sticky top-0 z-10 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <div className="bg-white/95 backdrop-blur-sm rounded-xl md:rounded-2xl p-1 md:p-1.5 shadow-lg border border-white/30 max-w-7xl mx-auto">
-          <div className="grid grid-cols-3 gap-1">
-            {navigationSections.map((section) => (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pb-16 md:pb-20 overflow-x-hidden">
+      {/* Mobile-First Tab Navigation */}
+      <div className="px-2 md:px-4 py-2 md:py-4 sticky top-0 z-20 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        {/* Back button - mobile only */}
+        <div className="flex items-center justify-between mb-3 md:hidden">
+          <button 
+            onClick={onBack}
+            className="flex items-center space-x-2 p-2 rounded-lg bg-white/80 backdrop-blur-sm text-slate-600 hover:bg-white transition-colors"
+          >
+            <ArrowLeft size={18} />
+            <span className="text-sm font-medium">Orqaga</span>
+          </button>
+          
+          {/* Swipe indicator */}
+          <div className="flex items-center space-x-1 text-xs text-slate-400">
+            <span>Surish</span>
+            <div className="flex space-x-1">
+              <div className="w-1 h-1 bg-slate-400 rounded-full"></div>
+              <div className="w-1 h-1 bg-slate-400 rounded-full"></div>
+              <div className="w-1 h-1 bg-slate-400 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl md:rounded-2xl p-1 shadow-lg border border-white/30 max-w-7xl mx-auto">
+          <div className="grid grid-cols-3 gap-0.5 md:gap-1">
+            {navigationSections.map((section, index) => (
               <button
                 key={section.id}
                 onClick={() => setActiveSection(section.id)}
-                className={`flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-2 py-2 md:py-3 px-2 md:px-4 rounded-lg md:rounded-xl font-medium transition-all duration-300 ${
+                className={`relative flex flex-col items-center justify-center py-2.5 md:py-3 px-2 md:px-4 rounded-lg md:rounded-xl font-medium transition-all duration-300 touch-manipulation ${
                   activeSection === section.id
-                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg scale-105'
-                    : 'text-slate-600 hover:bg-slate-100 hover:scale-105'
+                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg transform scale-105'
+                    : 'text-slate-600 hover:bg-slate-100 active:bg-slate-200 hover:scale-102'
                 }`}
               >
-                <section.icon size={16} className="sm:w-4 sm:h-4 md:w-5 md:h-5" />
-                <span className="text-xs sm:text-sm font-medium">{section.label}</span>
+                <section.icon size={18} className="mb-1" />
+                <span className="text-xs font-medium leading-tight">{section.label}</span>
+                
+                {/* Active indicator */}
+                {activeSection === section.id && (
+                  <div className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"></div>
+                )}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="px-3 md:px-4 max-w-7xl mx-auto">
+      {/* Main Content with Swipe Support */}
+      <div 
+        className="px-2 md:px-4 max-w-7xl mx-auto"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin h-8 w-8 border-4 border-indigo-500 border-t-transparent rounded-full"></div>
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="animate-spin h-8 w-8 border-4 border-indigo-500 border-t-transparent rounded-full mb-3"></div>
+            <p className="text-sm text-slate-500">Ma'lumotlar yuklanmoqda...</p>
           </div>
         ) : (
-          <>
+          <div className="transition-all duration-300 ease-in-out">
             {activeSection === 'info' && renderInfo()}
             {activeSection === 'stats' && renderStats()}
             {activeSection === 'settings' && renderSettings()}
-          </>
+          </div>
         )}
       </div>
     </div>
