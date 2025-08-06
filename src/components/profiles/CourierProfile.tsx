@@ -676,9 +676,8 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
               )}
             </div>
 
-            <button className="flex-shrink-0 flex items-center justify-center space-x-1 md:space-x-2 px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-medium bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors">
+            <button className="flex-shrink-0 flex items-center justify-center p-2 rounded-xl text-xs md:text-sm font-medium bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors">
               <Bell size={14} />
-              <span className="hidden sm:inline">Bildirishnomalar</span>
             </button>
           </div>
 
