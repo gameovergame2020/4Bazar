@@ -544,6 +544,43 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                   <div className="absolute top-2 right-2 w-4 h-4 bg-green-400 border-2 border-white rounded-full animate-pulse"></div>
                 </div>
               )}
+              
+              {/* Achievements below profile image */}
+              <div className="flex justify-center items-center space-x-1 mt-3">
+                {achievements.slice(0, 5).map(achievement => {
+                  const getAchievementIcon = (id: number) => {
+                    switch(id) {
+                      case 1: return Trophy;
+                      case 2: return Zap;
+                      case 3: return Star;
+                      case 4: return Route;
+                      case 5: return Heart;
+                      default: return Medal;
+                    }
+                  };
+
+                  const IconComponent = getAchievementIcon(achievement.id);
+                  
+                  return (
+                    <div key={achievement.id} className={`relative ${
+                      achievement.unlocked 
+                        ? 'text-white' 
+                        : 'text-white/40'
+                    }`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                        achievement.unlocked 
+                          ? 'bg-white/20 backdrop-blur-sm' 
+                          : 'bg-white/10 backdrop-blur-sm'
+                      }`}>
+                        <IconComponent size={12} />
+                      </div>
+                      {achievement.unlocked && (
+                        <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full"></div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="flex-1">
@@ -684,49 +721,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             </div>
           </div>
 
-          {/* Achievements in Stats */}
-          <div className="mt-6 pt-6 border-t border-white/20">
-            <h4 className="text-lg font-semibold text-white/90 mb-4">Yutuqlar</h4>
-            <div className="flex items-center space-x-3 overflow-x-auto pb-2">
-              {achievements.map(achievement => {
-                const getAchievementIcon = (id: number) => {
-                  switch(id) {
-                    case 1: return Trophy;
-                    case 2: return Zap;
-                    case 3: return Star;
-                    case 4: return Route;
-                    case 5: return Heart;
-                    default: return Medal;
-                  }
-                };
-
-                const IconComponent = getAchievementIcon(achievement.id);
-                
-                return (
-                  <div key={achievement.id} className={`flex-shrink-0 p-2 rounded-xl transition-all ${
-                    achievement.unlocked 
-                      ? 'bg-white/20 backdrop-blur-sm' 
-                      : 'bg-white/5 backdrop-blur-sm opacity-60'
-                  }`}>
-                    <div className="relative">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        achievement.unlocked 
-                          ? 'bg-white/20 text-white' 
-                          : 'bg-white/10 text-white/50'
-                      }`}>
-                        <IconComponent size={18} />
-                      </div>
-                      {achievement.unlocked && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full flex items-center justify-center">
-                          <CheckCircle size={10} className="text-white" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          
         </div>
       </div>
 
