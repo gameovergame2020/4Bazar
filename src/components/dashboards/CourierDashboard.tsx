@@ -64,8 +64,14 @@ const CourierDashboard = () => {
   // Ma'lumotlarni yuklash
   useEffect(() => {
     loadDashboardData();
-    initializeMap();
   }, []);
+
+  // Xarita va buyurtmalarni birgalikda yuklash
+  useEffect(() => {
+    if (activeOrders.length > 0) {
+      initializeMap();
+    }
+  }, [activeOrders]);
 
   const loadDashboardData = async () => {
     try {
@@ -75,15 +81,28 @@ const CourierDashboard = () => {
       const mockActiveOrders: Order[] = [
         {
           id: 'ORD001',
+          orderUniqueId: 'D9OAHZ7Z',
+          customerId: 'customer001',
           customerName: 'Aziz Karimov',
           customerPhone: '+998901234567',
-          address: 'Toshkent sh., Yunusobod t., 15-mavze, 23-uy',
+          cakeId: 'cake001',
+          cakeName: 'Shokoladli tort',
+          quantity: 1,
+          amount: 250000,
+          totalPrice: 268000,
+          status: 'ready',
+          deliveryAddress: 'Toshkent sh., Yunusobod t., 15-mavze, 23-uy',
           coordinates: [41.3158, 69.2798],
+          paymentMethod: 'cash',
+          notes: '',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          // Legacy properties for compatibility
+          address: 'Toshkent sh., Yunusobod t., 15-mavze, 23-uy',
           items: [
             { id: '1', name: 'Shokoladli tort', quantity: 1, price: 250000 }
           ],
           total: 268000,
-          status: 'ready',
           orderTime: new Date().toISOString(),
           priority: 'urgent',
           distance: '2.5 km',
@@ -91,15 +110,28 @@ const CourierDashboard = () => {
         },
         {
           id: 'ORD002',
+          orderUniqueId: 'M8KBVC3X',
+          customerId: 'customer002',
           customerName: 'Malika Toshmatova',
           customerPhone: '+998901234568',
-          address: 'Toshkent sh., Mirzo Ulugbek t., 8-mavze, 45-uy',
+          cakeId: 'cake002',
+          cakeName: 'Mevali tort',
+          quantity: 2,
+          amount: 360000,
+          totalPrice: 378000,
+          status: 'delivering',
+          deliveryAddress: 'Toshkent sh., Mirzo Ulugbek t., 8-mavze, 45-uy',
           coordinates: [41.2856, 69.2034],
+          paymentMethod: 'cash',
+          notes: '',
+          createdAt: new Date(Date.now() - 3600000),
+          updatedAt: new Date(),
+          // Legacy properties for compatibility
+          address: 'Toshkent sh., Mirzo Ulugbek t., 8-mavze, 45-uy',
           items: [
             { id: '2', name: 'Mevali tort', quantity: 2, price: 180000 }
           ],
           total: 378000,
-          status: 'delivering',
           orderTime: new Date(Date.now() - 3600000).toISOString(),
           priority: 'normal',
           distance: '4.1 km',
@@ -112,6 +144,8 @@ const CourierDashboard = () => {
         setSelectedOrder(mockActiveOrders[0]);
       }
 
+      console.log(`✅ ${mockActiveOrders.length} ta faol buyurtma yuklandi`);
+
     } catch (error) {
       console.error('Ma\'lumotlarni yuklashda xatolik:', error);
     } finally {
@@ -121,15 +155,24 @@ const CourierDashboard = () => {
 
   const initializeMap = async () => {
     try {
+      if (!mapRef.current) {
+        console.warn('⚠️ Map container not found');
+        return;
+      }
+
       await yandexMapsService.loadYandexMaps();
 
-      if (mapRef.current && window.ymaps) {
+      if (window.ymaps) {
         window.ymaps.ready(() => {
+          console.log('🗺️ Yandex Maps ready, initializing...');
+          
           const map = new window.ymaps.Map(mapRef.current, {
             center: [41.2995, 69.2401], // Toshkent markazi
             zoom: 12,
             controls: ['zoomControl', 'fullscreenControl', 'geolocationControl']
           });
+
+          console.log('✅ Map created successfully');
 
           // Kuryer joylashuvi (demo)
           const courierPlacemark = new window.ymaps.Placemark([41.2995, 69.2401], {
@@ -143,84 +186,92 @@ const CourierDashboard = () => {
           setYandexMap(map);
           setMapLoaded(true);
 
+          console.log(`🔍 Adding ${activeOrders.length} orders to map...`);
+
           // Barcha faol buyurtmalarni xaritaga qo'shish
-          setTimeout(() => {
-            activeOrders.forEach((order, index) => {
-              if (order.coordinates) {
-                const orderPlacemark = new window.ymaps.Placemark(order.coordinates, {
-                  balloonContent: `
-                    <div style="padding: 12px; min-width: 200px;">
-                      <div style="font-weight: bold; font-size: 14px; margin-bottom: 5px;">${order.customerName}</div>
-                      <div style="color: #666; font-size: 12px; margin-bottom: 5px;">ID: ${order.orderUniqueId || order.id}</div>
-                      <div style="margin-bottom: 8px; font-size: 13px;">${order.deliveryAddress || 'Manzil ko\'rsatilmagan'}</div>
-                      <div style="font-weight: bold; color: #2563eb; margin-bottom: 5px;">${formatPrice(order.totalPrice)}</div>
-                      <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="
-                          padding: 2px 8px; 
-                          border-radius: 12px; 
-                          font-size: 11px; 
-                          font-weight: 500;
-                          color: ${order.priority === 'urgent' ? '#ef4444' : '#059669'};
-                          background: ${order.priority === 'urgent' ? '#fef2f2' : '#f0fdf4'};
-                        ">
-                          ${order.priority === 'urgent' ? 'Shoshilinch' : 'Oddiy'}
-                        </span>
-                        <span style="
-                          padding: 2px 8px; 
-                          border-radius: 12px; 
-                          font-size: 11px; 
-                          font-weight: 500;
-                          color: ${order.status === 'ready' ? '#059669' : '#2563eb'};
-                          background: ${order.status === 'ready' ? '#f0fdf4' : '#eff6ff'};
-                        ">
-                          ${order.status === 'ready' ? 'Tayyor' : 'Yetkazilmoqda'}
-                        </span>
-                      </div>
-                      ${order.distance ? `<div style="margin-top: 5px; font-size: 12px; color: #666;">📍 ${order.distance}${order.estimatedTime ? ` • ⏱️ ${order.estimatedTime}` : ''}</div>` : ''}
+          activeOrders.forEach((order, index) => {
+            if (order.coordinates && Array.isArray(order.coordinates) && order.coordinates.length === 2) {
+              console.log(`📍 Adding order ${index + 1}: ${order.customerName} at [${order.coordinates}]`);
+              
+              const orderPlacemark = new window.ymaps.Placemark(order.coordinates, {
+                balloonContent: `
+                  <div style="padding: 12px; min-width: 200px;">
+                    <div style="font-weight: bold; font-size: 14px; margin-bottom: 5px;">${order.customerName}</div>
+                    <div style="color: #666; font-size: 12px; margin-bottom: 5px;">ID: ${order.orderUniqueId || order.id}</div>
+                    <div style="margin-bottom: 8px; font-size: 13px;">${order.deliveryAddress || order.address || 'Manzil ko\'rsatilmagan'}</div>
+                    <div style="font-weight: bold; color: #2563eb; margin-bottom: 5px;">${formatPrice(order.totalPrice || order.total)}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <span style="
+                        padding: 2px 8px; 
+                        border-radius: 12px; 
+                        font-size: 11px; 
+                        font-weight: 500;
+                        color: ${order.priority === 'urgent' ? '#ef4444' : '#059669'};
+                        background: ${order.priority === 'urgent' ? '#fef2f2' : '#f0fdf4'};
+                      ">
+                        ${order.priority === 'urgent' ? 'Shoshilinch' : 'Oddiy'}
+                      </span>
+                      <span style="
+                        padding: 2px 8px; 
+                        border-radius: 12px; 
+                        font-size: 11px; 
+                        font-weight: 500;
+                        color: ${order.status === 'ready' ? '#059669' : '#2563eb'};
+                        background: ${order.status === 'ready' ? '#f0fdf4' : '#eff6ff'};
+                      ">
+                        ${order.status === 'ready' ? 'Tayyor' : 'Yetkazilmoqda'}
+                      </span>
                     </div>
-                  `,
-                  type: 'order',
-                  orderId: order.id,
-                  orderIndex: index
-                }, {
-                  preset: order.priority === 'urgent' ? 'islands#redIcon' : 'islands#greenIcon',
-                  iconColor: order.status === 'delivering' ? '#2563eb' : (order.priority === 'urgent' ? '#ef4444' : '#059669')
-                });
+                    ${order.distance ? `<div style="margin-top: 5px; font-size: 12px; color: #666;">📍 ${order.distance}${order.estimatedTime ? ` • ⏱️ ${order.estimatedTime}` : ''}</div>` : ''}
+                  </div>
+                `,
+                type: 'order',
+                orderId: order.id,
+                orderIndex: index
+              }, {
+                preset: order.priority === 'urgent' ? 'islands#redIcon' : 'islands#greenIcon',
+                iconColor: order.status === 'delivering' ? '#2563eb' : (order.priority === 'urgent' ? '#ef4444' : '#059669')
+              });
 
-                // Buyurtma belgisini bosganda tanlash
-                orderPlacemark.events.add('click', () => {
-                  setSelectedOrder(order);
-                  // Yo'lni ko'rsatish
-                  calculateAndShowRoute(order);
-                });
+              // Buyurtma belgisini bosganda tanlash
+              orderPlacemark.events.add('click', () => {
+                setSelectedOrder(order);
+                // Yo'lni ko'rsatish
+                calculateAndShowRoute(order);
+              });
 
-                map.geoObjects.add(orderPlacemark);
+              map.geoObjects.add(orderPlacemark);
+              console.log(`✅ Order ${index + 1} marker added successfully`);
+            } else {
+              console.warn(`⚠️ Invalid coordinates for order ${order.id}:`, order.coordinates);
+            }
+          });
+
+          // Xaritani barcha buyurtmalarni qamrab olish uchun sozlash
+          if (activeOrders.length > 0) {
+            const bounds = [[41.2995, 69.2401]]; // Kuryer joylashuvi
+            activeOrders.forEach(order => {
+              if (order.coordinates && Array.isArray(order.coordinates)) {
+                bounds.push(order.coordinates);
               }
             });
 
-            // Xaritani barcha buyurtmalarni qamrab olish uchun sozlash
-            if (activeOrders.length > 0) {
-              const bounds = [[41.2995, 69.2401]]; // Kuryer joylashuvi
-              activeOrders.forEach(order => {
-                if (order.coordinates) {
-                  bounds.push(order.coordinates);
-                }
-              });
-
-              if (bounds.length > 1) {
-                map.setBounds(bounds, { checkZoomRange: true, zoomMargin: 50 });
-              }
+            if (bounds.length > 1) {
+              map.setBounds(bounds, { checkZoomRange: true, zoomMargin: 50 });
+              console.log(`🎯 Map bounds set for ${bounds.length - 1} orders + courier`);
             }
-          }, 500);
+          }
+
+          console.log('🎉 Map initialization completed');
         });
       }
     } catch (error) {
-      console.error('Xaritani yuklashda xatolik:', error);
+      console.error('❌ Xaritani yuklashda xatolik:', error);
     }
   };
 
   const addOrderToMap = (order: Order) => {
-    if (yandexMap && order.coordinates) {
+    if (yandexMap && order.coordinates && Array.isArray(order.coordinates)) {
       // Faqat yo'llarni tozalash (buyurtma belgilarini saqlab qolish)
       yandexMap.geoObjects.each((geoObject: any) => {
         if (geoObject.properties && geoObject.properties.get('type') === 'route') {
@@ -231,7 +282,9 @@ const CourierDashboard = () => {
       // Xaritani buyurtma joylashuviga yo'naltirish
       yandexMap.setCenter(order.coordinates, 16);
 
-      console.log(`📍 Buyurtma xaritada ko'rsatildi: ${order.customerName} - ${order.deliveryAddress}`);
+      console.log(`📍 Buyurtma xaritada ko'rsatildi: ${order.customerName} - ${order.deliveryAddress || order.address}`);
+    } else {
+      console.warn('⚠️ Cannot show order on map - invalid coordinates:', order.coordinates);
     }
   };
 
