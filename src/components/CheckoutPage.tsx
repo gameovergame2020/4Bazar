@@ -109,6 +109,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const mapInstanceRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
 
   // Mahsulotlar ro'yxatini yaratish
   const cartProducts = cart ? Object.entries(cart).map(([productId, quantity]) => {
@@ -589,8 +590,21 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const handleSubmitOrder = async () => {
     if (isProcessingOrder) return;
 
-    if (!userInfo.name || !userInfo.phone || !deliveryAddress) {
-      alert('Iltimos, barcha maydonlarni to\'ldiring');
+    const isAddressRequired = !(geocodingError && geocodingError.includes('Reverse geocoding xatosi'));
+    if (isAddressRequired && !userInfo.address.trim()) {
+      alert('Iltimos, yetkazib berish manzilini to\'ldiring.');
+      return;
+    }
+    if (!userInfo.name.trim()) {
+      alert('Iltimos, ismingizni to\'ldiring.');
+      return;
+    }
+    if (!userInfo.phone.trim()) {
+      alert('Iltimos, telefon raqamingizni to\'ldiring.');
+      return;
+    }
+    if (!selectedPaymentMethod) {
+      alert('Iltimos, to\'lov usulini tanlang.');
       return;
     }
 
@@ -615,6 +629,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   // To'lov turini tanlash va buyurtmani davom ettirish
   const handlePaymentTypeSelect = async (paymentType: string) => {
     setUserInfo(prev => ({ ...prev, paymentType }));
+    setSelectedPaymentMethod(paymentType); // selectedPaymentMethod ni ham yangilash
     setShowPaymentModal(false);
     setIsProcessingOrder(true);
     try {
@@ -724,6 +739,29 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       console.error('❌ Buyurtma yuborishda xato:', error);
       alert('Buyurtma yuborishda xato yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
     }
+  };
+
+  // Formani validatsiya qilish
+  const validateForm = (): boolean => {
+    const errors: string[] = [];
+
+    if (!userInfo.name.trim()) errors.push('Ism');
+    if (!userInfo.phone.trim()) errors.push('Telefon raqami');
+
+    // Reverse geocoding xatosi bo'lsa, manzil majburiy emas
+    const isAddressRequired = !(geocodingError && geocodingError.includes('Reverse geocoding xatosi'));
+    if (isAddressRequired && !userInfo.address.trim()) {
+      errors.push('Yetkazib berish manzili');
+    }
+
+    if (!selectedPaymentMethod) errors.push('To\'lov usuli');
+
+    if (errors.length > 0) {
+      alert(`Quyidagi maydonlarni to'ldiring: ${errors.join(', ')}`);
+      return false;
+    }
+
+    return true;
   };
 
   return (
