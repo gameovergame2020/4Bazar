@@ -36,6 +36,8 @@ interface Order {
   distance?: string;
   estimatedTime?: string;
   deliveryFee: number;
+  paymentMethod: 'cash' | 'card';
+  paymentType?: 'click' | 'payme' | 'visa' | 'mastercard';
 }
 
 declare global {
@@ -122,7 +124,8 @@ const CourierDashboard = () => {
           status: 'delivering',
           deliveryAddress: 'Toshkent sh., Mirzo Ulugbek t., 8-mavze, 45-uy',
           coordinates: [41.2856, 69.2034],
-          paymentMethod: 'cash',
+          paymentMethod: 'card',
+          paymentType: 'click',
           notes: '',
           createdAt: new Date(Date.now() - 3600000),
           updatedAt: new Date(),
@@ -627,6 +630,21 @@ const CourierDashboard = () => {
                     <div className="flex items-center space-x-2">
                       <Phone size={14} className="text-slate-400" />
                       <span className="text-sm text-slate-600">{order.customerPhone}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-slate-400">To'lov:</span>
+                      {order.paymentMethod === 'card' && order.paymentType ? (
+                        <span className="text-xs font-medium">
+                          {order.paymentType === 'click' ? '🔵 Click' :
+                           order.paymentType === 'payme' ? '🟢 Payme' :
+                           order.paymentType === 'visa' ? '💳 Visa/MC' : 
+                           '💳 Bank kartasi'}
+                        </span>
+                      ) : order.paymentMethod === 'cash' ? (
+                        <span className="text-xs font-medium text-green-600">💵 Naqd pul</span>
+                      ) : (
+                        <span className="text-xs font-medium text-yellow-600">⏳ Aniqlanmagan</span>
+                      )}
                     </div>
                   </div>
 
