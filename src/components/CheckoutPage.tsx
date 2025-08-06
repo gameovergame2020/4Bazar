@@ -143,7 +143,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     };
   }, []);
 
-  // Cleanup function
   // Bepul manzil qidirish (Nominatim API)
   const searchAddressFree = async (query: string): Promise<string[]> => {
     try {
@@ -179,32 +178,32 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     }
   };
 
+  // Cleanup function - xavfsiz DOM tozalash
   const cleanup = useCallback(() => {
-    // Xaritani tozalash
+    // Placemarkni xavfsiz o'chirish
+    if (placemarkRef.current && mapInstanceRef.current) {
+      try {
+        mapInstanceRef.current.geoObjects.remove(placemarkRef.current);
+      } catch (error) {
+        console.warn('Placemark o\'chirishda xato:', error);
+      }
+      placemarkRef.current = null;
+    }
+
+    // Xaritani xavfsiz tozalash
     if (mapInstanceRef.current) {
       try {
-        // Check if the map container still exists in DOM
-        if (mapRef.current && mapRef.current.parentNode) {
-          mapInstanceRef.current.destroy();
-        }
+        mapInstanceRef.current.destroy();
       } catch (error) {
         console.warn('Xaritani tozalashda xato:', error);
       }
       mapInstanceRef.current = null;
     }
 
-    // DOM elementini tozalash
-    if (mapRef.current && mapRef.current.parentNode) {
+    // DOM elementini xavfsiz tozalash
+    if (mapRef.current) {
       try {
-        // Safe DOM cleanup - only clear if element is still in the DOM
-        while (mapRef.current.firstChild) {
-          try {
-            mapRef.current.removeChild(mapRef.current.firstChild);
-          } catch (removeError) {
-            console.warn('Child element o\'chirishda xato:', removeError);
-            break;
-          }
-        }
+        mapRef.current.innerHTML = '';
       } catch (error) {
         console.warn('DOM elementini tozalashda xato:', error);
       }
@@ -214,35 +213,40 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   // Component yuklanganida
   useEffect(() => {
     let isMounted = true;
+    let cleanupTriggered = false;
 
     const initMap = async () => {
-      if (isMounted) {
+      if (isMounted && !cleanupTriggered) {
         await initializeYandexMap();
       }
     };
 
-    initMap();
+    // Xaritani 500ms kechikish bilan ishga tushirish
+    const initTimer = setTimeout(() => {
+      if (isMounted && !cleanupTriggered) {
+        initMap();
+      }
+    }, 500);
 
     return () => {
       isMounted = false;
+      cleanupTriggered = true;
+      
+      if (initTimer) {
+        clearTimeout(initTimer);
+      }
 
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
         debounceTimeoutRef.current = null;
       }
 
-      if (placemarkRef.current && mapInstanceRef.current) {
-        try {
-          mapInstanceRef.current.geoObjects.remove(placemarkRef.current);
-        } catch (error) {
-          console.warn('Placemark olib tashlashda xato:', error);
-        }
-        placemarkRef.current = null;
-      }
-
-      cleanup(); // Cleanup funksiyasini chaqirish
+      // Xavfsiz cleanup
+      setTimeout(() => {
+        cleanup();
+      }, 100);
     };
-  }, [cleanup]); // cleanup dependency ga qo'shildi
+  }, []); // Dependencies olib tashlandi
 
   // Cart bo'sh bo'lganda avtomatik bosh sahifaga qaytish
   useEffect(() => {
@@ -371,15 +375,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const initSimpleMap = async () => {
     try {
       if (mapRef.current && !mapInstanceRef.current) {
-        // Avval mavjud kontentni tozalash
-        while (mapRef.current.firstChild) {
-          try {
-            mapRef.current.removeChild(mapRef.current.firstChild);
-          } catch (removeError) {
-            console.warn('Child element o\'chirishda xato:', removeError);
-            break;
-          }
-        }
+        // Xavfsiz kontentni tozalash
+        mapRef.current.innerHTML = '';
 
         // Yangi div yaratish
         const mapPlaceholder = document.createElement('div');
@@ -407,8 +404,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           </div>
         `;
 
-        mapRef.current.appendChild(mapPlaceholder);
-        setIsMapInitialized(true);
+        try {
+          mapRef.current.appendChild(mapPlaceholder);
+          setIsMapInitialized(true);
+        } catch (appendError) {
+          console.warn('Map placeholder qo\'shishda xato:', appendError);
+        }
       }
     } catch (error) {
       console.error('❌ Oddiy xarita yaratishda xato:', error);

@@ -31,14 +31,20 @@ const AddressForm: React.FC<AddressFormProps> = ({
   const cleanupMap = useCallback(() => {
     if (mapInstanceRef.current) {
       try {
-        // Check if map container still exists
-        if (mapRef.current && mapRef.current.parentNode) {
-          mapInstanceRef.current.destroy();
-        }
+        mapInstanceRef.current.destroy();
       } catch (error) {
         console.warn('Map cleanup error:', error);
       } finally {
         mapInstanceRef.current = null;
+      }
+    }
+    
+    // DOM ni xavfsiz tozalash
+    if (mapRef.current) {
+      try {
+        mapRef.current.innerHTML = '';
+      } catch (error) {
+        console.warn('DOM cleanup error:', error);
       }
     }
   }, [mapRef]);
@@ -48,7 +54,10 @@ const AddressForm: React.FC<AddressFormProps> = ({
 
     return () => {
       setIsComponentMounted(false);
-      cleanupMap();
+      // Kechikish bilan cleanup qilish
+      setTimeout(() => {
+        cleanupMap();
+      }, 100);
     };
   }, [cleanupMap]);
 
