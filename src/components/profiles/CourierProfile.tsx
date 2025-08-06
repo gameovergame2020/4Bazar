@@ -789,93 +789,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
         </div>
       </div>
 
-      {/* Read-only Profile Details - Mobile Optimized */}
-      <div className="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-sm">
-        <h3 className="text-base md:text-lg font-semibold text-slate-900 mb-4 flex items-center space-x-2">
-          <User size={20} className="text-slate-600" />
-          <span>Shaxsiy ma'lumotlar</span>
-        </h3>
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-3 bg-slate-50 rounded-lg">
-              <label className="block text-sm font-medium text-slate-600 mb-1">Telefon raqam</label>
-              <div className="flex items-center space-x-2">
-                <Phone size={16} className="text-slate-400" />
-                <span className="text-slate-900">{user.phone || 'Kiritilmagan'}</span>
-              </div>
-            </div>
-
-            <div className="p-3 bg-slate-50 rounded-lg">
-              <label className="block text-sm font-medium text-slate-600 mb-1">Email manzil</label>
-              <div className="flex items-center space-x-2">
-                <Mail size={16} className="text-slate-400" />
-                <span className="text-slate-900">{user.email || 'Kiritilmagan'}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-3 bg-slate-50 rounded-lg">
-            <label className="block text-sm font-medium text-slate-600 mb-1">Yashash manzili</label>
-            <div className="flex items-start space-x-2">
-              <MapPin size={16} className="text-slate-400 mt-0.5" />
-              <span className="text-slate-900">{user.address || 'Kiritilmagan'}</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-3 bg-slate-50 rounded-lg">
-              <label className="block text-sm font-medium text-slate-600 mb-1">Transport turi</label>
-              <div className="flex items-center space-x-2">
-                <Truck size={16} className="text-slate-400" />
-                <span className="text-slate-900">
-                  {vehicleTypes.find(t => t.value === user.vehicleType)?.label || 'Kiritilmagan'}
-                </span>
-              </div>
-            </div>
-
-            <div className="p-3 bg-slate-50 rounded-lg">
-              <label className="block text-sm font-medium text-slate-600 mb-1">Transport raqami</label>
-              <span className="text-slate-900">{user.vehicleNumber || 'Kiritilmagan'}</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-3 bg-slate-50 rounded-lg">
-              <label className="block text-sm font-medium text-slate-600 mb-1">Hudud</label>
-              <span className="text-slate-900">
-                {regions.find(r => r.value === user.deliveryRegion)?.label || 'Kiritilmagan'}
-              </span>
-            </div>
-
-            <div className="p-3 bg-slate-50 rounded-lg">
-              <label className="block text-sm font-medium text-slate-600 mb-1">Tuman</label>
-              <span className="text-slate-900">
-                {user.deliveryDistrict && districts[user.deliveryRegion] 
-                  ? districts[user.deliveryRegion].find(d => d.value === user.deliveryDistrict)?.label 
-                  : 'Kiritilmagan'
-                }
-              </span>
-            </div>
-          </div>
-
-          <div className="p-3 bg-slate-50 rounded-lg">
-            <label className="block text-sm font-medium text-slate-600 mb-1">Favqulodda aloqa</label>
-            <div className="flex items-center space-x-2">
-              <Phone size={16} className="text-slate-400" />
-              <span className="text-slate-900">{user.emergencyContact || 'Kiritilmagan'}</span>
-            </div>
-          </div>
-
-          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex items-center space-x-2 text-blue-700">
-              <Settings size={16} />
-              <span className="text-sm font-medium">Ma'lumotlarni o'zgartirish uchun "Sozlamalar" bo'limiga o'ting</span>
-            </div>
-          </div>
-
-          
-        </div>
-      </div>
+      
 
       
 
@@ -1072,6 +986,92 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
   // Kengaytirilgan Sozlamalar Bo'limi
   const renderSettings = () => (
     <div className="space-y-6">
+      {/* Personal Information Settings */}
+      <div className="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-sm">
+        <h3 className="text-base md:text-lg font-semibold text-slate-900 mb-4 flex items-center space-x-2">
+          <User size={20} className="text-slate-600" />
+          <span>Shaxsiy ma'lumotlar</span>
+        </h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <label className="block text-sm font-medium text-slate-600 mb-1">Telefon raqam</label>
+              <div className="flex items-center space-x-2">
+                <Phone size={16} className="text-slate-400" />
+                <span className="text-slate-900">{user.phone || 'Kiritilmagan'}</span>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <label className="block text-sm font-medium text-slate-600 mb-1">Email manzil</label>
+              <div className="flex items-center space-x-2">
+                <Mail size={16} className="text-slate-400" />
+                <span className="text-slate-900">{user.email || 'Kiritilmagan'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-3 bg-slate-50 rounded-lg">
+            <label className="block text-sm font-medium text-slate-600 mb-1">Yashash manzili</label>
+            <div className="flex items-start space-x-2">
+              <MapPin size={16} className="text-slate-400 mt-0.5" />
+              <span className="text-slate-900">{user.address || 'Kiritilmagan'}</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <label className="block text-sm font-medium text-slate-600 mb-1">Transport turi</label>
+              <div className="flex items-center space-x-2">
+                <Truck size={16} className="text-slate-400" />
+                <span className="text-slate-900">
+                  {vehicleTypes.find(t => t.value === user.vehicleType)?.label || 'Kiritilmagan'}
+                </span>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <label className="block text-sm font-medium text-slate-600 mb-1">Transport raqami</label>
+              <span className="text-slate-900">{user.vehicleNumber || 'Kiritilmagan'}</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <label className="block text-sm font-medium text-slate-600 mb-1">Hudud</label>
+              <span className="text-slate-900">
+                {regions.find(r => r.value === user.deliveryRegion)?.label || 'Kiritilmagan'}
+              </span>
+            </div>
+
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <label className="block text-sm font-medium text-slate-600 mb-1">Tuman</label>
+              <span className="text-slate-900">
+                {user.deliveryDistrict && districts[user.deliveryRegion] 
+                  ? districts[user.deliveryRegion].find(d => d.value === user.deliveryDistrict)?.label 
+                  : 'Kiritilmagan'
+                }
+              </span>
+            </div>
+          </div>
+
+          <div className="p-3 bg-slate-50 rounded-lg">
+            <label className="block text-sm font-medium text-slate-600 mb-1">Favqulodda aloqa</label>
+            <div className="flex items-center space-x-2">
+              <Phone size={16} className="text-slate-400" />
+              <span className="text-slate-900">{user.emergencyContact || 'Kiritilmagan'}</span>
+            </div>
+          </div>
+
+          <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+            <div className="flex items-center space-x-2 text-orange-700">
+              <Edit2 size={16} />
+              <span className="text-sm font-medium">Ma'lumotlarni o'zgartirish uchun admin bilan bog'laning</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Work Settings */}
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
         <h4 className="font-semibold text-slate-900 mb-4">Ish sozlamalari</h4>
