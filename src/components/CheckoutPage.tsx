@@ -99,6 +99,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     orderId: string;
     operatorPhone: string;
   } | null>(null);
+  const [isProcessingOrder, setIsProcessingOrder] = useState(false);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -186,16 +187,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       console.log('✅ API kaliti topildi');
 
       // Yandex Maps servisini static import qilish
-      let yandexMapsService;
-      try {
-        const serviceModule = await import('../services/yandexMapsService');
-        yandexMapsService = serviceModule.yandexMapsService || serviceModule.default;
-        console.log('✅ yandexMapsService yuklandi');
-      } catch (importError) {
-        console.error('❌ yandexMapsService import xatosi:', importError);
-        setGeocodingError('Xarita xizmatini yuklashda xato. Sahifani qayta yuklang.');
-        return;
-      }
+      console.log('✅ yandexMapsService yuklandi');
 
       // Yandex Maps ni yuklash
       await yandexMapsService.loadYandexMaps();
@@ -346,28 +338,18 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       }
 
       // Yandex Maps servisini tekshirish
-      if (!yandexMapsService.isYmapsReady()) {
-        console.warn('⚠️ Yandex Maps hali tayyor emas, qayta yuklash...');
-        try {
-          await yandexMapsService.loadYandexMaps();
-        } catch (loadError) {
-          console.error('Yandex Maps yuklashda xato:', loadError);
-          throw new Error('Yandex Maps xizmatini yuklashda xato yuz berdi');
-        }
-      }
-
-      if (!yandexMapsService.isYmapsReady()) {
+      if (!window.ymaps || !window.ymaps.ready) {
+        console.warn('⚠️ Yandex Maps hali tayyor emas');
         throw new Error('Yandex Maps xizmati mavjud emas');
       }
 
       console.log('📍 Geocoding uchun koordinatalar:', coords);
 
-      // Xavfsiz geocoding
-      const result = await yandexMapsService.safeGeocode(coords, {
+      // Geocoding
+      const result = await window.ymaps.geocode(coords, {
         kind: 'house',
         results: 1,
-        lang: 'uz_UZ',
-        timeout: 8000
+        lang: 'uz_UZ'
       });
 
       console.log('🔍 Geocoding natijasi:', result);
@@ -450,7 +432,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       console.log('🔍 Manzil qidirilmoqda:', query);
 
       // Yandex Maps servisini tekshirish
-      if (!yandexMapsService.isYmapsReady()) {
+      if (!window.ymaps || !window.ymaps.geocode) {
         console.warn('⚠️ Yandex Maps hali tayyor emas');
         setAddressSuggestions([]);
         return;
@@ -459,12 +441,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       const searchQuery = `Uzbekistan, Tashkent, ${query}`;
       console.log('🔍 Qidiruv so\'rovi:', searchQuery);
 
-      const result = await yandexMapsService.safeGeocode(searchQuery, {
+      const result = await window.ymaps.geocode(searchQuery, {
         kind: 'house',
         results: 5,
         lang: 'uz_UZ',
-        boundedBy: [[40.0, 67.0], [42.0, 71.0]],
-        timeout: 6000
+        boundedBy: [[40.0, 67.0], [42.0, 71.0]]
       });
 
       if (!result || !result.geoObjects) {
@@ -590,6 +571,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
   // Buyurtmani yuborish
   const handleSubmitOrder = async () => {
+    if (isProcessingOrder) return;
+
     if (!userInfo.name || !userInfo.phone || !deliveryAddress) {
       alert('Iltimos, barcha maydonlarni to\'ldiring');
       return;
@@ -605,14 +588,24 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       return;
     }
 
-    await processOrder();
+    setIsProcessingOrder(true);
+    try {
+      await processOrder();
+    } finally {
+      setIsProcessingOrder(false);
+    }
   };
 
   // To'lov turini tanlash va buyurtmani davom ettirish
   const handlePaymentTypeSelect = async (paymentType: string) => {
     setUserInfo(prev => ({ ...prev, paymentType }));
     setShowPaymentModal(false);
-    await processOrder(paymentType);
+    setIsProcessingOrder(true);
+    try {
+      await processOrder(paymentType);
+    } finally {
+      setIsProcessingOrder(false);
+    }
   };
 
   // Buyurtmani qayta ishlash
@@ -621,6 +614,17 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
     try {
       console.log('📱 Customer telefon:', userInfo.phone);
+
+      // Buyurtma ma'lumotlarini tekshirish
+      if (cartProducts.length === 0) {
+        alert('Buyurtmada mahsulotlar mavjud emas');
+        return;
+      }
+
+      if (!userInfo.name.trim() || !userInfo.phone.trim() || !deliveryAddress.trim()) {
+        alert('Iltimos, barcha majburiy maydonlarni to\'ldiring');
+        return;
+      }
 
       const orderData: any = {
         customerId: userData?.id || userInfo.phone.trim(),
@@ -634,6 +638,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         deliveryAddress: deliveryAddress.trim(),
         paymentMethod: userInfo.paymentMethod,
         paymentType: finalPaymentType,
+        deliveryFee: deliveryFee,
         notes: `To'lov usuli: ${
           userInfo.paymentMethod === 'cash' ? 'Naqd pul' :
           userInfo.paymentMethod === 'card' ? 

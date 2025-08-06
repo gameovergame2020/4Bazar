@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Truck } from 'lucide-react';
 import CartItemsList from './CartItemsList';
@@ -18,6 +17,7 @@ interface OrderSummaryProps {
   totalPrice: number;
   onRemoveProduct: (cakeId: string) => void;
   onSubmitOrder: () => void;
+  isProcessing?: boolean; // Added prop
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
@@ -26,7 +26,8 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   deliveryFee,
   totalPrice,
   onRemoveProduct,
-  onSubmitOrder
+  onSubmitOrder,
+  isProcessing = false // Default value
 }) => {
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border mt-6">
@@ -64,9 +65,12 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
 
       <button
         onClick={onSubmitOrder}
-        className="w-full mt-6 bg-orange-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+        disabled={isProcessing} // Disable button while processing
+        className={`w-full mt-6 text-white py-3 px-6 rounded-lg font-semibold transition-colors ${
+          isProcessing ? 'bg-orange-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'
+        }`}
       >
-        Buyurtmani rasmiylashtirish
+        {isProcessing ? 'Qayta ishlanmoqda...' : 'Buyurtmani rasmiylashtirish'}
       </button>
     </div>
   );
