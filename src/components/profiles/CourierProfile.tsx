@@ -506,86 +506,113 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
 
   // Asosiy Ma'lumotlar Bo'limi
   const renderInfo = () => (
-    <div className="space-y-6">
-      {/* Enhanced Unified Profile Header */}
-      <div className={`bg-gradient-to-r ${performanceLevel.color} rounded-2xl p-6 text-white relative overflow-hidden`}>
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
+    <div className="space-y-4 md:space-y-6">
+      {/* Enhanced Unified Profile Header - Mobile Optimized */}
+      <div className={`bg-gradient-to-r ${performanceLevel.color} rounded-2xl p-4 md:p-6 text-white relative overflow-hidden`}>
+        <div className="absolute top-0 right-0 w-20 h-20 md:w-32 md:h-32 bg-white/10 rounded-full -translate-y-8 md:-translate-y-16 translate-x-8 md:translate-x-16"></div>
+        <div className="absolute bottom-0 left-0 w-16 h-16 md:w-24 md:h-24 bg-white/5 rounded-full translate-y-8 md:translate-y-12 -translate-x-8 md:-translate-x-12"></div>
         
         <div className="relative z-10">
-          {/* Profile Header Section */}
-          <div className="flex items-start space-x-4 mb-6">
-            <div className="relative">
-              {isEditing ? (
-                <div className="relative group">
-                  <div className="w-24 h-24 bg-white/20 rounded-2xl border-3 border-white/30 shadow-lg flex items-center justify-center cursor-pointer hover:shadow-xl transition-shadow">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setEditForm(prev => ({ ...prev, avatar: e.target.files?.[0] || null }))}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                    <div className="text-center">
-                      <Camera size={24} className="text-white/70 mx-auto mb-1" />
-                      <span className="text-xs text-white/60">Rasm</span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="relative">
-                  <img 
-                    src={user.avatar || 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=200'}
-                    alt={user.name}
-                    className="w-24 h-24 rounded-2xl border-3 border-white/30 object-cover shadow-lg"
-                  />
-                  <div className="absolute -bottom-2 -right-2 p-2 bg-white/20 backdrop-blur-sm text-white rounded-xl shadow-lg">
-                    <Truck size={16} />
-                  </div>
-                  <div className="absolute top-2 right-2 w-4 h-4 bg-green-400 border-2 border-white rounded-full animate-pulse"></div>
-                </div>
-              )}
-              
-              {/* Achievements below profile image */}
-              <div className="flex justify-center items-center space-x-1 mt-3">
-                {achievements.slice(0, 5).map(achievement => {
-                  const getAchievementIcon = (id: number) => {
-                    switch(id) {
-                      case 1: return Trophy;
-                      case 2: return Zap;
-                      case 3: return Star;
-                      case 4: return Route;
-                      case 5: return Heart;
-                      default: return Medal;
-                    }
-                  };
-
-                  const IconComponent = getAchievementIcon(achievement.id);
-                  
-                  return (
-                    <div key={achievement.id} className={`relative ${
-                      achievement.unlocked 
-                        ? 'text-white' 
-                        : 'text-white/40'
-                    }`}>
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                        achievement.unlocked 
-                          ? 'bg-white/20 backdrop-blur-sm' 
-                          : 'bg-white/10 backdrop-blur-sm'
-                      }`}>
-                        <IconComponent size={12} />
+          {/* Profile Header Section - Mobile First */}
+          <div className="flex flex-col md:flex-row md:items-start space-y-4 md:space-y-0 md:space-x-4 mb-4 md:mb-6">
+            <div className="flex items-center space-x-4 md:block md:space-x-0">
+              <div className="relative flex-shrink-0">
+                {isEditing ? (
+                  <div className="relative group">
+                    <div className="w-20 h-20 md:w-24 md:h-24 bg-white/20 rounded-2xl border-3 border-white/30 shadow-lg flex items-center justify-center cursor-pointer hover:shadow-xl transition-shadow">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setEditForm(prev => ({ ...prev, avatar: e.target.files?.[0] || null }))}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                      <div className="text-center">
+                        <Camera size={20} className="text-white/70 mx-auto mb-1" />
+                        <span className="text-xs text-white/60">Rasm</span>
                       </div>
-                      {achievement.unlocked && (
-                        <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full"></div>
-                      )}
                     </div>
-                  );
-                })}
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <img 
+                      src={user.avatar || 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=200'}
+                      alt={user.name}
+                      className="w-20 h-20 md:w-24 md:h-24 rounded-2xl border-3 border-white/30 object-cover shadow-lg"
+                    />
+                    <div className="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 p-1.5 md:p-2 bg-white/20 backdrop-blur-sm text-white rounded-xl shadow-lg">
+                      <Truck size={14} className="md:w-4 md:h-4" />
+                    </div>
+                    <div className="absolute top-1 right-1 md:top-2 md:right-2 w-3 h-3 md:w-4 md:h-4 bg-green-400 border-2 border-white rounded-full animate-pulse"></div>
+                  </div>
+                )}
+                
+                {/* Achievements below profile image - Mobile Hidden, Tablet+ Visible */}
+                <div className="hidden md:flex justify-center items-center space-x-1 mt-3">
+                  {achievements.slice(0, 5).map(achievement => {
+                    const getAchievementIcon = (id: number) => {
+                      switch(id) {
+                        case 1: return Trophy;
+                        case 2: return Zap;
+                        case 3: return Star;
+                        case 4: return Route;
+                        case 5: return Heart;
+                        default: return Medal;
+                      }
+                    };
+
+                    const IconComponent = getAchievementIcon(achievement.id);
+                    
+                    return (
+                      <div key={achievement.id} className={`relative ${
+                        achievement.unlocked 
+                          ? 'text-white' 
+                          : 'text-white/40'
+                      }`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                          achievement.unlocked 
+                            ? 'bg-white/20 backdrop-blur-sm' 
+                            : 'bg-white/10 backdrop-blur-sm'
+                        }`}>
+                          <IconComponent size={12} />
+                        </div>
+                        {achievement.unlocked && (
+                          <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full"></div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex-1 md:hidden">
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={editForm.name}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                      className="text-lg font-bold bg-white/20 border border-white/30 rounded-lg px-3 py-2 text-white placeholder-white/60 focus:border-white/50 outline-none w-full backdrop-blur-sm"
+                      placeholder="Ismingiz"
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex items-center space-x-2 mb-1">
+                      <h2 className="text-lg font-bold text-white">{user.name}</h2>
+                      <BadgeCheck size={16} className="text-white/80" />
+                    </div>
+                    <div className="flex items-center space-x-1 mb-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs text-white/80">Online</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="flex-1">
               {isEditing ? (
-                <div className="space-y-3">
+                <div className="hidden md:block space-y-3">
                   <input
                     type="text"
                     value={editForm.name}
@@ -595,49 +622,49 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                   />
                 </div>
               ) : (
-                <div>
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h2 className="text-2xl font-bold text-white">{user.name}</h2>
-                    <div className="flex items-center space-x-1 px-3 py-1 bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium">
+                <div className="hidden md:block">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <h2 className="text-xl lg:text-2xl font-bold text-white">{user.name}</h2>
+                    <div className="flex items-center space-x-1 px-2 py-1 bg-white/20 backdrop-blur-sm text-white rounded-full text-xs font-medium">
                       <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                       <span>Online</span>
                     </div>
-                    <BadgeCheck size={20} className="text-white/80" />
+                    <BadgeCheck size={18} className="text-white/80" />
                   </div>
                   
-                  <div className="flex items-center space-x-3 mb-3">
-                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-white/20 backdrop-blur-sm text-white">
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm text-white">
                       {performanceLevel.level} Kuryer
                     </span>
                     <div className="flex items-center space-x-1">
-                      <Star size={14} className="fill-current text-yellow-300" />
-                      <span className="text-sm font-bold text-white">{stats.averageRating.toFixed(1)}</span>
+                      <Star size={12} className="fill-current text-yellow-300" />
+                      <span className="text-xs font-bold text-white">{stats.averageRating.toFixed(1)}</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <Clock size={14} className="text-white/70" />
-                      <span className="text-sm text-white/90">{stats.averageDeliveryTime} min</span>
+                      <Clock size={12} className="text-white/70" />
+                      <span className="text-xs text-white/90">{stats.averageDeliveryTime} min</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-4 text-sm text-white/70 mb-3">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-white/70 mb-3">
                     <span className="flex items-center space-x-1">
-                      <Calendar size={12} />
+                      <Calendar size={10} />
                       <span>{new Date(user.joinDate).toLocaleDateString('uz-UZ')} dan</span>
                     </span>
                     <span className="flex items-center space-x-1">
-                      <Route size={12} />
+                      <Route size={10} />
                       <span>{stats.totalDistance} km</span>
                     </span>
                     <span className="flex items-center space-x-1">
-                      <Shield size={12} />
+                      <Shield size={10} />
                       <span>Tasdiqlangan</span>
                     </span>
                   </div>
 
                   {(user.deliveryRegion || user.deliveryDistrict) && (
-                    <div className="flex items-center space-x-2 text-sm bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-lg">
-                      <MapPin size={12} />
-                      <span>
+                    <div className="flex items-center space-x-2 text-xs bg-white/20 backdrop-blur-sm text-white px-2 py-1 rounded-lg">
+                      <MapPin size={10} />
+                      <span className="truncate">
                         {regions.find(r => r.value === user.deliveryRegion)?.label}
                         {user.deliveryDistrict && districts[user.deliveryRegion] && 
                           ` - ${districts[user.deliveryRegion].find(d => d.value === user.deliveryDistrict)?.label}`
@@ -652,7 +679,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             <button
               onClick={() => isEditing ? handleSave() : setIsEditing(true)}
               disabled={loading}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              className={`flex-shrink-0 flex items-center justify-center space-x-1 md:space-x-2 px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all ${
                 isEditing 
                   ? 'bg-white/20 backdrop-blur-sm text-white border border-white/30 hover:bg-white/30' 
                   : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30'
@@ -661,24 +688,76 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
               {loading ? (
                 <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
               ) : isEditing ? (
-                <Save size={16} />
+                <Save size={14} />
               ) : (
-                <Edit2 size={16} />
+                <Edit2 size={14} />
               )}
-              <span>{loading ? 'Saqlanmoqda...' : isEditing ? 'Saqlash' : 'Tahrirlash'}</span>
+              <span className="hidden sm:inline">{loading ? 'Saqlanmoqda...' : isEditing ? 'Saqlash' : 'Tahrirlash'}</span>
             </button>
           </div>
 
-          {/* Performance Level Progress */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-white/90">Professional daraja</h3>
-              <p className="text-white/70 text-sm">Keyingi: {performanceLevel.nextLevel}</p>
+          {/* Mobile Status Info */}
+          <div className="flex flex-wrap items-center gap-2 mb-4 md:hidden">
+            <span className="px-2 py-1 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm text-white">
+              {performanceLevel.level} Kuryer
+            </span>
+            <div className="flex items-center space-x-1">
+              <Star size={12} className="fill-current text-yellow-300" />
+              <span className="text-xs font-bold text-white">{stats.averageRating.toFixed(1)}</span>
             </div>
-            <div className="text-right">
-              <div className="w-32 bg-white/20 rounded-full h-3 mb-1">
+            <div className="flex items-center space-x-1">
+              <Clock size={12} className="text-white/70" />
+              <span className="text-xs text-white/90">{stats.averageDeliveryTime} min</span>
+            </div>
+          </div>
+
+          {/* Mobile Achievements */}
+          <div className="flex justify-center items-center space-x-2 mb-4 md:hidden">
+            {achievements.slice(0, 5).map(achievement => {
+              const getAchievementIcon = (id: number) => {
+                switch(id) {
+                  case 1: return Trophy;
+                  case 2: return Zap;
+                  case 3: return Star;
+                  case 4: return Route;
+                  case 5: return Heart;
+                  default: return Medal;
+                }
+              };
+
+              const IconComponent = getAchievementIcon(achievement.id);
+              
+              return (
+                <div key={achievement.id} className={`relative ${
+                  achievement.unlocked 
+                    ? 'text-white' 
+                    : 'text-white/40'
+                }`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    achievement.unlocked 
+                      ? 'bg-white/20 backdrop-blur-sm' 
+                      : 'bg-white/10 backdrop-blur-sm'
+                  }`}>
+                    <IconComponent size={14} />
+                  </div>
+                  {achievement.unlocked && (
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 rounded-full"></div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Performance Level Progress - Mobile Optimized */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 mb-4 md:mb-6">
+            <div>
+              <h3 className="text-base md:text-lg font-semibold text-white/90">Professional daraja</h3>
+              <p className="text-white/70 text-xs md:text-sm">Keyingi: {performanceLevel.nextLevel}</p>
+            </div>
+            <div className="text-left sm:text-right">
+              <div className="w-full sm:w-32 bg-white/20 rounded-full h-2.5 md:h-3 mb-1">
                 <div 
-                  className="bg-white h-3 rounded-full transition-all duration-500" 
+                  className="bg-white h-2.5 md:h-3 rounded-full transition-all duration-500" 
                   style={{width: `${Math.min(performanceLevel.progress, 100)}%`}}
                 ></div>
               </div>
@@ -686,37 +765,37 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             </div>
           </div>
           
-          {/* Unified Stats Grid */}
-          <div className="grid grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-              <Package size={24} className="text-white mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{stats.totalDeliveries}</div>
+          {/* Unified Stats Grid - Mobile Optimized */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            <div className="text-center p-3 md:p-4 bg-white/10 rounded-xl backdrop-blur-sm">
+              <Package size={20} className="text-white mx-auto mb-2" />
+              <div className="text-xl md:text-2xl font-bold text-white">{stats.totalDeliveries}</div>
               <div className="text-xs text-white/70">Jami yetkazish</div>
-              <div className="text-lg font-bold text-white mt-1">{stats.todayDeliveries}</div>
+              <div className="text-base md:text-lg font-bold text-white mt-1">{stats.todayDeliveries}</div>
               <div className="text-xs text-white/60">Bugun</div>
             </div>
             
-            <div className="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-              <Star size={24} className="text-white mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{stats.averageRating.toFixed(1)}</div>
+            <div className="text-center p-3 md:p-4 bg-white/10 rounded-xl backdrop-blur-sm">
+              <Star size={20} className="text-white mx-auto mb-2" />
+              <div className="text-xl md:text-2xl font-bold text-white">{stats.averageRating.toFixed(1)}</div>
               <div className="text-xs text-white/70">Reyting</div>
-              <div className="text-lg font-bold text-white mt-1">{stats.customerSatisfaction}%</div>
+              <div className="text-base md:text-lg font-bold text-white mt-1">{stats.customerSatisfaction}%</div>
               <div className="text-xs text-white/60">Mamnunlik</div>
             </div>
             
-            <div className="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-              <Trophy size={24} className="text-white mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{stats.successRate}%</div>
+            <div className="text-center p-3 md:p-4 bg-white/10 rounded-xl backdrop-blur-sm">
+              <Trophy size={20} className="text-white mx-auto mb-2" />
+              <div className="text-xl md:text-2xl font-bold text-white">{stats.successRate}%</div>
               <div className="text-xs text-white/70">Muvaffaqiyat</div>
-              <div className="text-lg font-bold text-white mt-1">{stats.onTimeRate}%</div>
+              <div className="text-base md:text-lg font-bold text-white mt-1">{stats.onTimeRate}%</div>
               <div className="text-xs text-white/60">Muddatda</div>
             </div>
             
-            <div className="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-              <DollarSign size={24} className="text-white mx-auto mb-2" />
-              <div className="text-xl font-bold text-white">{formatPrice(stats.totalEarnings)}</div>
+            <div className="text-center p-3 md:p-4 bg-white/10 rounded-xl backdrop-blur-sm">
+              <DollarSign size={20} className="text-white mx-auto mb-2" />
+              <div className="text-lg md:text-xl font-bold text-white leading-tight">{formatPrice(stats.totalEarnings)}</div>
               <div className="text-xs text-white/70">Jami daromad</div>
-              <div className="text-lg font-bold text-white mt-1">{formatPrice(stats.todayEarnings)}</div>
+              <div className="text-sm md:text-lg font-bold text-white mt-1 leading-tight">{formatPrice(stats.todayEarnings)}</div>
               <div className="text-xs text-white/60">Bugun</div>
             </div>
           </div>
@@ -725,128 +804,159 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
         </div>
       </div>
 
-      {/* Detailed Info Form */}
+      {/* Detailed Info Form - Mobile Optimized */}
       {isEditing && (
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Ma'lumotlarni yangilash</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Telefon raqam</label>
-              <input
-                type="tel"
-                value={editForm.phone}
-                onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-              />
+        <div className="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-sm">
+          <h3 className="text-base md:text-lg font-semibold text-slate-900 mb-4">Ma'lumotlarni yangilash</h3>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Telefon raqam</label>
+                <input
+                  type="tel"
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="+998 XX XXX XX XX"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Email manzil</label>
+                <input
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="email@example.com"
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Email manzil</label>
-              <input
-                type="email"
-                value={editForm.email}
-                onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Yashash manzili</label>
-              <input
-                type="text"
+              <label className="block text-sm font-medium text-slate-700 mb-2">Yashash manzili</label>
+              <textarea
                 value={editForm.address}
                 onChange={(e) => setEditForm(prev => ({ ...prev, address: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                rows={2}
+                className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
                 placeholder="To'liq yashash manzilingiz"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Transport turi</label>
-              <select
-                value={editForm.vehicleType}
-                onChange={(e) => setEditForm(prev => ({ ...prev, vehicleType: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-              >
-                {vehicleTypes.map(type => (
-                  <option key={type.value} value={type.value}>
-                    {type.icon} {type.label} ({type.efficiency})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Transport raqami</label>
-              <input
-                type="text"
-                value={editForm.vehicleNumber}
-                onChange={(e) => setEditForm(prev => ({ ...prev, vehicleNumber: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                placeholder="01A123BC"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Viloyat/Shahar</label>
-              <select
-                value={editForm.deliveryRegion}
-                onChange={(e) => {
-                  setEditForm(prev => ({ 
-                    ...prev, 
-                    deliveryRegion: e.target.value,
-                    deliveryDistrict: '' // Reset district when region changes
-                  }));
-                }}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-              >
-                {regions.map(region => (
-                  <option key={region.value} value={region.value}>
-                    {region.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Tuman/Shahar</label>
-              <select
-                value={editForm.deliveryDistrict}
-                onChange={(e) => setEditForm(prev => ({ ...prev, deliveryDistrict: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                disabled={!editForm.deliveryRegion || !districts[editForm.deliveryRegion]}
-              >
-                <option value="">Tumanni tanlang</option>
-                {editForm.deliveryRegion && districts[editForm.deliveryRegion] && 
-                  districts[editForm.deliveryRegion].map(district => (
-                    <option key={district.value} value={district.value}>
-                      {district.label}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Transport turi</label>
+                <select
+                  value={editForm.vehicleType}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, vehicleType: e.target.value }))}
+                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  {vehicleTypes.map(type => (
+                    <option key={type.value} value={type.value}>
+                      {type.icon} {type.label} ({type.efficiency})
                     </option>
-                  ))
-                }
-              </select>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Transport raqami</label>
+                <input
+                  type="text"
+                  value={editForm.vehicleNumber}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, vehicleNumber: e.target.value }))}
+                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="01A123BC"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Viloyat/Shahar</label>
+                <select
+                  value={editForm.deliveryRegion}
+                  onChange={(e) => {
+                    setEditForm(prev => ({ 
+                      ...prev, 
+                      deliveryRegion: e.target.value,
+                      deliveryDistrict: '' // Reset district when region changes
+                    }));
+                  }}
+                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  {regions.map(region => (
+                    <option key={region.value} value={region.value}>
+                      {region.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Tuman/Shahar</label>
+                <select
+                  value={editForm.deliveryDistrict}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, deliveryDistrict: e.target.value }))}
+                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
+                  disabled={!editForm.deliveryRegion || !districts[editForm.deliveryRegion]}
+                >
+                  <option value="">Tumanni tanlang</option>
+                  {editForm.deliveryRegion && districts[editForm.deliveryRegion] && 
+                    districts[editForm.deliveryRegion].map(district => (
+                      <option key={district.value} value={district.value}>
+                        {district.label}
+                      </option>
+                    ))
+                  }
+                </select>
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Yetkazish hududi (Qo'shimcha)</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Yetkazish hududi (Qo'shimcha)</label>
               <input
                 type="text"
                 value={editForm.deliveryZone}
                 onChange={(e) => setEditForm(prev => ({ ...prev, deliveryZone: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="Masalan: Markaz atrofi, metro bekatlari yaqini"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Favqulodda aloqa</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Favqulodda aloqa</label>
               <input
                 type="tel"
                 value={editForm.emergencyContact}
                 onChange={(e) => setEditForm(prev => ({ ...prev, emergencyContact: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="+998 XX XXX XX XX"
               />
+            </div>
+
+            {/* Mobile Save/Cancel Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-200">
+              <button
+                onClick={handleSave}
+                disabled={loading}
+                className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl font-medium transition-all"
+              >
+                {loading ? (
+                  <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+                ) : (
+                  <Save size={18} />
+                )}
+                <span>{loading ? 'Saqlanmoqda...' : 'Saqlash'}</span>
+              </button>
+              <button
+                onClick={() => setIsEditing(false)}
+                disabled={loading}
+                className="flex-1 sm:flex-none px-6 py-3 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-all"
+              >
+                Bekor qilish
+              </button>
             </div>
           </div>
         </div>
@@ -1294,22 +1404,22 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pb-20">
-      {/* Tab Navigation */}
-      <div className="px-4 py-4">
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-1.5 shadow-sm border border-white/30 max-w-7xl mx-auto">
+      {/* Tab Navigation - Mobile Optimized */}
+      <div className="px-3 md:px-4 py-3 md:py-4 sticky top-0 z-10 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl md:rounded-2xl p-1 md:p-1.5 shadow-lg border border-white/30 max-w-7xl mx-auto">
           <div className="grid grid-cols-3 gap-1">
             {navigationSections.map((section) => (
               <button
                 key={section.id}
                 onClick={() => setActiveSection(section.id)}
-                className={`flex items-center justify-center space-x-2 py-3 px-4 rounded-xl font-medium transition-all duration-300 ${
+                className={`flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-2 py-2 md:py-3 px-2 md:px-4 rounded-lg md:rounded-xl font-medium transition-all duration-300 ${
                   activeSection === section.id
                     ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg scale-105'
                     : 'text-slate-600 hover:bg-slate-100 hover:scale-105'
                 }`}
               >
-                <section.icon size={18} />
-                <span className="text-sm font-medium">{section.label}</span>
+                <section.icon size={16} className="sm:w-4 sm:h-4 md:w-5 md:h-5" />
+                <span className="text-xs sm:text-sm font-medium">{section.label}</span>
               </button>
             ))}
           </div>
@@ -1317,7 +1427,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
       </div>
 
       {/* Main Content */}
-      <div className="px-4 max-w-7xl mx-auto">
+      <div className="px-3 md:px-4 max-w-7xl mx-auto">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin h-8 w-8 border-4 border-indigo-500 border-t-transparent rounded-full"></div>
