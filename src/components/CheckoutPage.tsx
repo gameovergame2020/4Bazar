@@ -147,7 +147,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const searchAddressFree = async (query: string): Promise<string[]> => {
     try {
       console.log('🔍 Bepul Nominatim API orqali qidirish:', query);
-      
+
       const searchQuery = `${query}, Tashkent, Uzbekistan`;
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=uz&accept-language=uz,en`
@@ -231,7 +231,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     return () => {
       isMounted = false;
       cleanupTriggered = true;
-      
+
       if (initTimer) {
         clearTimeout(initTimer);
       }
@@ -698,7 +698,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     }
 
     debounceTimeoutRef.current = setTimeout(() => {
-      if (isMapInitialized && isYmapsLoaded) {
+      if (mapInstanceRef.current && isMapInitialized && isYmapsLoaded) {
         searchAddress(value);
       }
     }, 500);
