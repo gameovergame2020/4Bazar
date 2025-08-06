@@ -815,70 +815,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
 
       
 
-      {/* Achievements - Compact Version */}
-      {!isEditing && (
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-          <h4 className="font-semibold text-slate-900 mb-4">Yutuqlar</h4>
-          <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
-            {achievements.map(achievement => {
-              const getAchievementIcon = (id: number) => {
-                switch(id) {
-                  case 1: return Trophy;
-                  case 2: return Zap;
-                  case 3: return Star;
-                  case 4: return Route;
-                  case 5: return Heart;
-                  default: return Medal;
-                }
-              };
-
-              const IconComponent = getAchievementIcon(achievement.id);
-              
-              return (
-                <div key={achievement.id} className={`text-center p-3 rounded-xl border-2 transition-all hover:scale-105 ${
-                  achievement.unlocked 
-                    ? 'border-green-200 bg-gradient-to-br from-green-50 to-green-100' 
-                    : 'border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100'
-                }`}>
-                  <div className="relative mb-2">
-                    <div className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center ${
-                      achievement.unlocked 
-                        ? 'bg-green-100 text-green-600' 
-                        : 'bg-slate-100 text-slate-400'
-                    }`}>
-                      <IconComponent size={20} />
-                    </div>
-                    {achievement.unlocked && (
-                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                        <CheckCircle size={12} className="text-white" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  <h5 className="font-medium text-slate-900 text-xs mb-1 leading-tight">{achievement.name}</h5>
-                  
-                  {!achievement.unlocked && achievement.progress && (
-                    <div className="w-full bg-slate-200 rounded-full h-1.5 mb-1">
-                      <div 
-                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-1.5 rounded-full transition-all"
-                        style={{width: `${achievement.progress}%`}}
-                      ></div>
-                    </div>
-                  )}
-                  
-                  {achievement.unlocked && achievement.date && (
-                    <p className="text-xs text-green-600">{new Date(achievement.date).toLocaleDateString('uz-UZ', { month: 'short', day: 'numeric' })}</p>
-                  )}
-                  
-                  {!achievement.unlocked && achievement.progress && (
-                    <p className="text-xs text-slate-500">{achievement.progress}%</p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 
