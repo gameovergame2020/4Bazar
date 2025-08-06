@@ -128,19 +128,48 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
   // Component yuklanganida
   useEffect(() => {
-    initializeYandexMap();
+    let isMounted = true;
+    
+    const initMap = async () => {
+      if (isMounted) {
+        await initializeYandexMap();
+      }
+    };
+    
+    initMap();
 
     return () => {
+      isMounted = false;
+      
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
+        debounceTimeoutRef.current = null;
+      }
+
+      if (placemarkRef.current && mapInstanceRef.current) {
+        try {
+          mapInstanceRef.current.geoObjects.remove(placemarkRef.current);
+        } catch (error) {
+          console.warn('Placemark olib tashlashda xato:', error);
+        }
+        placemarkRef.current = null;
       }
 
       if (mapInstanceRef.current) {
         try {
           mapInstanceRef.current.destroy();
-          mapInstanceRef.current = null;
         } catch (error) {
           console.warn('Xaritani tozalashda xato:', error);
+        }
+        mapInstanceRef.current = null;
+      }
+
+      // DOM elementini tozalash
+      if (mapRef.current && mapRef.current.innerHTML) {
+        try {
+          mapRef.current.innerHTML = '';
+        } catch (error) {
+          console.warn('DOM elementini tozalashda xato:', error);
         }
       }
     };
@@ -148,13 +177,19 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
   // Cart bo'sh bo'lganda avtomatik bosh sahifaga qaytish
   useEffect(() => {
+    let timer: NodeJS.Timeout;
+    
     if (cartProducts.length === 0 && !orderConfirmed) {
-      const timer = setTimeout(() => {
+      timer = setTimeout(() => {
         onBack();
       }, 500);
-
-      return () => clearTimeout(timer);
     }
+
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
   }, [cartProducts.length, orderConfirmed, onBack]);
 
   // Agar cart bo'sh yoki mavjud bo'lmasa
@@ -267,20 +302,43 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const initSimpleMap = async () => {
     try {
       if (mapRef.current && !mapInstanceRef.current) {
-        // Oddiy div bilan xarita taqlidi
-        mapRef.current.innerHTML = `
-          <div style="width: 100%; height: 300px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                      display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; 
-                      border-radius: 12px; text-align: center; padding: 20px;">
-            <div>
-              <div style="font-size: 24px; margin-bottom: 10px;">🗺️</div>
-              <div>Xarita yuklanmoqda...</div>
-              <div style="font-size: 12px; margin-top: 10px; opacity: 0.8;">
-                ${geocodingError || 'Bir necha soniyadan keyin qaytadan urinib ko\'ring'}
-              </div>
+        // Avval mavjud kontentni tozalash
+        while (mapRef.current.firstChild) {
+          try {
+            mapRef.current.removeChild(mapRef.current.firstChild);
+          } catch (removeError) {
+            console.warn('Child element o\'chirishda xato:', removeError);
+            break;
+          }
+        }
+        
+        // Yangi div yaratish
+        const mapPlaceholder = document.createElement('div');
+        mapPlaceholder.style.cssText = `
+          width: 100%; 
+          height: 300px; 
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          color: white; 
+          font-size: 16px; 
+          border-radius: 12px; 
+          text-align: center; 
+          padding: 20px;
+        `;
+        
+        mapPlaceholder.innerHTML = `
+          <div>
+            <div style="font-size: 24px; margin-bottom: 10px;">🗺️</div>
+            <div>Xarita yuklanmoqda...</div>
+            <div style="font-size: 12px; margin-top: 10px; opacity: 0.8;">
+              ${geocodingError || 'Bir necha soniyadan keyin qaytadan urinib ko\'ring'}
             </div>
           </div>
         `;
+        
+        mapRef.current.appendChild(mapPlaceholder);
         setIsMapInitialized(true);
       }
     } catch (error) {
