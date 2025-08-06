@@ -145,23 +145,53 @@ const CourierDashboard = () => {
 
           // Barcha faol buyurtmalarni xaritaga qo'shish
           setTimeout(() => {
-            activeOrders.forEach(order => {
+            activeOrders.forEach((order, index) => {
               if (order.coordinates) {
                 const orderPlacemark = new window.ymaps.Placemark(order.coordinates, {
                   balloonContent: `
-                    <div style="padding: 10px;">
-                      <strong>${order.customerName}</strong><br/>
-                      <small>${order.id}</small><br/>
-                      ${order.address}<br/>
-                      <strong>${formatPrice(order.total)}</strong><br/>
-                      <span style="color: ${order.priority === 'urgent' ? '#ef4444' : '#059669'};">
-                        ${order.priority === 'urgent' ? 'Shoshilinch' : 'Oddiy'}
-                      </span>
+                    <div style="padding: 12px; min-width: 200px;">
+                      <div style="font-weight: bold; font-size: 14px; margin-bottom: 5px;">${order.customerName}</div>
+                      <div style="color: #666; font-size: 12px; margin-bottom: 5px;">ID: ${order.orderUniqueId || order.id}</div>
+                      <div style="margin-bottom: 8px; font-size: 13px;">${order.deliveryAddress || 'Manzil ko\'rsatilmagan'}</div>
+                      <div style="font-weight: bold; color: #2563eb; margin-bottom: 5px;">${formatPrice(order.totalPrice)}</div>
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="
+                          padding: 2px 8px; 
+                          border-radius: 12px; 
+                          font-size: 11px; 
+                          font-weight: 500;
+                          color: ${order.priority === 'urgent' ? '#ef4444' : '#059669'};
+                          background: ${order.priority === 'urgent' ? '#fef2f2' : '#f0fdf4'};
+                        ">
+                          ${order.priority === 'urgent' ? 'Shoshilinch' : 'Oddiy'}
+                        </span>
+                        <span style="
+                          padding: 2px 8px; 
+                          border-radius: 12px; 
+                          font-size: 11px; 
+                          font-weight: 500;
+                          color: ${order.status === 'ready' ? '#059669' : '#2563eb'};
+                          background: ${order.status === 'ready' ? '#f0fdf4' : '#eff6ff'};
+                        ">
+                          ${order.status === 'ready' ? 'Tayyor' : 'Yetkazilmoqda'}
+                        </span>
+                      </div>
+                      ${order.distance ? `<div style="margin-top: 5px; font-size: 12px; color: #666;">📍 ${order.distance}${order.estimatedTime ? ` • ⏱️ ${order.estimatedTime}` : ''}</div>` : ''}
                     </div>
                   `,
-                  type: 'order'
+                  type: 'order',
+                  orderId: order.id,
+                  orderIndex: index
                 }, {
-                  preset: order.priority === 'urgent' ? 'islands#redIcon' : 'islands#greenIcon'
+                  preset: order.priority === 'urgent' ? 'islands#redIcon' : 'islands#greenIcon',
+                  iconColor: order.status === 'delivering' ? '#2563eb' : (order.priority === 'urgent' ? '#ef4444' : '#059669')
+                });
+
+                // Buyurtma belgisini bosganda tanlash
+                orderPlacemark.events.add('click', () => {
+                  setSelectedOrder(order);
+                  // Yo'lni ko'rsatish
+                  calculateAndShowRoute(order);
                 });
 
                 map.geoObjects.add(orderPlacemark);
@@ -191,35 +221,17 @@ const CourierDashboard = () => {
 
   const addOrderToMap = (order: Order) => {
     if (yandexMap && order.coordinates) {
-      // Eski belgilarni tozalash (buyurtma belgilari va yo'llarni)
+      // Faqat yo'llarni tozalash (buyurtma belgilarini saqlab qolish)
       yandexMap.geoObjects.each((geoObject: any) => {
-        if (geoObject.properties && (geoObject.properties.get('type') === 'order' || geoObject.properties.get('type') === 'route')) {
+        if (geoObject.properties && geoObject.properties.get('type') === 'route') {
           yandexMap.geoObjects.remove(geoObject);
         }
       });
 
-      // Yangi buyurtma belgisini qo'shish
-      const orderPlacemark = new window.ymaps.Placemark(order.coordinates, {
-        balloonContent: `
-          <div style="padding: 10px;">
-            <strong>${order.customerName}</strong><br/>
-            <small>${order.id}</small><br/>
-            ${order.address}<br/>
-            <strong>${formatPrice(order.total)}</strong><br/>
-            <span style="color: ${order.priority === 'urgent' ? '#ef4444' : '#059669'};">
-              ${order.priority === 'urgent' ? 'Shoshilinch' : 'Oddiy'}
-            </span>
-          </div>
-        `,
-        type: 'order'
-      }, {
-        preset: order.priority === 'urgent' ? 'islands#redIcon' : 'islands#greenIcon'
-      });
-
-      yandexMap.geoObjects.add(orderPlacemark);
-
       // Xaritani buyurtma joylashuviga yo'naltirish
-      yandexMap.setCenter(order.coordinates, 15);
+      yandexMap.setCenter(order.coordinates, 16);
+
+      console.log(`📍 Buyurtma xaritada ko'rsatildi: ${order.customerName} - ${order.deliveryAddress}`);
     }
   };
 
@@ -227,8 +239,17 @@ const CourierDashboard = () => {
     if (!yandexMap || !order.coordinates) return;
 
     try {
+      // Avval eski yo'llarni tozalash
+      yandexMap.geoObjects.each((geoObject: any) => {
+        if (geoObject.properties && geoObject.properties.get('type') === 'route') {
+          yandexMap.geoObjects.remove(geoObject);
+        }
+      });
+
       // Kuryer joylashuvi (demo - haqiqatda GPS dan olinadi)
       const courierLocation = [41.2995, 69.2401];
+
+      console.log(`🚗 Yo'l hisoblanmoqda: Kuryer [${courierLocation}] → Buyurtmachi [${order.coordinates}]`);
 
       // Yo'lni hisoblash
       const route = new window.ymaps.multiRouter.MultiRoute({
@@ -237,12 +258,16 @@ const CourierDashboard = () => {
           order.coordinates
         ],
         params: {
-          routingMode: 'auto'
+          routingMode: 'auto',
+          avoidTrafficJams: false
         }
       }, {
         boundsAutoApply: true,
         routeActiveStrokeWidth: 6,
-        routeActiveStrokeColor: '#4f46e5'
+        routeActiveStrokeColor: '#4f46e5',
+        routeActiveStrokeOpacity: 0.8,
+        wayPointVisible: false,
+        balloonContentLayout: 'islands#balloonTemplate'
       });
 
       // Yo'l ma'lumotlarini olish
@@ -259,16 +284,31 @@ const CourierDashboard = () => {
               : o
           ));
 
-          console.log(`Masofa: ${distance} km, Vaqt: ${duration} daqiqa`);
+          console.log(`✅ Yo'l hisoblandi: ${distance} km, ${duration} daqiqa`);
+          
+          // Xaritani yo'lga moslashtirish
+          yandexMap.setBounds(route.getRoutes().get(0).getBounds(), {
+            checkZoomRange: true,
+            zoomMargin: 50
+          });
         }
+      });
+
+      route.model.events.add('requestfail', (error: any) => {
+        console.error('❌ Yo\'l hisoblashda xato:', error);
+        alert('Yo\'lni hisoblashda xatolik yuz berdi. Internet aloqasini tekshiring.');
       });
 
       // Xaritaga yo'lni qo'shish
       route.properties.set('type', 'route');
       yandexMap.geoObjects.add(route);
 
+      // Tanlangan buyurtmani yangilash
+      setSelectedOrder(order);
+
     } catch (error) {
-      console.error('Yo\'lni hisoblashda xato:', error);
+      console.error('❌ Yo\'lni hisoblashda umumiy xato:', error);
+      alert('Yo\'lni ko\'rsatishda xatolik yuz berdi.');
     }
   };
 
@@ -466,7 +506,11 @@ const CourierDashboard = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (order.coordinates) {
+                        if (order.coordinates && yandexMap) {
+                          // Xaritada yo'lni ko'rsatish
+                          calculateAndShowRoute(order);
+                        } else if (order.coordinates) {
+                          // Fallback - Yandex Maps saytida ochish
                           const coords = `${order.coordinates[0]},${order.coordinates[1]}`;
                           window.open(`https://yandex.uz/maps/?text=${encodeURIComponent(order.address)}&ll=${coords}&z=16`, '_blank');
                         } else {
