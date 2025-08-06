@@ -751,21 +751,13 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
           </div>
           
           {/* Unified Stats Grid - Mobile Optimized */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             <div className="text-center p-3 md:p-4 bg-white/10 rounded-xl backdrop-blur-sm">
               <Package size={20} className="text-white mx-auto mb-2" />
               <div className="text-xl md:text-2xl font-bold text-white">{stats.totalDeliveries}</div>
               <div className="text-xs text-white/70">Jami yetkazish</div>
               <div className="text-base md:text-lg font-bold text-white mt-1">{stats.todayDeliveries}</div>
               <div className="text-xs text-white/60">Bugun</div>
-            </div>
-            
-            <div className="text-center p-3 md:p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-              <Star size={20} className="text-white mx-auto mb-2" />
-              <div className="text-xl md:text-2xl font-bold text-white">{stats.averageRating.toFixed(1)}</div>
-              <div className="text-xs text-white/70">Reyting</div>
-              <div className="text-base md:text-lg font-bold text-white mt-1">{stats.customerSatisfaction}%</div>
-              <div className="text-xs text-white/60">Mamnunlik</div>
             </div>
             
             <div className="text-center p-3 md:p-4 bg-white/10 rounded-xl backdrop-blur-sm">
