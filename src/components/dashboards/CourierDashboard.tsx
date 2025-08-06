@@ -336,11 +336,39 @@ const CourierDashboard = () => {
     }
 
     if (newStatus === 'delivered') {
+      // Xaritadan buyurtma belgilarini va yo'llarini olib tashlash
+      if (yandexMap) {
+        yandexMap.geoObjects.each((geoObject: any) => {
+          const properties = geoObject.properties;
+          if (properties && 
+              ((properties.get('type') === 'order' && properties.get('orderId') === orderId) ||
+               properties.get('type') === 'route')) {
+            yandexMap.geoObjects.remove(geoObject);
+          }
+        });
+      }
+
       setActiveOrders(prev => prev.filter(order => order.id !== orderId));
       if (selectedOrder?.id === orderId) {
         const remainingOrders = updatedOrders.filter(order => order.id !== orderId);
         setSelectedOrder(remainingOrders.length > 0 ? remainingOrders[0] : null);
+        
+        // Agar qolgan buyurtmalar bo'lsa, xaritani ularni ko'rsatish uchun sozlash
+        if (remainingOrders.length > 0 && yandexMap) {
+          const bounds = [[41.2995, 69.2401]]; // Kuryer joylashuvi
+          remainingOrders.forEach(order => {
+            if (order.coordinates) {
+              bounds.push(order.coordinates);
+            }
+          });
+
+          if (bounds.length > 1) {
+            yandexMap.setBounds(bounds, { checkZoomRange: true, zoomMargin: 50 });
+          }
+        }
       }
+
+      console.log(`✅ Buyurtma bajarildi va xaritadan olib tashlandi: ${orderId}`);
     }
   };
 
