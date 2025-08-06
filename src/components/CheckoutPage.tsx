@@ -66,10 +66,14 @@ interface CheckoutPageProps {
   removeFromCart: (cakeId: string) => void;
 }
 
-// Global Yandex Maps tiplarini e'lon qilish
+// Global Maps tiplarini e'lon qilish
 declare global {
   interface Window {
     ymaps: any;
+    L: any; // Leaflet
+    setSelectedCoordinates: (coords: [number, number]) => void;
+    setDeliveryAddress: (address: string) => void;
+    setUserInfo: (updater: (prev: any) => any) => void;
   }
 }
 
@@ -125,6 +129,19 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
   const deliveryFee = getDeliveryFee(userInfo.deliveryTime);
   const totalPrice = cartSubtotal + deliveryFee;
+
+  // Global funksiyalarni o'rnatish (Leaflet uchun)
+  useEffect(() => {
+    window.setSelectedCoordinates = setSelectedCoordinates;
+    window.setDeliveryAddress = setDeliveryAddress;
+    window.setUserInfo = setUserInfo;
+
+    return () => {
+      delete window.setSelectedCoordinates;
+      delete window.setDeliveryAddress;
+      delete window.setUserInfo;
+    };
+  }, []);
 
   // Cleanup function
   const cleanup = useCallback(() => {
@@ -380,6 +397,43 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           hintContent: 'Tanlangan manzil',
           balloonContent: 'Yetkazib berish manzili'
         }, {
+
+
+  // Bepul manzil qidirish (Nominatim API)
+  const searchAddressFree = async (query: string): Promise<string[]> => {
+    try {
+      console.log('🔍 Bepul Nominatim API orqali qidirish:', query);
+      
+      const searchQuery = `${query}, Tashkent, Uzbekistan`;
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=uz&accept-language=uz,en`
+      );
+
+      if (!response.ok) {
+        throw new Error('Nominatim API xatosi');
+      }
+
+      const data = await response.json();
+      console.log('📊 Nominatim qidiruv natijasi:', data);
+
+      if (Array.isArray(data) && data.length > 0) {
+        const suggestions = data
+          .filter(item => item.display_name && item.display_name.includes('Tashkent'))
+          .map(item => item.display_name)
+          .slice(0, 5);
+
+        console.log('✅ Bepul qidiruvdan topilgan manzillar:', suggestions);
+        return suggestions;
+      }
+
+      return [];
+
+    } catch (error) {
+      console.error('❌ Bepul manzil qidirishda xato:', error);
+      return [];
+    }
+  };
+
           preset: 'islands#redDotIcon'
         });
 
@@ -493,7 +547,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     }
   };
 
-  // Manzil qidirish
+  // Manzil qidirish (bepul va Yandex)
   const searchAddress = async (query: string) => {
     if (!query.trim() || query.length < 3) {
       setAddressSuggestions([]);
@@ -503,9 +557,20 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     try {
       console.log('🔍 Manzil qidirilmoqda:', query);
 
-      // Yandex Maps servisini tekshirish
+      // Birinchi bepul Nominatim API orqali harakat qilamiz
+      try {
+        const suggestions = await searchAddressFree(query);
+        if (suggestions.length > 0) {
+          setAddressSuggestions(suggestions);
+          return;
+        }
+      } catch (freeError) {
+        console.warn('⚠️ Bepul qidiruv ishlamadi:', freeError);
+      }
+
+      // Agar bepul qidiruv ishlamasa, Yandex Maps ga o'tamiz
       if (!yandexMapsService.isYmapsReady()) {
-        console.warn('⚠️ Yandex Maps hali tayyor emas');
+        console.warn('⚠️ Yandex Maps ham tayyor emas');
         setAddressSuggestions([]);
         return;
       }
