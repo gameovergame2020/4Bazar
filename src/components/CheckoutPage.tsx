@@ -144,6 +144,41 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   }, []);
 
   // Cleanup function
+  // Bepul manzil qidirish (Nominatim API)
+  const searchAddressFree = async (query: string): Promise<string[]> => {
+    try {
+      console.log('🔍 Bepul Nominatim API orqali qidirish:', query);
+      
+      const searchQuery = `${query}, Tashkent, Uzbekistan`;
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=uz&accept-language=uz,en`
+      );
+
+      if (!response.ok) {
+        throw new Error('Nominatim API xatosi');
+      }
+
+      const data = await response.json();
+      console.log('📊 Nominatim qidiruv natijasi:', data);
+
+      if (Array.isArray(data) && data.length > 0) {
+        const suggestions = data
+          .filter(item => item.display_name && item.display_name.includes('Tashkent'))
+          .map(item => item.display_name)
+          .slice(0, 5);
+
+        console.log('✅ Bepul qidiruvdan topilgan manzillar:', suggestions);
+        return suggestions;
+      }
+
+      return [];
+
+    } catch (error) {
+      console.error('❌ Bepul manzil qidirishda xato:', error);
+      return [];
+    }
+  };
+
   const cleanup = useCallback(() => {
     // Xaritani tozalash
     if (mapInstanceRef.current) {
@@ -397,43 +432,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           hintContent: 'Tanlangan manzil',
           balloonContent: 'Yetkazib berish manzili'
         }, {
-
-
-  // Bepul manzil qidirish (Nominatim API)
-  const searchAddressFree = async (query: string): Promise<string[]> => {
-    try {
-      console.log('🔍 Bepul Nominatim API orqali qidirish:', query);
-      
-      const searchQuery = `${query}, Tashkent, Uzbekistan`;
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=uz&accept-language=uz,en`
-      );
-
-      if (!response.ok) {
-        throw new Error('Nominatim API xatosi');
-      }
-
-      const data = await response.json();
-      console.log('📊 Nominatim qidiruv natijasi:', data);
-
-      if (Array.isArray(data) && data.length > 0) {
-        const suggestions = data
-          .filter(item => item.display_name && item.display_name.includes('Tashkent'))
-          .map(item => item.display_name)
-          .slice(0, 5);
-
-        console.log('✅ Bepul qidiruvdan topilgan manzillar:', suggestions);
-        return suggestions;
-      }
-
-      return [];
-
-    } catch (error) {
-      console.error('❌ Bepul manzil qidirishda xato:', error);
-      return [];
-    }
-  };
-
           preset: 'islands#redDotIcon'
         });
 
