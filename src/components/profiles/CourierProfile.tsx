@@ -676,7 +676,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
               )}
             </div>
 
-            <button className="flex-shrink-0 flex items-center justify-center p-2 rounded-xl text-xs md:text-sm font-medium bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors">
+            <button className="flex-shrink-0 flex items-center justify-center p-2 rounded-xl text-xs md:text-sm font-medium bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors absolute top-4 right-4 md:relative md:top-auto md:right-auto">
               <Bell size={14} />
             </button>
           </div>
