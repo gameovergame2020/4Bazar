@@ -1336,22 +1336,6 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pb-20">
-      {/* Enhanced Header */}
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-white/20 px-4 py-3">
-        <div className="flex items-center justify-center max-w-7xl mx-auto">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span>Online</span>
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-medium text-slate-900">Kuryer Profili</p>
-              <p className="text-xs text-slate-500">{user.name}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Tab Navigation */}
       <div className="px-4 py-4">
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-1.5 shadow-sm border border-white/30 max-w-7xl mx-auto">
