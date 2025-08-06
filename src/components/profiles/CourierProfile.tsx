@@ -873,6 +873,18 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
               <span className="text-sm font-medium">Ma'lumotlarni o'zgartirish uchun "Sozlamalar" bo'limiga o'ting</span>
             </div>
           </div>
+
+          <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 text-green-700">
+                <Bell size={16} />
+                <span className="text-sm font-medium">Bildirishnomalar</span>
+              </div>
+              <button className="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200 transition-colors">
+                Ko'rish
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
