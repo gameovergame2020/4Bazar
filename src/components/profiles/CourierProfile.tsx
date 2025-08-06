@@ -750,30 +750,57 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             </div>
           </div>
           
-          {/* Unified Stats Grid - Mobile Optimized */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-            <div className="text-center p-3 md:p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-              <Package size={20} className="text-white mx-auto mb-2" />
-              <div className="text-xl md:text-2xl font-bold text-white">{stats.totalDeliveries}</div>
-              <div className="text-xs text-white/70">Jami yetkazish</div>
-              <div className="text-base md:text-lg font-bold text-white mt-1">{stats.todayDeliveries}</div>
-              <div className="text-xs text-white/60">Bugun</div>
+          {/* Modern Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {/* Deliveries Card */}
+            <div className="bg-white/15 backdrop-blur-md rounded-2xl p-5 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-[1.02]">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 bg-white/20 rounded-xl">
+                  <Package size={22} className="text-white" />
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-white">{stats.totalDeliveries}</div>
+                  <div className="text-xs text-white/60 uppercase tracking-wide">Jami</div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-white/80">Bugun</span>
+                <span className="text-lg font-semibold text-white">{stats.todayDeliveries}</span>
+              </div>
             </div>
             
-            <div className="text-center p-3 md:p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-              <Trophy size={20} className="text-white mx-auto mb-2" />
-              <div className="text-xl md:text-2xl font-bold text-white">{stats.successRate}%</div>
-              <div className="text-xs text-white/70">Muvaffaqiyat</div>
-              <div className="text-base md:text-lg font-bold text-white mt-1">{stats.onTimeRate}%</div>
-              <div className="text-xs text-white/60">Muddatda</div>
+            {/* Performance Card */}
+            <div className="bg-white/15 backdrop-blur-md rounded-2xl p-5 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-[1.02]">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 bg-white/20 rounded-xl">
+                  <Trophy size={22} className="text-white" />
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-white">{stats.successRate}%</div>
+                  <div className="text-xs text-white/60 uppercase tracking-wide">Samarali</div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-white/80">Muddatda</span>
+                <span className="text-lg font-semibold text-white">{stats.onTimeRate}%</span>
+              </div>
             </div>
             
-            <div className="text-center p-3 md:p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-              <DollarSign size={20} className="text-white mx-auto mb-2" />
-              <div className="text-lg md:text-xl font-bold text-white leading-tight">{formatPrice(stats.totalEarnings)}</div>
-              <div className="text-xs text-white/70">Jami daromad</div>
-              <div className="text-sm md:text-lg font-bold text-white mt-1 leading-tight">{formatPrice(stats.todayEarnings)}</div>
-              <div className="text-xs text-white/60">Bugun</div>
+            {/* Earnings Card */}
+            <div className="bg-white/15 backdrop-blur-md rounded-2xl p-5 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-[1.02] sm:col-span-2 lg:col-span-1">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 bg-white/20 rounded-xl">
+                  <DollarSign size={22} className="text-white" />
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-white leading-tight">{formatPrice(stats.totalEarnings)}</div>
+                  <div className="text-xs text-white/60 uppercase tracking-wide">Umumiy</div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-white/80">Bugun</span>
+                <span className="text-lg font-semibold text-white">{formatPrice(stats.todayEarnings)}</span>
+              </div>
             </div>
           </div>
 
