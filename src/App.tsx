@@ -3,6 +3,7 @@ import { Home, MapPin, User, Bell, X, Clock, CheckCircle, Truck, Gift, Trash2, B
 import { useAuth } from './hooks/useAuth';
 import { useNotifications } from './hooks/useNotifications';
 import { ThemeProvider } from './contexts/ThemeContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import CustomerDashboard from './components/dashboards/CustomerDashboard';
 import BakerDashboard from './components/dashboards/BakerDashboard';
 import CourierDashboard from './components/dashboards/CourierDashboard';
@@ -310,7 +311,9 @@ function App() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-x-hidden pb-20">
-        {renderPage()}
+        <ErrorBoundary>
+          {renderPage()}
+        </ErrorBoundary>
       </main>
 
       {/* Bottom Navigation */}

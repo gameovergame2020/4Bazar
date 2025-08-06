@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { yandexMapsService } from '../services/yandexMapsService';
@@ -126,21 +126,54 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const deliveryFee = getDeliveryFee(userInfo.deliveryTime);
   const totalPrice = cartSubtotal + deliveryFee;
 
+  // Cleanup function
+  const cleanup = useCallback(() => {
+    // Xaritani tozalash
+    if (mapInstanceRef.current) {
+      try {
+        // Check if the map container still exists in DOM
+        if (mapRef.current && mapRef.current.parentNode) {
+          mapInstanceRef.current.destroy();
+        }
+      } catch (error) {
+        console.warn('Xaritani tozalashda xato:', error);
+      }
+      mapInstanceRef.current = null;
+    }
+
+    // DOM elementini tozalash
+    if (mapRef.current && mapRef.current.parentNode) {
+      try {
+        // Safe DOM cleanup - only clear if element is still in the DOM
+        while (mapRef.current.firstChild) {
+          try {
+            mapRef.current.removeChild(mapRef.current.firstChild);
+          } catch (removeError) {
+            console.warn('Child element o\'chirishda xato:', removeError);
+            break;
+          }
+        }
+      } catch (error) {
+        console.warn('DOM elementini tozalashda xato:', error);
+      }
+    }
+  }, []);
+
   // Component yuklanganida
   useEffect(() => {
     let isMounted = true;
-    
+
     const initMap = async () => {
       if (isMounted) {
         await initializeYandexMap();
       }
     };
-    
+
     initMap();
 
     return () => {
       isMounted = false;
-      
+
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
         debounceTimeoutRef.current = null;
@@ -155,30 +188,14 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         placemarkRef.current = null;
       }
 
-      if (mapInstanceRef.current) {
-        try {
-          mapInstanceRef.current.destroy();
-        } catch (error) {
-          console.warn('Xaritani tozalashda xato:', error);
-        }
-        mapInstanceRef.current = null;
-      }
-
-      // DOM elementini tozalash
-      if (mapRef.current && mapRef.current.innerHTML) {
-        try {
-          mapRef.current.innerHTML = '';
-        } catch (error) {
-          console.warn('DOM elementini tozalashda xato:', error);
-        }
-      }
+      cleanup(); // Cleanup funksiyasini chaqirish
     };
-  }, []);
+  }, [cleanup]); // cleanup dependency ga qo'shildi
 
   // Cart bo'sh bo'lganda avtomatik bosh sahifaga qaytish
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    
+
     if (cartProducts.length === 0 && !orderConfirmed) {
       timer = setTimeout(() => {
         onBack();
@@ -213,7 +230,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_')) {
         console.error('❌ API kaliti mavjud emas');
         setGeocodingError('Yandex Maps API kaliti mavjud emas. .env faylida VITE_YANDEX_MAPS_API_KEY ni to\'ldiring.');
-        
+
         // API kalitisiz ham xaritani ko'rsatish (faqat statik)
         await initSimpleMap();
         return;
@@ -252,7 +269,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       if (mapRef.current && !mapInstanceRef.current) {
         try {
           console.log('🗺️ Xarita yaratilmoqda...');
-          
+
           mapInstanceRef.current = new window.ymaps.Map(mapRef.current, {
             center: [41.311158, 69.240562], // Toshkent koordinatalari
             zoom: 12,
@@ -275,7 +292,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
     } catch (error) {
       console.error('❌ Yandex Maps ishga tushirishda xato:', error);
-      
+
       let errorMessage = 'Xaritani yuklashda xato yuz berdi';
       if (error && typeof error === 'object' && error.message) {
         if (error.message.includes('API kaliti')) {
@@ -288,11 +305,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           errorMessage = `Xato: ${error.message}`;
         }
       }
-      
+
       setGeocodingError(errorMessage);
       setIsYmapsLoaded(false);
       setIsMapInitialized(false);
-      
+
       // Fallback - oddiy xarita
       await initSimpleMap();
     }
@@ -311,7 +328,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
             break;
           }
         }
-        
+
         // Yangi div yaratish
         const mapPlaceholder = document.createElement('div');
         mapPlaceholder.style.cssText = `
@@ -327,7 +344,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           text-align: center; 
           padding: 20px;
         `;
-        
+
         mapPlaceholder.innerHTML = `
           <div>
             <div style="font-size: 24px; margin-bottom: 10px;">🗺️</div>
@@ -337,7 +354,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
             </div>
           </div>
         `;
-        
+
         mapRef.current.appendChild(mapPlaceholder);
         setIsMapInitialized(true);
       }
