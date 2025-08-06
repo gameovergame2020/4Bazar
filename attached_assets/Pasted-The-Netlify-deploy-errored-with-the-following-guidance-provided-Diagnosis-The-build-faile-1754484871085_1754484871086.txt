@@ -1,0 +1,44 @@
+The Netlify deploy errored, with the following guidance provided:
+
+**Diagnosis:**
+The build failed during the stage of installing dependencies due to a version mismatch error for the `firebase` package. Specifically, the error indicates that no matching version was found for `firebase@^11.14.0`.
+
+**Solution:**
+1. **Verify Package Version**: Check if the `firebase` package with version `11.14.0` is available in the npm registry.
+2. **Update Package Version**: If the version `11.14.0` is not available, consider updating the package.json file to use an existing version of `firebase` that satisfies the dependency requirement.
+3. **Retry Build**: After making the necessary changes, trigger a new build to ensure that the correct version of the `firebase` package is installed successfully.
+
+The relevant error logs are:
+
+Line 0: build-image version: c440bb785c036c7461456dcbf56442db2c6157c7 (noble)
+Line 1: buildbot version: d9619b8790c69514330eb99dff3fe677bf1eb5e4
+Line 2: Fetching cached dependencies
+Line 3: Failed to fetch cache, continuing with build
+Line 4: Starting to prepare the repo for build
+Line 5: No cached dependencies found. Cloning fresh repo
+Line 6: git clone --filter=blob:none https://github.com/MaftunbekOff/4bazar
+Line 7: Preparing Git Reference refs/heads/main
+Line 8: Starting to install dependencies
+Line 9: Downloading and installing node v22.18.0...
+Line 10: Downloading https://nodejs.org/dist/v22.18.0/node-v22.18.0-linux-x64.tar.xz...
+Line 11: Computing checksum with sha256sum
+Line 12: Checksums matched!
+Line 13: Now using node v22.18.0 (npm v10.9.3)
+Line 14: Enabling Node.js Corepack
+Line 15: Started restoring cached build plugins
+Line 16: Finished restoring cached build plugins
+Line 17: Started restoring cached corepack dependencies
+Line 18: Finished restoring cached corepack dependencies
+Line 19: No npm workspaces detected
+Line 20: Started restoring cached node modules
+Line 21: Finished restoring cached node modules
+Line 22: Installing npm packages using npm version 10.9.3
+Line 23: Failed during stage 'Install dependencies': dependency_installation script returned non-zero exit code: 1
+Line 24: npm error code ETARGET
+Line 25: npm error notarget No matching version found for firebase@^11.14.0.
+Line 26: npm error notarget In most cases you or one of your dependencies are requesting
+Line 27: npm error notarget a package version that doesn't exist.
+npm error A complete log of this run can be found in: /opt/buildhome/.n
+Line 28: Error during npm install
+Line 29: Failing build: Failed to install dependencies
+Line 30: Finished processing build request in 8.39s
