@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { dataService } from '../../services/dataService';
@@ -9,9 +8,13 @@ import {
   Navigation,
   Phone,
   Play,
+  Pause,
   CheckCircle,
+  Clock,
   Star,
-  RefreshCw
+  User,
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 
 interface Order {
@@ -53,10 +56,12 @@ const CourierDashboard = () => {
 
   const [stats, setStats] = useState({
     todayDeliveries: 8,
-    todayEarnings: 144000,
-    averageRating: 4.8
+    activeOrders: 2,
+    averageRating: 4.8,
+    todayEarnings: 144000
   });
 
+  // Ma'lumotlarni yuklash
   useEffect(() => {
     loadDashboardData();
     initializeMap();
@@ -66,12 +71,13 @@ const CourierDashboard = () => {
     try {
       setLoading(true);
 
+      // Demo ma'lumotlar
       const mockActiveOrders: Order[] = [
         {
           id: 'ORD001',
           customerName: 'Aziz Karimov',
           customerPhone: '+998901234567',
-          address: 'Yunusobod t., 15-mavze, 23-uy',
+          address: 'Toshkent sh., Yunusobod t., 15-mavze, 23-uy',
           coordinates: [41.3158, 69.2798],
           items: [
             { id: '1', name: 'Shokoladli tort', quantity: 1, price: 250000 }
@@ -87,7 +93,7 @@ const CourierDashboard = () => {
           id: 'ORD002',
           customerName: 'Malika Toshmatova',
           customerPhone: '+998901234568',
-          address: 'Mirzo Ulugbek t., 8-mavze, 45-uy',
+          address: 'Toshkent sh., Mirzo Ulugbek t., 8-mavze, 45-uy',
           coordinates: [41.2856, 69.2034],
           items: [
             { id: '2', name: 'Mevali tort', quantity: 2, price: 180000 }
@@ -120,13 +126,14 @@ const CourierDashboard = () => {
       if (mapRef.current && window.ymaps) {
         window.ymaps.ready(() => {
           const map = new window.ymaps.Map(mapRef.current, {
-            center: [41.2995, 69.2401],
+            center: [41.2995, 69.2401], // Toshkent markazi
             zoom: 12,
-            controls: ['zoomControl', 'geolocationControl']
+            controls: ['zoomControl', 'fullscreenControl', 'geolocationControl']
           });
 
+          // Kuryer joylashuvi (demo)
           const courierPlacemark = new window.ymaps.Placemark([41.2995, 69.2401], {
-            balloonContent: `<strong>${userData?.name || 'Kuryer'}</strong>`,
+            balloonContent: `<strong>${userData?.name || 'Kuryer'}</strong><br/>Hozirgi joylashuv`,
             type: 'courier'
           }, {
             preset: 'islands#blueCircleDotIcon'
@@ -136,25 +143,54 @@ const CourierDashboard = () => {
           setYandexMap(map);
           setMapLoaded(true);
 
+          // Barcha faol buyurtmalarni xaritaga qo'shish
           setTimeout(() => {
-            activeOrders.forEach((order) => {
+            activeOrders.forEach((order, index) => {
               if (order.coordinates) {
                 const orderPlacemark = new window.ymaps.Placemark(order.coordinates, {
                   balloonContent: `
-                    <div style="padding: 8px;">
-                      <div style="font-weight: bold; margin-bottom: 4px;">${order.customerName}</div>
-                      <div style="color: #666; font-size: 12px; margin-bottom: 4px;">${order.address}</div>
-                      <div style="font-weight: bold; color: #2563eb;">${formatPrice(order.total)}</div>
+                    <div style="padding: 12px; min-width: 200px;">
+                      <div style="font-weight: bold; font-size: 14px; margin-bottom: 5px;">${order.customerName}</div>
+                      <div style="color: #666; font-size: 12px; margin-bottom: 5px;">ID: ${order.orderUniqueId || order.id}</div>
+                      <div style="margin-bottom: 8px; font-size: 13px;">${order.deliveryAddress || 'Manzil ko\'rsatilmagan'}</div>
+                      <div style="font-weight: bold; color: #2563eb; margin-bottom: 5px;">${formatPrice(order.totalPrice)}</div>
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="
+                          padding: 2px 8px; 
+                          border-radius: 12px; 
+                          font-size: 11px; 
+                          font-weight: 500;
+                          color: ${order.priority === 'urgent' ? '#ef4444' : '#059669'};
+                          background: ${order.priority === 'urgent' ? '#fef2f2' : '#f0fdf4'};
+                        ">
+                          ${order.priority === 'urgent' ? 'Shoshilinch' : 'Oddiy'}
+                        </span>
+                        <span style="
+                          padding: 2px 8px; 
+                          border-radius: 12px; 
+                          font-size: 11px; 
+                          font-weight: 500;
+                          color: ${order.status === 'ready' ? '#059669' : '#2563eb'};
+                          background: ${order.status === 'ready' ? '#f0fdf4' : '#eff6ff'};
+                        ">
+                          ${order.status === 'ready' ? 'Tayyor' : 'Yetkazilmoqda'}
+                        </span>
+                      </div>
+                      ${order.distance ? `<div style="margin-top: 5px; font-size: 12px; color: #666;">📍 ${order.distance}${order.estimatedTime ? ` • ⏱️ ${order.estimatedTime}` : ''}</div>` : ''}
                     </div>
                   `,
                   type: 'order',
-                  orderId: order.id
+                  orderId: order.id,
+                  orderIndex: index
                 }, {
-                  preset: order.priority === 'urgent' ? 'islands#redIcon' : 'islands#greenIcon'
+                  preset: order.priority === 'urgent' ? 'islands#redIcon' : 'islands#greenIcon',
+                  iconColor: order.status === 'delivering' ? '#2563eb' : (order.priority === 'urgent' ? '#ef4444' : '#059669')
                 });
 
+                // Buyurtma belgisini bosganda tanlash
                 orderPlacemark.events.add('click', () => {
                   setSelectedOrder(order);
+                  // Yo'lni ko'rsatish
                   calculateAndShowRoute(order);
                 });
 
@@ -162,8 +198,9 @@ const CourierDashboard = () => {
               }
             });
 
+            // Xaritani barcha buyurtmalarni qamrab olish uchun sozlash
             if (activeOrders.length > 0) {
-              const bounds = [[41.2995, 69.2401]];
+              const bounds = [[41.2995, 69.2401]]; // Kuryer joylashuvi
               activeOrders.forEach(order => {
                 if (order.coordinates) {
                   bounds.push(order.coordinates);
@@ -182,40 +219,74 @@ const CourierDashboard = () => {
     }
   };
 
-  const calculateAndShowRoute = async (order: Order) => {
-    if (!yandexMap || !order.coordinates) return;
-
-    try {
+  const addOrderToMap = (order: Order) => {
+    if (yandexMap && order.coordinates) {
+      // Faqat yo'llarni tozalash (buyurtma belgilarini saqlab qolish)
       yandexMap.geoObjects.each((geoObject: any) => {
         if (geoObject.properties && geoObject.properties.get('type') === 'route') {
           yandexMap.geoObjects.remove(geoObject);
         }
       });
 
-      const courierLocation = [41.2995, 69.2401];
+      // Xaritani buyurtma joylashuviga yo'naltirish
+      yandexMap.setCenter(order.coordinates, 16);
 
-      const route = new window.ymaps.multiRouter.MultiRoute({
-        referencePoints: [courierLocation, order.coordinates],
-        params: { routingMode: 'auto' }
-      }, {
-        boundsAutoApply: true,
-        routeActiveStrokeWidth: 4,
-        routeActiveStrokeColor: '#4f46e5',
-        wayPointVisible: false
+      console.log(`📍 Buyurtma xaritada ko'rsatildi: ${order.customerName} - ${order.deliveryAddress}`);
+    }
+  };
+
+  const calculateAndShowRoute = async (order: Order) => {
+    if (!yandexMap || !order.coordinates) return;
+
+    try {
+      // Avval eski yo'llarni tozalash
+      yandexMap.geoObjects.each((geoObject: any) => {
+        if (geoObject.properties && geoObject.properties.get('type') === 'route') {
+          yandexMap.geoObjects.remove(geoObject);
+        }
       });
 
+      // Kuryer joylashuvi (demo - haqiqatda GPS dan olinadi)
+      const courierLocation = [41.2995, 69.2401];
+
+      console.log(`🚗 Yo'l hisoblanmoqda: Kuryer [${courierLocation}] → Buyurtmachi [${order.coordinates}]`);
+
+      // Yo'lni hisoblash
+      const route = new window.ymaps.multiRouter.MultiRoute({
+        referencePoints: [
+          courierLocation,
+          order.coordinates
+        ],
+        params: {
+          routingMode: 'auto',
+          avoidTrafficJams: false
+        }
+      }, {
+        boundsAutoApply: true,
+        routeActiveStrokeWidth: 6,
+        routeActiveStrokeColor: '#4f46e5',
+        routeActiveStrokeOpacity: 0.8,
+        wayPointVisible: false,
+        balloonContentLayout: 'islands#balloonTemplate'
+      });
+
+      // Yo'l ma'lumotlarini olish
       route.model.events.add('requestsuccess', () => {
         const activeRoute = route.getActiveRoute();
         if (activeRoute) {
           const distance = Math.round(activeRoute.properties.get('distance').value / 1000 * 10) / 10;
           const duration = Math.round(activeRoute.properties.get('duration').value / 60);
 
+          // Buyurtma ma'lumotlarini yangilash
           setActiveOrders(prev => prev.map(o => 
             o.id === order.id 
               ? { ...o, distance: `${distance} km`, estimatedTime: `${duration} min` }
               : o
           ));
 
+          console.log(`✅ Yo'l hisoblandi: ${distance} km, ${duration} daqiqa`);
+          
+          // Xaritani yo'lga moslashtirish
           yandexMap.setBounds(route.getRoutes().get(0).getBounds(), {
             checkZoomRange: true,
             zoomMargin: 50
@@ -223,20 +294,27 @@ const CourierDashboard = () => {
         }
       });
 
+      route.model.events.add('requestfail', (error: any) => {
+        console.error('❌ Yo\'l hisoblashda xato:', error);
+        alert('Yo\'lni hisoblashda xatolik yuz berdi. Internet aloqasini tekshiring.');
+      });
+
+      // Xaritaga yo'lni qo'shish
       route.properties.set('type', 'route');
       yandexMap.geoObjects.add(route);
+
+      // Tanlangan buyurtmani yangilash
       setSelectedOrder(order);
 
     } catch (error) {
-      console.error('Yo\'lni hisoblashda xato:', error);
+      console.error('❌ Yo\'lni hisoblashda umumiy xato:', error);
+      alert('Yo\'lni ko\'rsatishda xatolik yuz berdi.');
     }
   };
 
   const handleOrderSelect = (order: Order) => {
     setSelectedOrder(order);
-    if (order.coordinates && yandexMap) {
-      yandexMap.setCenter(order.coordinates, 16);
-    }
+    addOrderToMap(order);
   };
 
   const handleStatusToggle = () => {
@@ -249,6 +327,7 @@ const CourierDashboard = () => {
     );
     setActiveOrders(updatedOrders);
 
+    // Agar buyurtma "delivering" holatiga o'tkazilsa, yo'lni hisoblash
     if (newStatus === 'delivering') {
       const order = updatedOrders.find(o => o.id === orderId);
       if (order) {
@@ -257,6 +336,7 @@ const CourierDashboard = () => {
     }
 
     if (newStatus === 'delivered') {
+      // Xaritadan buyurtma belgilarini va yo'llarini olib tashlash
       if (yandexMap) {
         yandexMap.geoObjects.each((geoObject: any) => {
           const properties = geoObject.properties;
@@ -272,7 +352,23 @@ const CourierDashboard = () => {
       if (selectedOrder?.id === orderId) {
         const remainingOrders = updatedOrders.filter(order => order.id !== orderId);
         setSelectedOrder(remainingOrders.length > 0 ? remainingOrders[0] : null);
+        
+        // Agar qolgan buyurtmalar bo'lsa, xaritani ularni ko'rsatish uchun sozlash
+        if (remainingOrders.length > 0 && yandexMap) {
+          const bounds = [[41.2995, 69.2401]]; // Kuryer joylashuvi
+          remainingOrders.forEach(order => {
+            if (order.coordinates) {
+              bounds.push(order.coordinates);
+            }
+          });
+
+          if (bounds.length > 1) {
+            yandexMap.setBounds(bounds, { checkZoomRange: true, zoomMargin: 50 });
+          }
+        }
       }
+
+      console.log(`✅ Buyurtma bajarildi va xaritadan olib tashlandi: ${orderId}`);
     }
   };
 
@@ -284,35 +380,41 @@ const CourierDashboard = () => {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Yuklanmoqda...</p>
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Xarita yuklanmoqda...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4">
+    <div className="space-y-4 pb-6">
       {/* Header */}
-      <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
+      <div className="bg-gradient-to-r from-white to-slate-50 rounded-2xl p-4 border border-slate-200 shadow-sm">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <img 
-              src={userData?.avatar || 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100'}
-              alt={userData?.name}
-              className="w-10 h-10 rounded-full object-cover"
-            />
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <img 
+                src={userData?.avatar || 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100'}
+                alt={userData?.name}
+                className="w-12 h-12 rounded-xl object-cover border-2 border-white shadow-md"
+              />
+              <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}>
+                {isOnline && <div className="w-full h-full bg-green-400 rounded-full animate-pulse"></div>}
+              </div>
+            </div>
             <div>
-              <h2 className="font-bold text-gray-900">{userData?.name}</h2>
+              <h2 className="text-lg font-bold text-slate-900">{userData?.name}</h2>
               <div className="flex items-center space-x-2 text-sm">
-                <span className={`px-2 py-1 rounded-full text-xs ${
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                   isOnline ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
                 }`}>
                   {isOnline ? 'Faol' : 'Nofaol'}
                 </span>
-                <div className="flex items-center">
-                  <Star size={12} className="text-yellow-400 fill-current mr-1" />
-                  <span className="text-gray-600">{stats.averageRating}</span>
+                <span className="text-slate-500">•</span>
+                <div className="flex items-center space-x-1">
+                  <Star size={12} className="text-yellow-400 fill-current" />
+                  <span className="text-slate-600">{stats.averageRating}</span>
                 </div>
               </div>
             </div>
@@ -320,121 +422,214 @@ const CourierDashboard = () => {
 
           <button
             onClick={handleStatusToggle}
-            className={`px-4 py-2 rounded-lg font-medium ${
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
               isOnline 
                 ? 'bg-red-500 hover:bg-red-600 text-white' 
                 : 'bg-green-500 hover:bg-green-600 text-white'
             }`}
           >
-            {isOnline ? 'To\'xtatish' : 'Boshlash'}
+            {isOnline ? <Pause size={16} /> : <Play size={16} />}
+            <span className="hidden sm:inline">{isOnline ? 'To\'xtatish' : 'Boshlash'}</span>
           </button>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <div className="bg-blue-50 rounded-lg p-3">
-            <div className="text-lg font-bold text-blue-600">{stats.todayDeliveries}</div>
-            <div className="text-xs text-blue-600">Bugungi yetkazish</div>
-          </div>
-          <div className="bg-green-50 rounded-lg p-3">
-            <div className="text-lg font-bold text-green-600">{formatPrice(stats.todayEarnings)}</div>
-            <div className="text-xs text-green-600">Bugungi daromad</div>
-          </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* Map */}
-        <div className="lg:col-span-3 h-96 bg-white rounded-xl overflow-hidden shadow-sm">
+      {/* Asosiy kontent - Map va Orders */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        {/* Xarita */}
+        <div className="lg:col-span-2 h-96 lg:h-[600px] relative bg-white rounded-2xl border border-slate-200 overflow-hidden">
           <div 
             ref={mapRef} 
             className="w-full h-full"
+            style={{ minHeight: '400px' }}
           />
+
           {!mapLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
               <div className="text-center">
-                <div className="w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                <p className="text-gray-600 text-sm">Xarita yuklanmoqda...</p>
+                <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                <p className="text-slate-600 text-sm">Xarita yuklanmoqda...</p>
               </div>
             </div>
           )}
         </div>
 
-        {/* Orders */}
-        <div className="lg:col-span-2 bg-white rounded-xl p-4 shadow-sm">
+        {/* Buyurtmalar paneli */}
+        <div className="bg-white rounded-2xl p-4 border border-slate-200">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-gray-900">Buyurtmalar ({activeOrders.length})</h3>
-            <button
-              onClick={loadDashboardData}
-              className="p-1 text-gray-500 hover:text-blue-600"
-            >
-              <RefreshCw size={16} />
-            </button>
+            <h3 className="text-lg font-bold text-slate-900">Faol buyurtmalar</h3>
+            <div className="flex items-center space-x-2">
+              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
+                {activeOrders.length}
+              </span>
+              <button
+                onClick={loadDashboardData}
+                className="p-1 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-all"
+              >
+                <RefreshCw size={14} />
+              </button>
+            </div>
           </div>
 
-          <div className="space-y-3 max-h-96 overflow-y-auto">
+          <div className="space-y-3">
             {activeOrders.length === 0 ? (
               <div className="text-center py-8">
-                <Package size={24} className="text-gray-300 mx-auto mb-2" />
-                <p className="text-gray-500 text-sm">Buyurtma yo'q</p>
+                <Package size={32} className="text-slate-300 mx-auto mb-2" />
+                <p className="text-slate-500 text-sm">Buyurtma yo'q</p>
               </div>
             ) : (
               activeOrders.map((order) => (
                 <div 
                   key={order.id} 
-                  className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                  className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${
                     selectedOrder?.id === order.id 
                       ? 'border-blue-300 bg-blue-50' 
-                      : 'border-gray-200 hover:border-gray-300'
+                      : 'border-slate-200 bg-slate-50 hover:border-slate-300'
                   }`}
                   onClick={() => handleOrderSelect(order)}
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <div className="font-medium text-gray-900">{order.customerName}</div>
-                      <div className="text-xs text-gray-500">#{order.id}</div>
-                      <div className="text-xs text-gray-600 mt-1 flex items-center">
-                        <MapPin size={10} className="mr-1" />
-                        {order.address}
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <h4 className="font-semibold text-slate-900 text-sm">{order.customerName}</h4>
+                        {order.priority === 'urgent' && (
+                          <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded">
+                            Shoshilinch
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-600 mb-1">#{order.id}</p>
+                      
+                      {/* Manzil */}
+                      <div className="mb-2 p-2 bg-white rounded border">
+                        <div className="text-xs font-medium text-slate-700 mb-1">Yetkazish manzili:</div>
+                        <div className="text-xs text-slate-600 flex items-start">
+                          <MapPin size={10} className="mr-1 mt-0.5 flex-shrink-0" />
+                          <span>{order.address}</span>
+                        </div>
+                      </div>
+
+                      {/* Mijoz ma'lumotlari */}
+                      <div className="mb-2 p-2 bg-white rounded border">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-medium text-slate-700">Mijoz:</span>
+                          <span className="text-xs text-slate-900 font-medium">{order.customerName}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium text-slate-700">Telefon:</span>
+                          <span className="text-xs text-blue-600">{order.customerPhone}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Mahsulotlar ro'yxati */}
+                      <div className="mb-2 p-2 bg-white rounded border">
+                        <div className="text-xs text-slate-700 font-medium mb-1">Buyurtma tarkibi:</div>
+                        <div className="space-y-1">
+                          {order.items.map((item, index) => (
+                            <div key={item.id} className="flex justify-between items-center text-xs border-b border-slate-100 pb-1 last:border-b-0">
+                              <div className="flex items-center space-x-2">
+                                <Package size={10} className="text-slate-400" />
+                                <span className="text-slate-700">{item.name}</span>
+                                <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-xs font-medium">
+                                  {item.quantity}x
+                                </span>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-slate-900 font-medium">{formatPrice(item.price * item.quantity)}</div>
+                                <div className="text-slate-500">{formatPrice(item.price)} /ta</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Narxlar tafsiloti */}
+                      <div className="mb-2 p-2 bg-slate-50 rounded border">
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Mahsulotlar:</span>
+                            <span className="text-slate-900">{formatPrice(order.total - order.deliveryFee)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Yetkazish:</span>
+                            <span className="text-green-600">{formatPrice(order.deliveryFee)}</span>
+                          </div>
+                          <div className="border-t border-slate-200 pt-1 mt-1">
+                            <div className="flex justify-between font-medium">
+                              <span className="text-slate-700">Jami:</span>
+                              <span className="text-slate-900 font-bold">{formatPrice(order.total)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Vaqt va holat */}
+                      <div className="mb-2 p-2 bg-blue-50 rounded border border-blue-200">
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-blue-700 font-medium">Vaqt:</span>
+                            <div className="text-blue-600">{new Date(order.orderTime).toLocaleString('uz-UZ')}</div>
+                          </div>
+                          <div>
+                            <span className="text-blue-700 font-medium">Holat:</span>
+                            <div className={`font-medium ${order.status === 'ready' ? 'text-green-600' : 'text-blue-600'}`}>
+                              {order.status === 'ready' ? 'Tayyor' : 'Yetkazilmoqda'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2 text-xs text-slate-500">
+                        <MapPin size={10} />
+                        <span>{order.distance}</span>
+                        {order.estimatedTime && (
+                          <>
+                            <span>•</span>
+                            <span className="text-blue-600">{order.estimatedTime}</span>
+                          </>
+                        )}
+                        <span>•</span>
+                        <span className={order.status === 'ready' ? 'text-green-600' : 'text-blue-600'}>
+                          {order.status === 'ready' ? 'Tayyor' : 'Yetkazilmoqda'}
+                        </span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-gray-900">{formatPrice(order.total)}</div>
-                      {order.priority === 'urgent' && (
-                        <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">
-                          Shoshilinch
-                        </span>
-                      )}
+                      <div className="text-sm font-bold text-slate-900">{formatPrice(order.total)}</div>
+                      <div className="text-xs text-green-600 font-medium">+{formatPrice(order.deliveryFee)} yetkazish</div>
                     </div>
                   </div>
 
-                  {order.distance && (
-                    <div className="text-xs text-gray-500 mb-2">
-                      📍 {order.distance} • ⏱️ {order.estimatedTime}
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex space-x-2">
+                  {/* Buyurtma amallar */}
+                  <div className="grid grid-cols-3 gap-1.5 mt-2">
                     <a
                       href={`tel:${order.customerPhone}`}
-                      className="flex-1 flex items-center justify-center py-2 bg-green-500 text-white rounded text-xs font-medium"
+                      className="flex items-center justify-center space-x-1 px-2 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-medium transition-all"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <Phone size={12} className="mr-1" />
-                      Qo'ng'iroq
+                      <Phone size={12} />
+                      <span>Tel</span>
                     </a>
 
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        calculateAndShowRoute(order);
+                        if (order.coordinates && yandexMap) {
+                          // Xaritada yo'lni ko'rsatish
+                          calculateAndShowRoute(order);
+                        } else if (order.coordinates) {
+                          // Fallback - Yandex Maps saytida ochish
+                          const coords = `${order.coordinates[0]},${order.coordinates[1]}`;
+                          window.open(`https://yandex.uz/maps/?text=${encodeURIComponent(order.address)}&ll=${coords}&z=16`, '_blank');
+                        } else {
+                          window.open(`https://yandex.uz/maps/?text=${encodeURIComponent(order.address)}`, '_blank');
+                        }
                       }}
-                      className="flex-1 flex items-center justify-center py-2 bg-blue-500 text-white rounded text-xs font-medium"
+                      className="flex items-center justify-center space-x-1 px-2 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs font-medium transition-all"
                     >
-                      <Navigation size={12} className="mr-1" />
-                      Yo'l
+                      <Navigation size={12} />
+                      <span>Yo'l</span>
                     </button>
 
                     {order.status === 'ready' ? (
@@ -444,10 +639,10 @@ const CourierDashboard = () => {
                           calculateAndShowRoute(order);
                           handleOrderStatusUpdate(order.id, 'delivering');
                         }}
-                        className="flex-1 flex items-center justify-center py-2 bg-orange-500 text-white rounded text-xs font-medium"
+                        className="flex items-center justify-center space-x-1 px-2 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded text-xs font-medium transition-all"
                       >
-                        <Play size={12} className="mr-1" />
-                        Boshlash
+                        <Play size={12} />
+                        <span>Start</span>
                       </button>
                     ) : (
                       <button
@@ -455,10 +650,10 @@ const CourierDashboard = () => {
                           e.stopPropagation();
                           handleOrderStatusUpdate(order.id, 'delivered');
                         }}
-                        className="flex-1 flex items-center justify-center py-2 bg-green-500 text-white rounded text-xs font-medium"
+                        className="flex items-center justify-center space-x-1 px-2 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-medium transition-all"
                       >
-                        <CheckCircle size={12} className="mr-1" />
-                        Tugallash
+                        <CheckCircle size={12} />
+                        <span>Done</span>
                       </button>
                     )}
                   </div>
@@ -466,6 +661,8 @@ const CourierDashboard = () => {
               ))
             )}
           </div>
+
+          
         </div>
       </div>
     </div>
