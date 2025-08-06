@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   User, 
@@ -23,6 +22,7 @@ import { UserData } from '../services/authService';
 import SettingsPage from './SettingsPage';
 import { dataService, Order } from '../services/dataService';
 import { useFavorites } from '../hooks/useFavorites';
+import { useTheme } from '../hooks/useTheme'; // Import useTheme hook
 
 interface ProfilePageProps {
   user: UserData;
@@ -68,6 +68,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     loading: favoritesLoading 
   } = useFavorites(user?.id);
 
+  // Theme hookdan foydalanish
+  const { isDark, roleColors } = useTheme();
+
   // Buyurtmalarni yuklash funksiyasi
   const loadUserOrders = useCallback(async (showLoading = true) => {
     if (!user?.id) {
@@ -95,7 +98,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
       setUserOrders(sortedOrders);
       setLastUpdated(new Date());
-      
+
       console.log('✅ Buyurtmalar yuklandi:', sortedOrders.length, 'ta');
 
       // Agar buyurtmalar bo'sh bo'lsa, qo'shimcha tekshirish
@@ -124,7 +127,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     }
 
     console.log('🔄 Real-time subscription boshlanmoqda... Customer ID:', user.id);
-    
+
     // Dastlab ma'lumotlarni yuklash
     loadUserOrders(true);
 
@@ -149,7 +152,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
           );
 
           console.log('✅ Foydalanuvchi buyurtmalari:', sortedOrders.length, 'ta topildi');
-          
+
           setUserOrders(sortedOrders);
           setLastUpdated(new Date());
           setOrdersError(null);
@@ -306,11 +309,24 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
     return <SettingsPage user={user} onBack={() => setShowSettings(false)} />;
   }
 
+  // Dinamik ranglarni Tailwind klasslariga o'zgartirish
+  const getDynamicBgClass = (baseClass: string) => {
+    return isDark ? `dark:${baseClass}` : baseClass;
+  };
+
+  const getDynamicTextColorClass = (baseClass: string) => {
+    return isDark ? `dark:${baseClass}` : baseClass;
+  };
+
+  const getDynamicBorderClass = (baseClass: string) => {
+    return isDark ? `dark:${baseClass}` : baseClass;
+  };
+
   return (
-    <div className="min-h-screen transition-colors duration-300 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 pb-24">
+    <div className={`min-h-screen transition-colors duration-300 ${getDynamicBgClass('bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900')} pb-24`}>
       <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-6 space-y-3 sm:space-y-4 lg:space-y-6">
         {/* Profile Header */}
-        <div className="backdrop-blur-sm rounded-xl sm:rounded-2xl lg:rounded-3xl p-3 sm:p-4 lg:p-6 shadow-sm border transition-colors duration-300 bg-gray-800/90 border-gray-700">
+        <div className={`backdrop-blur-sm rounded-xl sm:rounded-2xl lg:rounded-3xl p-3 sm:p-4 lg:p-6 shadow-sm border transition-colors duration-300 ${getDynamicBgClass('bg-gray-800/90')} ${getDynamicBorderClass('border-gray-700')}`}>
           <div className="flex items-center space-x-3 sm:space-x-4">
             <div className="relative">
               <img 
@@ -321,9 +337,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
               <div className="absolute -bottom-0.5 sm:-bottom-1 -right-0.5 sm:-right-1 w-4 sm:w-6 h-4 sm:h-6 bg-green-500 rounded-full border-2 border-gray-800"></div>
             </div>
             <div className="flex-1">
-              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-0.5 sm:mb-1">{user.name}</h1>
-              <p className="text-gray-300 text-xs sm:text-sm lg:text-base mb-0.5 sm:mb-1">{user.phone}</p>
-              <p className="text-gray-400 text-xs sm:text-sm">{new Date(user.joinDate).toLocaleDateString('uz-UZ')} dan a'zo</p>
+              <h1 className={`text-lg sm:text-xl lg:text-2xl font-bold ${getDynamicTextColorClass('text-white')} mb-0.5 sm:mb-1`}>{user.name}</h1>
+              <p className={`text-gray-300 text-xs sm:text-sm lg:text-base mb-0.5 sm:mb-1 ${getDynamicTextColorClass('text-gray-300')}`}>{user.phone}</p>
+              <p className={`text-gray-400 text-xs sm:text-sm ${getDynamicTextColorClass('text-gray-400')}`}>{new Date(user.joinDate).toLocaleDateString('uz-UZ')} dan a'zo</p>
             </div>
           </div>
 
@@ -336,12 +352,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                   setIsFavoritesExpanded(false);
                 }
               }}
-              className="text-center p-2 sm:p-3 rounded-lg sm:rounded-xl hover:bg-gray-700/30 transition-all duration-300 transform hover:scale-105"
+              className={`text-center p-2 sm:p-3 rounded-lg sm:rounded-xl ${getDynamicBgClass('hover:bg-gray-700/30')} transition-all duration-300 transform hover:scale-105`}
             >
-              <div className="text-xl sm:text-2xl font-bold text-orange-400">
+              <div className={`text-xl sm:text-2xl font-bold ${getDynamicTextColorClass('text-orange-400')}`}>
                 {isLoadingOrders ? '...' : userOrders.length}
               </div>
-              <div className="text-gray-400 text-xs sm:text-sm flex items-center justify-center space-x-1">
+              <div className={`text-gray-400 text-xs sm:text-sm flex items-center justify-center space-x-1 ${getDynamicTextColorClass('text-gray-400')}`}>
                 <span>Buyurtmalar</span>
                 <ChevronDown 
                   size={12} 
@@ -358,12 +374,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                   setIsOrdersExpanded(false);
                 }
               }}
-              className="text-center p-2 sm:p-3 rounded-lg sm:rounded-xl hover:bg-gray-700/30 transition-all duration-300 transform hover:scale-105"
+              className={`text-center p-2 sm:p-3 rounded-lg sm:rounded-xl ${getDynamicBgClass('hover:bg-gray-700/30')} transition-all duration-300 transform hover:scale-105`}
             >
-              <div className="text-xl sm:text-2xl font-bold text-pink-400">
+              <div className={`text-xl sm:text-2xl font-bold ${getDynamicTextColorClass('text-pink-400')}`}>
                 {favoritesLoading ? '...' : favoriteCount}
               </div>
-              <div className="text-gray-400 text-xs sm:text-sm flex items-center justify-center space-x-1">
+              <div className={`text-gray-400 text-xs sm:text-sm flex items-center justify-center space-x-1 ${getDynamicTextColorClass('text-gray-400')}`}>
                 <span>Sevimlilar</span>
                 <ChevronDown 
                   size={12} 
@@ -379,15 +395,15 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
           <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
             isOrdersExpanded ? 'max-h-[600px] opacity-100 mt-4' : 'max-h-0 opacity-0'
           }`}>
-            <div className="bg-gray-700/30 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-600/30">
+            <div className={`${getDynamicBgClass('bg-gray-700/30')} rounded-lg sm:rounded-xl p-3 sm:p-4 ${getDynamicBorderClass('border border-gray-600/30')}`}>
               <div className="flex items-center justify-between mb-2 sm:mb-3">
-                <h4 className="text-base sm:text-lg font-semibold text-white flex items-center space-x-2">
+                <h4 className={`text-base sm:text-lg font-semibold ${getDynamicTextColorClass('text-white')} flex items-center space-x-2`}>
                   <ShoppingBag size={16} className="text-orange-400" />
                   <span>Buyurtmalarim</span>
                 </h4>
                 <div className="flex items-center space-x-2">
                   {lastUpdated && (
-                    <span className="text-xs text-gray-400">
+                    <span className={`text-xs ${getDynamicTextColorClass('text-gray-400')}`}>
                       {lastUpdated.toLocaleTimeString('uz-UZ', { 
                         hour: '2-digit', 
                         minute: '2-digit' 
@@ -397,7 +413,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                   <button
                     onClick={handleRefreshOrders}
                     disabled={isLoadingOrders}
-                    className="p-1.5 text-gray-400 hover:text-orange-400 transition-colors disabled:opacity-50"
+                    className={`p-1.5 ${getDynamicTextColorClass('text-gray-400')} hover:text-orange-400 transition-colors disabled:opacity-50`}
                     title="Yangilash"
                   >
                     <RefreshCw 
@@ -412,15 +428,15 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                 {isLoadingOrders ? (
                   <div className="flex flex-col items-center justify-center py-8">
                     <div className="animate-spin h-8 w-8 border-2 border-orange-500 border-t-transparent rounded-full mb-3"></div>
-                    <span className="text-gray-300 text-sm mb-2">Buyurtmalar yuklanmoqda...</span>
-                    <span className="text-gray-500 text-xs">ID: {user.id.slice(-8)}</span>
+                    <span className={`text-sm ${getDynamicTextColorClass('text-gray-300')} mb-2`}>Buyurtmalar yuklanmoqda...</span>
+                    <span className={`text-xs ${getDynamicTextColorClass('text-gray-500')}`}>ID: {user.id.slice(-8)}</span>
                   </div>
                 ) : ordersError ? (
                   <div className="text-center py-8">
                     <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
                       <AlertCircle className="w-8 h-8 text-red-400" />
                     </div>
-                    <p className="text-red-400 text-sm mb-2">{ordersError}</p>
+                    <p className={`text-red-400 text-sm mb-2 ${getDynamicTextColorClass('text-red-400')}`}>{ordersError}</p>
                     <button
                       onClick={handleRefreshOrders}
                       className="text-orange-400 hover:text-orange-300 text-xs underline"
@@ -433,19 +449,19 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                     <div className="w-16 h-16 mx-auto mb-4 bg-gray-600/30 rounded-full flex items-center justify-center">
                       <ShoppingBag className="w-8 h-8 text-gray-400" />
                     </div>
-                    <p className="text-gray-400 text-sm">Hozircha buyurtmalar yo'q</p>
-                    <p className="text-gray-500 text-xs mt-1">Birinchi buyurtmangizni bering!</p>
+                    <p className={`text-sm ${getDynamicTextColorClass('text-gray-400')}`}>Hozircha buyurtmalar yo'q</p>
+                    <p className={`text-xs ${getDynamicTextColorClass('text-gray-500')} mt-1`}>Birinchi buyurtmangizni bering!</p>
                   </div>
                 ) : (
                   <>
-                    <div className="mb-3 text-xs text-gray-400 text-center">
+                    <div className={`mb-3 text-xs ${getDynamicTextColorClass('text-gray-400')} text-center`}>
                       Jami {userOrders.length} ta buyurtma
                       {userOrders.length > 5 && ' (so\'nggi 5 tasi ko\'rsatilgan)'}
                     </div>
                     {userOrders.slice(0, 5).map((order) => {
                       const StatusIcon = getStatusIcon(order.status);
                       return (
-                        <div key={order.id} className="bg-gray-600/30 rounded-lg p-3 hover:bg-gray-600/50 transition-colors border border-gray-600/20">
+                        <div key={order.id} className={`${getDynamicBgClass('bg-gray-600/30')} rounded-lg p-3 hover:bg-gray-600/50 transition-colors ${getDynamicBorderClass('border border-gray-600/20')}`}>
                           <div className="flex items-start space-x-3">
                             <div className="w-12 h-12 rounded-lg bg-orange-500/20 flex items-center justify-center flex-shrink-0">
                               <Package className="w-6 h-6 text-orange-400" />
@@ -453,8 +469,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between mb-2">
                                 <div className="flex-1">
-                                  <h4 className="font-medium text-white text-sm truncate">{order.cakeName}</h4>
-                                  <p className="text-gray-400 text-xs">#{order.orderUniqueId || order.id?.slice(-8).toUpperCase()}</p>
+                                  <h4 className={`font-medium ${getDynamicTextColorClass('text-white')} text-sm truncate`}>{order.cakeName}</h4>
+                                  <p className={`text-gray-400 text-xs ${getDynamicTextColorClass('text-gray-400')}`}>#{order.orderUniqueId || order.id?.slice(-8).toUpperCase()}</p>
                                 </div>
                                 <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)} ml-2`}>
                                   <StatusIcon size={10} />
@@ -464,16 +480,16 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
                               <div className="grid grid-cols-2 gap-2 text-xs">
                                 <div>
-                                  <span className="text-gray-400">Narx:</span>
+                                  <span className={`text-gray-400 ${getDynamicTextColorClass('text-gray-400')}`}>Narx:</span>
                                   <span className="text-orange-400 font-medium ml-1">{order.totalPrice.toLocaleString()} so'm</span>
                                 </div>
                                 <div>
-                                  <span className="text-gray-400">Miqdor:</span>
-                                  <span className="text-white font-medium ml-1">{order.quantity} ta</span>
+                                  <span className={`text-gray-400 ${getDynamicTextColorClass('text-gray-400')}`}>Miqdor:</span>
+                                  <span className={`font-medium ${getDynamicTextColorClass('text-white')} ml-1`}>{order.quantity} ta</span>
                                 </div>
                               </div>
 
-                              <div className="mt-2 text-xs text-gray-400">
+                              <div className={`mt-2 text-xs ${getDynamicTextColorClass('text-gray-400')}`}>
                                 📅 {new Date(order.createdAt).toLocaleDateString('uz-UZ', { 
                                   day: 'numeric', 
                                   month: 'short',
@@ -484,7 +500,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
                               {/* To'lov turi */}
                               <div className="mt-2 flex items-center space-x-1">
-                                <span className="text-xs text-gray-400">To'lov:</span>
+                                <span className={`text-xs ${getDynamicTextColorClass('text-gray-400')}`}>To'lov:</span>
                                 {order.paymentMethod === 'card' && order.paymentType ? (
                                   <span className="text-xs font-medium">
                                     {order.paymentType === 'click' ? '🔵 Click' :
@@ -501,18 +517,18 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
                               {/* Refund ma'lumotlari */}
                               {order.status === 'cancelled' && order.paymentMethod === 'card' && (order as any).refundAmount && (
-                                <div className="mt-2 p-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                                <div className={`${getDynamicBgClass('bg-blue-500/10')} rounded-lg border ${getDynamicBorderClass('border-blue-500/20')} p-2`}>
                                   <div className="text-xs space-y-1">
                                     <div className="flex items-center justify-between">
-                                      <span className="text-blue-400">💰 Qaytariladi:</span>
-                                      <span className="text-blue-300 font-medium">{((order as any).refundAmount).toLocaleString()} so'm</span>
+                                      <span className={`text-blue-400 ${getDynamicTextColorClass('text-blue-400')}`}>💰 Qaytariladi:</span>
+                                      <span className={`font-medium ${getDynamicTextColorClass('text-blue-300')}`}>{((order as any).refundAmount).toLocaleString()} so'm</span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                      <span className="text-gray-400">Xizmat haqi:</span>
-                                      <span className="text-red-300">{(order.totalPrice - (order as any).refundAmount).toLocaleString()} so'm</span>
+                                      <span className={`text-gray-400 ${getDynamicTextColorClass('text-gray-400')}`}>Xizmat haqi:</span>
+                                      <span className={`text-red-300 ${getDynamicTextColorClass('text-red-300')}`}>{(order.totalPrice - (order as any).refundAmount).toLocaleString()} so'm</span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                      <span className="text-gray-400">Holat:</span>
+                                      <span className={`text-gray-400 ${getDynamicTextColorClass('text-gray-400')}`}>Holat:</span>
                                       <span className={`font-medium ${
                                         (order as any).refundStatus === 'processed' ? 'text-green-400' :
                                         (order as any).refundStatus === 'pending' ? 'text-yellow-400' : 'text-red-400'
@@ -522,7 +538,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                                       </span>
                                     </div>
                                     {(order as any).refundStatus === 'pending' && (
-                                      <p className="text-xs text-gray-400 mt-1">
+                                      <p className={`text-xs ${getDynamicTextColorClass('text-gray-400')} mt-1`}>
                                         💡 Pul 3-5 ish kuni ichida qaytariladi
                                       </p>
                                     )}
@@ -533,8 +549,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                               {/* Yetkazib berish manzili */}
                               {order.deliveryAddress && (
                                 <div className="mt-1 text-xs">
-                                  <span className="text-gray-400">📍 Manzil:</span>
-                                  <span className="text-gray-300 ml-1">{order.deliveryAddress}</span>
+                                  <span className={`text-gray-400 ${getDynamicTextColorClass('text-gray-400')}`}>📍 Manzil:</span>
+                                  <span className={`ml-1 ${getDynamicTextColorClass('text-gray-300')}`}>{order.deliveryAddress}</span>
                                 </div>
                               )}
 
@@ -568,7 +584,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
                     {userOrders.length > 5 && (
                       <div className="text-center mt-3">
-                        <p className="text-xs text-gray-500">Va yana {userOrders.length - 5} ta buyurtma...</p>
+                        <p className={`text-xs ${getDynamicTextColorClass('text-gray-500')}`}>Va yana {userOrders.length - 5} ta buyurtma...</p>
                       </div>
                     )}
                   </>
@@ -581,8 +597,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
           <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
             isFavoritesExpanded ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'
           }`}>
-            <div className="bg-gray-700/30 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-600/30">
-              <h4 className="text-base sm:text-lg font-semibold text-white mb-2 sm:mb-3 flex items-center space-x-2">
+            <div className={`${getDynamicBgClass('bg-gray-700/30')} rounded-lg sm:rounded-xl p-3 sm:p-4 ${getDynamicBorderClass('border border-gray-600/30')}`}>
+              <h4 className={`text-base sm:text-lg font-semibold ${getDynamicTextColorClass('text-white')} mb-2 sm:mb-3 flex items-center space-x-2`}>
                 <Heart size={16} className="text-pink-400" />
                 <span>Sevimli tortlar</span>
               </h4>
@@ -590,24 +606,24 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                 {favoritesLoading ? (
                   <div className="flex flex-col items-center justify-center py-8">
                     <div className="animate-spin h-8 w-8 border-2 border-pink-500 border-t-transparent rounded-full mb-3"></div>
-                    <span className="text-gray-300 text-sm">Sevimlilar yuklanmoqda...</span>
+                    <span className={`text-sm ${getDynamicTextColorClass('text-gray-300')}`}>Sevimlilar yuklanmoqda...</span>
                   </div>
                 ) : favorites.length === 0 ? (
                   <div className="text-center py-8">
                     <div className="w-16 h-16 mx-auto mb-4 bg-gray-600/30 rounded-full flex items-center justify-center">
                       <Heart className="w-8 h-8 text-gray-400" />
                     </div>
-                    <p className="text-gray-400 text-sm">Hozircha sevimli tortlar yo'q</p>
-                    <p className="text-gray-500 text-xs mt-1">Yoqtirilgan tortlarni sevimlilarga qo'shing!</p>
+                    <p className={`text-sm ${getDynamicTextColorClass('text-gray-400')}`}>Hozircha sevimli tortlar yo'q</p>
+                    <p className={`text-xs ${getDynamicTextColorClass('text-gray-500')} mt-1`}>Yoqtirilgan tortlarni sevimlilarga qo'shing!</p>
                   </div>
                 ) : (
                   <>
-                    <div className="mb-3 text-xs text-gray-400 text-center">
+                    <div className={`mb-3 text-xs ${getDynamicTextColorClass('text-gray-400')} text-center`}>
                       Jami {favorites.length} ta sevimli tort
                       {favorites.length > 5 && ' (so\'nggi 5 tasi ko\'rsatilgan)'}
                     </div>
                     {favorites.slice(0, 5).map((favorite) => (
-                      <div key={favorite.id} className="bg-gray-600/30 rounded-lg p-2 sm:p-3 hover:bg-gray-600/50 transition-colors">
+                      <div key={favorite.id} className={`${getDynamicBgClass('bg-gray-600/30')} rounded-lg p-2 sm:p-3 hover:bg-gray-600/50 transition-colors`}>
                         <div className="flex items-center space-x-2 sm:space-x-3">
                           <div className="relative">
                             <img 
@@ -620,13 +636,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                             />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-white text-xs sm:text-sm truncate">{favorite.cakeName}</h4>
-                            <p className="text-gray-400 text-xs">{favorite.shopName || 'Tort do\'koni'}</p>
+                            <h4 className={`font-medium ${getDynamicTextColorClass('text-white')} text-xs sm:text-sm truncate`}>{favorite.cakeName}</h4>
+                            <p className={`text-gray-400 text-xs ${getDynamicTextColorClass('text-gray-400')}`}>{favorite.shopName || 'Tort do\'koni'}</p>
                             <div className="flex items-center justify-between mt-1">
                               <span className="text-orange-400 text-xs sm:text-sm font-medium">
                                 {favorite.cakePrice.toLocaleString()} so'm
                               </span>
-                              <div className="text-gray-400 text-xs">
+                              <div className={`text-xs ${getDynamicTextColorClass('text-gray-400')}`}>
                                 {new Date(favorite.createdAt).toLocaleDateString('uz-UZ')}
                               </div>
                             </div>
@@ -644,7 +660,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
                     {favorites.length > 5 && (
                       <div className="text-center mt-3">
-                        <p className="text-xs text-gray-500">Va yana {favorites.length - 5} ta sevimli tort...</p>
+                        <p className={`text-xs ${getDynamicTextColorClass('text-gray-500')}`}>Va yana {favorites.length - 5} ta sevimli tort...</p>
                       </div>
                     )}
                   </>
@@ -655,8 +671,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
         </div>
 
         {/* Menu Items */}
-        <div className="backdrop-blur-sm rounded-xl sm:rounded-2xl lg:rounded-3xl p-3 sm:p-4 lg:p-6 shadow-sm border transition-colors duration-300 bg-gray-800/90 border-gray-700 mb-20">
-          <h2 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">Sozlamalar</h2>
+        <div className={`backdrop-blur-sm rounded-xl sm:rounded-2xl lg:rounded-3xl p-3 sm:p-4 lg:p-6 shadow-sm border transition-colors duration-300 ${getDynamicBgClass('bg-gray-800/90')} ${getDynamicBorderClass('border-gray-700')} mb-20`}>
+          <h2 className={`text-lg sm:text-xl font-semibold ${getDynamicTextColorClass('text-white')} mb-3 sm:mb-4`}>Sozlamalar</h2>
           <div className="space-y-1 sm:space-y-2">
             {menuItems.map((item, index) => {
               const IconComponent = item.icon;
@@ -667,11 +683,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                   className={`w-full flex items-center justify-between p-3 sm:p-4 rounded-lg sm:rounded-xl transition-colors ${
                     item.isLogout 
                       ?'hover:bg-red-500/10 text-red-400 hover:text-red-300' 
-                      : 'hover:bg-gray-700/50 text-gray-300 hover:text-white'
+                      : `${getDynamicBgClass('hover:bg-gray-700/50')} ${getDynamicTextColorClass('text-gray-300')} hover:text-white`
                   }`}
                 >
                   <div className="flex items-center space-x-2 sm:space-x-3">
-                    <IconComponent size={18} />
+                    <IconComponent size={18} className={getDynamicTextColorClass('')}/>
                     <span className="font-medium text-sm sm:text-base">{item.label}</span>
                   </div>
                   {item.hasChevron && (
@@ -686,10 +702,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
         {/* Buyurtmani bekor qilish modal oynasi */}
         {showCancelModal && orderToCancel && (
           <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-            <div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full border border-gray-700 shadow-2xl">
+            <div className={`bg-gray-800 rounded-2xl p-6 max-w-md w-full border shadow-2xl ${getDynamicBorderClass('border-gray-700')}`}>
               {/* Modal Header */}
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white flex items-center space-x-2">
+                <h3 className={`text-xl font-bold ${getDynamicTextColorClass('text-white')} flex items-center space-x-2`}>
                   <span className="text-2xl">⚠️</span>
                   <span>Buyurtmani bekor qilish</span>
                 </h3>
@@ -705,24 +721,24 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
               </div>
 
               {/* Buyurtma ma'lumotlari */}
-              <div className="bg-gray-700/50 rounded-xl p-4 mb-6 border border-gray-600">
+              <div className={`${getDynamicBgClass('bg-gray-700/50')} rounded-xl p-4 mb-6 border ${getDynamicBorderClass('border-gray-600')}`}>
                 <div className="flex items-center space-x-3 mb-3">
                   <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
                     <Package className="w-5 h-5 text-orange-400" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-white text-sm">{orderToCancel.cakeName}</h4>
-                    <p className="text-gray-400 text-xs">#{orderToCancel.id?.slice(-8).toUpperCase()}</p>
+                    <h4 className={`font-medium ${getDynamicTextColorClass('text-white')} text-sm`}>{orderToCancel.cakeName}</h4>
+                    <p className={`text-gray-400 text-xs ${getDynamicTextColorClass('text-gray-400')}`}>#{orderToCancel.id?.slice(-8).toUpperCase()}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
-                    <span className="text-gray-400">Narx:</span>
+                    <span className={`text-gray-400 ${getDynamicTextColorClass('text-gray-400')}`}>Narx:</span>
                     <div className="text-orange-400 font-medium">{orderToCancel.totalPrice.toLocaleString()} so'm</div>
                   </div>
                   <div>
-                    <span className="text-gray-400">To'lov:</span>
+                    <span className={`text-gray-400 ${getDynamicTextColorClass('text-gray-400')}`}>To'lov:</span>
                     <div className="text-white font-medium">
                       {orderToCancel.paymentMethod === 'card' ? (
                         orderToCancel.paymentType === 'click' ? '🔵 Click' :
@@ -735,12 +751,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
               </div>
 
               {/* Ogohlantirish matni */}
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-6">
+              <div className={`${getDynamicBgClass('bg-yellow-500/10')} border ${getDynamicBorderClass('border-yellow-500/30')} rounded-xl p-4 mb-6`}>
                 <div className="flex items-start space-x-3">
                   <span className="text-yellow-400 text-lg">💡</span>
                   <div className="text-sm">
-                    <h4 className="font-medium text-yellow-400 mb-2">Muhim ma'lumot:</h4>
-                    <ul className="text-gray-300 space-y-1 text-xs">
+                    <h4 className={`font-medium ${getDynamicTextColorClass('text-yellow-400')} mb-2`}>Muhim ma'lumot:</h4>
+                    <ul className={`space-y-1 text-xs ${getDynamicTextColorClass('text-gray-300')}`}>
                       <li>• Bu amalni ortga qaytarib bo'lmaydi</li>
                       <li>• Buyurtma bekor qilinadi va holati o'zgaradi</li>
                       {orderToCancel.paymentMethod === 'card' && (
@@ -760,25 +776,25 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
               {/* Refund hisob-kitobi (agar bank kartasi bo'lsa) */}
               {orderToCancel.paymentMethod === 'card' && (
-                <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6">
-                  <h4 className="font-medium text-blue-400 mb-3 text-sm">💰 To'lov qaytarish hisobi:</h4>
+                <div className={`${getDynamicBgClass('bg-blue-500/10')} border ${getDynamicBorderClass('border-blue-500/30')} rounded-xl p-4 mb-6`}>
+                  <h4 className={`font-medium ${getDynamicTextColorClass('text-blue-400')} mb-3 text-sm`}>💰 To'lov qaytarish hisobi:</h4>
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Buyurtma summasi:</span>
-                      <span className="text-white">{orderToCancel.totalPrice.toLocaleString()} so'm</span>
+                      <span className={`text-gray-400 ${getDynamicTextColorClass('text-gray-400')}`}>Buyurtma summasi:</span>
+                      <span className={`font-medium ${getDynamicTextColorClass('text-white')}`}>{orderToCancel.totalPrice.toLocaleString()} so'm</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Xizmat haqi:</span>
-                      <span className="text-red-300">
+                      <span className={`text-gray-400 ${getDynamicTextColorClass('text-gray-400')}`}>Xizmat haqi:</span>
+                      <span className={`text-red-300 ${getDynamicTextColorClass('text-red-300')}`}>
                         -{(orderToCancel.paymentType === 'click' ? 2000 : 
                            orderToCancel.paymentType === 'payme' ? 1500 :
                            orderToCancel.paymentType === 'visa' ? 3000 : 2500).toLocaleString()} so'm
                       </span>
                     </div>
-                    <div className="border-t border-gray-600 pt-2">
-                      <div className="flex justify-between font-medium">
-                        <span className="text-blue-400">Qaytariladi:</span>
-                        <span className="text-blue-300">
+                    <div className="border-t pt-2">
+                      <div className={`flex justify-between font-medium ${getDynamicTextColorClass('')}`}>
+                        <span className={`text-blue-400 ${getDynamicTextColorClass('text-blue-400')}`}>Qaytariladi:</span>
+                        <span className={`text-blue-300 ${getDynamicTextColorClass('text-blue-300')}`}>
                           {(orderToCancel.totalPrice - (
                             orderToCancel.paymentType === 'click' ? 2000 : 
                             orderToCancel.paymentType === 'payme' ? 1500 :
@@ -793,7 +809,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
 
               {/* Tasdiq soruvi */}
               <div className="mb-6">
-                <p className="text-gray-300 text-sm text-center">
+                <p className={`text-sm text-center ${getDynamicTextColorClass('text-gray-300')}`}>
                   Haqiqatan ham bu buyurtmani bekor qilishni xohlaysizmi?
                 </p>
               </div>
@@ -805,7 +821,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user, onLogout, onNavigate })
                     setShowCancelModal(false);
                     setOrderToCancel(null);
                   }}
-                  className="flex-1 bg-gray-700 text-gray-300 py-3 px-4 rounded-xl font-medium hover:bg-gray-600 transition-colors"
+                  className={`flex-1 ${getDynamicBgClass('bg-gray-700')} ${getDynamicTextColorClass('text-gray-300')} py-3 px-4 rounded-xl font-medium transition-colors hover:bg-gray-600`}
                 >
                   Bekor qilish
                 </button>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Home, MapPin, User, Bell, X, Clock, CheckCircle, Truck, Gift, Trash2, BookMarked as MarkAsRead } from 'lucide-react';
 import { useAuth } from './hooks/useAuth';
 import { useNotifications } from './hooks/useNotifications';
+import { ThemeProvider } from './contexts/ThemeContext';
 import CustomerDashboard from './components/dashboards/CustomerDashboard';
 import BakerDashboard from './components/dashboards/BakerDashboard';
 import CourierDashboard from './components/dashboards/CourierDashboard';
@@ -150,10 +151,11 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-y-auto">
+    <ThemeProvider>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-y-auto transition-colors duration-300">
       {/* Header */}
       {(activePage === 'home' || activePage === 'community') && (
-        <header className="bg-white shadow-sm border-b border-gray-100">
+        <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-100 dark:border-gray-700">
         <div className="px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between max-w-6xl mx-auto">
             <div className="flex items-center space-x-2">
@@ -161,9 +163,9 @@ function App() {
                 <span className="text-white font-bold text-sm sm:text-base">TB</span>
               </div>
               <div>
-                <h1 className="text-lg sm:text-xl font-bold text-gray-900">Tort Bazar</h1>
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Tort Bazar</h1>
                 {isAuthenticated && userData?.role && activePage === 'community' && (
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
                     {userData.role === 'baker' && 'Tort tayyorlovchi'}
                     {userData.role === 'shop' && 'Do\'kon'}
                     {userData.role === 'courier' && 'Kuryer'}
@@ -176,7 +178,7 @@ function App() {
             <div className="flex items-center space-x-2">
               <button 
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
               >
                 <Bell size={isMobile ? 18 : 20} />
                 {unreadCount > 0 && (
@@ -312,15 +314,15 @@ function App() {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 sm:px-4 py-2 sm:py-3 z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-2 sm:px-4 py-2 sm:py-3 z-50">
         <div className="flex justify-around max-w-6xl mx-auto">
           {/* First Tab - Dashboard/Bosh sahifa */}
           <button
             onClick={() => setActivePage('home')}
             className={`flex flex-col items-center py-1 sm:py-2 px-2 sm:px-4 rounded-lg transition-colors ${
               activePage === 'home'
-                ? 'text-orange-600 bg-orange-50'
-                : 'text-gray-600 hover:text-orange-600'
+                ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20'
+                : 'text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400'
             }`}
           >
             <Home size={isMobile ? 18 : 20} />
@@ -340,8 +342,8 @@ function App() {
             }}
             className={`flex flex-col items-center py-1 sm:py-2 px-2 sm:px-4 rounded-lg transition-colors ${
               (activePage === 'restaurants' || activePage === 'community')
-                ? 'text-orange-600 bg-orange-50'
-                : 'text-gray-600 hover:text-orange-600'
+                ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20'
+                : 'text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400'
             }`}
           >
             <MapPin size={isMobile ? 18 : 20} />
@@ -355,8 +357,8 @@ function App() {
             onClick={() => setActivePage('profile')}
             className={`flex flex-col items-center py-1 sm:py-2 px-2 sm:px-4 rounded-lg transition-colors ${
               activePage === 'profile'
-                ? 'text-orange-600 bg-orange-50'
-                : 'text-gray-600 hover:text-orange-600'
+                ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20'
+                : 'text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400'
             }`}
           >
             <User size={isMobile ? 18 : 20} />
@@ -365,6 +367,7 @@ function App() {
         </div>
       </nav>
     </div>
+    </ThemeProvider>
   );
 }
 
