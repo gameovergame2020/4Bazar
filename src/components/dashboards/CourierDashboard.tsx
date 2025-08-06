@@ -17,27 +17,68 @@ import {
   AlertCircle
 } from 'lucide-react';
 
+// Region va tuman nomlarini O'zbek tilida ko'rsatish uchun
+const regionNames: { [key: string]: string } = {
+  'toshkent': 'Toshkent sh.',
+  'andijon': 'Andijon vil.',
+  'buxoro': 'Buxoro vil.',
+  'fargona': 'Farg\'ona vil.',
+  'jizzax': 'Jizzax vil.',
+  'xorazm': 'Xorazm vil.',
+  'namangan': 'Namangan vil.',
+  'navoiy': 'Navoiy vil.',
+  'qashqadaryo': 'Qashqadaryo vil.',
+  'qoraqalpog\'iston': 'Qoraqalpog\'iston R.',
+  'samarqand': 'Samarqand vil.',
+  'sirdaryo': 'Sirdaryo vil.',
+  'surxondaryo': 'Surxondaryo vil.',
+  'toshkent_vil': 'Toshkent vil.'
+};
+
+const districtNames: { [key: string]: string } = {
+  'mirzo_ulugbek': 'Mirzo Ulug\'bek tumani',
+  'yashnobod': 'Yashnobod tumani',
+  'chilonzor': 'Chilonzor tumani',
+  'olmazor': 'Olmazor tumani',
+  'shayxontoxur': 'Shayxontoxur tumani',
+  'sirdaryo': 'Sirdaryo tumani',
+  'bog\'ot': 'Bog\'ot tumani'
+};
+
+
 interface Order {
   id: string;
+  orderUniqueId: string;
+  customerId: string;
   customerName: string;
   customerPhone: string;
-  address: string;
+  cakeId: string;
+  cakeName: string;
+  quantity: number;
+  totalPrice: number;
+  status: 'ready' | 'delivering' | 'delivered';
+  deliveryAddress: string;
+  deliveryRegion?: string; // Viloyat/Shahar
+  deliveryDistrict?: string; // Tuman/Shahar qismi
   coordinates?: [number, number];
+  paymentMethod: 'cash' | 'card';
+  paymentType?: 'click' | 'payme' | 'visa' | 'mastercard';
+  notes: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deliveryFee: number;
+  address: string; // Legacy
   items: Array<{
     id: string;
     name: string;
     quantity: number;
     price: number;
   }>;
-  total: number;
-  status: 'ready' | 'delivering' | 'delivered';
+  total: number; // Legacy
   orderTime: string;
   priority: 'normal' | 'urgent';
   distance?: string;
   estimatedTime?: string;
-  deliveryFee: number;
-  paymentMethod: 'cash' | 'card';
-  paymentType?: 'click' | 'payme' | 'visa' | 'mastercard';
 }
 
 declare global {
@@ -79,68 +120,71 @@ const CourierDashboard = () => {
     try {
       setLoading(true);
 
-      // Demo ma'lumotlar
-      const mockActiveOrders: Order[] = [
-        {
-          id: 'ORD001',
-          orderUniqueId: 'D9OAHZ7Z',
-          customerId: 'customer001',
-          customerName: 'Aziz Karimov',
-          customerPhone: '+998901234567',
-          cakeId: 'cake001',
-          cakeName: 'Shokoladli tort',
-          quantity: 1,
-          amount: 250000,
-          totalPrice: 268000,
-          status: 'ready',
-          deliveryAddress: 'Toshkent sh., Yunusobod t., 15-mavze, 23-uy',
-          coordinates: [41.3158, 69.2798],
-          paymentMethod: 'cash',
-          notes: '',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          // Legacy properties for compatibility
-          address: 'Toshkent sh., Yunusobod t., 15-mavze, 23-uy',
-          items: [
-            { id: '1', name: 'Shokoladli tort', quantity: 1, price: 250000 }
-          ],
-          total: 268000,
-          orderTime: new Date().toISOString(),
-          priority: 'urgent',
-          distance: '2.5 km',
-          deliveryFee: 18000
-        },
-        {
-          id: 'ORD002',
-          orderUniqueId: 'M8KBVC3X',
-          customerId: 'customer002',
-          customerName: 'Malika Toshmatova',
-          customerPhone: '+998901234568',
-          cakeId: 'cake002',
-          cakeName: 'Mevali tort',
-          quantity: 2,
-          amount: 360000,
-          totalPrice: 378000,
-          status: 'delivering',
-          deliveryAddress: 'Toshkent sh., Mirzo Ulugbek t., 8-mavze, 45-uy',
-          coordinates: [41.2856, 69.2034],
-          paymentMethod: 'card',
-          paymentType: 'click',
-          notes: '',
-          createdAt: new Date(Date.now() - 3600000),
-          updatedAt: new Date(),
-          // Legacy properties for compatibility
-          address: 'Toshkent sh., Mirzo Ulugbek t., 8-mavze, 45-uy',
-          items: [
-            { id: '2', name: 'Mevali tort', quantity: 2, price: 180000 }
-          ],
-          total: 378000,
-          orderTime: new Date(Date.now() - 3600000).toISOString(),
-          priority: 'normal',
-          distance: '4.1 km',
-          deliveryFee: 18000
-        }
-      ];
+      // Demo buyurtmalar (haqiqatda Firebase'dan keladi)
+        const mockActiveOrders: Order[] = [
+          {
+            id: '1',
+            orderUniqueId: 'ORD-001',
+            customerId: 'demo-customer-1',
+            customerName: 'Aziz Karimov',
+            customerPhone: '+998 90 123 45 67',
+            cakeId: 'cake-1',
+            cakeName: 'Shokoladli tort',
+            quantity: 1,
+            totalPrice: 250000,
+            status: 'delivering',
+            deliveryAddress: 'Toshkent sh., Mirzo Ulugbek t., 8-mavze, 45-uy',
+            deliveryRegion: 'toshkent',
+            deliveryDistrict: 'mirzo_ulugbek',
+            coordinates: [41.2856, 69.2034],
+            paymentMethod: 'card',
+            paymentType: 'click',
+            notes: '',
+            createdAt: new Date(Date.now() - 3600000),
+            updatedAt: new Date(),
+            deliveryFee: 18000,
+            // Legacy properties for compatibility
+            address: 'Toshkent sh., Mirzo Ulugbek t., 8-mavze, 45-uy',
+            items: [
+              { id: '1', name: 'Shokoladli tort', quantity: 1, price: 250000 }
+            ],
+            total: 268000,
+            orderTime: new Date(Date.now() - 3600000).toISOString(),
+            priority: 'urgent',
+            distance: '4.1 km',
+            estimatedTime: '25 min'
+          },
+          {
+            id: '2',
+            orderUniqueId: 'ORD-002',
+            customerId: 'demo-customer-2',
+            customerName: 'Maryam Usmonova',
+            customerPhone: '+998 91 234 56 78',
+            cakeId: 'cake-2',
+            cakeName: 'Mevali tort',
+            quantity: 1,
+            totalPrice: 180000,
+            status: 'ready',
+            deliveryAddress: 'Toshkent sh., Yashnobod t., 12-mavze, 23-uy',
+            deliveryRegion: 'toshkent',
+            deliveryDistrict: 'yashnobod',
+            coordinates: [41.2995, 69.2401],
+            paymentMethod: 'cash',
+            notes: '2-qavat, qo\'ng\'iroqni 2 marta bosing',
+            createdAt: new Date(Date.now() - 1800000),
+            updatedAt: new Date(),
+            deliveryFee: 15000,
+            // Legacy properties for compatibility
+            address: 'Toshkent sh., Yashnobod t., 12-mavze, 23-uy',
+            items: [
+              { id: '2', name: 'Mevali tort', quantity: 1, price: 180000 }
+            ],
+            total: 195000,
+            orderTime: new Date(Date.now() - 1800000).toISOString(),
+            priority: 'normal'
+          }
+        ];
+
 
       setActiveOrders(mockActiveOrders);
       if (mockActiveOrders.length > 0) {
@@ -168,7 +212,7 @@ const CourierDashboard = () => {
       if (window.ymaps) {
         window.ymaps.ready(() => {
           console.log('🗺️ Yandex Maps ready, initializing...');
-          
+
           const map = new window.ymaps.Map(mapRef.current, {
             center: [41.2995, 69.2401], // Toshkent markazi
             zoom: 12,
@@ -195,7 +239,7 @@ const CourierDashboard = () => {
           activeOrders.forEach((order, index) => {
             if (order.coordinates && Array.isArray(order.coordinates) && order.coordinates.length === 2) {
               console.log(`📍 Adding order ${index + 1}: ${order.customerName} at [${order.coordinates}]`);
-              
+
               const orderPlacemark = new window.ymaps.Placemark(order.coordinates, {
                 balloonContent: `
                   <div style="padding: 12px; min-width: 200px;">
@@ -348,7 +392,7 @@ const CourierDashboard = () => {
             ));
 
             console.log(`✅ Yo'l hisoblandi: ${distance} km, ${duration} daqiqa`);
-            
+
             // Xaritani yo'lga moslashtirish
             const routes = route.getRoutes();
             if (routes && routes.get(0)) {
@@ -365,10 +409,10 @@ const CourierDashboard = () => {
 
       route.model.events.add('requestfail', (error: any) => {
         console.error('❌ Yo\'l hisoblashda xato:', error);
-        
+
         // Xato turini aniqlash
         let errorMessage = 'Yo\'lni hisoblashda xatolik yuz berdi.';
-        
+
         if (error && error.originalEvent) {
           const originalError = error.originalEvent;
           if (originalError.message && originalError.message.includes('API')) {
@@ -379,7 +423,7 @@ const CourierDashboard = () => {
             errorMessage = 'Server xatosi. Keyinroq urinib ko\'ring.';
           }
         }
-        
+
         console.warn('⚠️ ' + errorMessage);
         // alert o'rniga console warning ishlatish
       });
@@ -430,13 +474,13 @@ const CourierDashboard = () => {
       // Xaritadan buyurtma belgilarini va yo'llarini olib tashlash
       if (yandexMap) {
         const objectsToRemove: any[] = [];
-        
+
         yandexMap.geoObjects.each((geoObject: any) => {
           const properties = geoObject.properties;
           if (properties) {
             const objType = properties.get('type');
             const objOrderId = properties.get('orderId');
-            
+
             // Buyurtma belgisini yoki barcha yo'llarni olib tashlash
             if ((objType === 'order' && objOrderId === orderId) || objType === 'route') {
               objectsToRemove.push(geoObject);
@@ -455,7 +499,7 @@ const CourierDashboard = () => {
       // Buyurtmani ro'yxatdan olib tashlash
       const remainingOrders = activeOrders.filter(order => order.id !== orderId);
       setActiveOrders(remainingOrders);
-      
+
       // Agar tanlangan buyurtma olib tashlangan bo'lsa, boshqasini tanlash
       if (selectedOrder?.id === orderId) {
         setSelectedOrder(remainingOrders.length > 0 ? remainingOrders[0] : null);
@@ -479,7 +523,7 @@ const CourierDashboard = () => {
 
       console.log(`✅ Buyurtma bajarildi va xaritadan olib tashlandi: ${orderId}`);
       console.log(`📊 Qolgan buyurtmalar: ${remainingOrders.length} ta`);
-      
+
       return; // Qolgan kodning ishlamasligini ta'minlash
     }
   };
@@ -616,7 +660,7 @@ const CourierDashboard = () => {
                       )}
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-slate-900">{formatPrice(order.total)}</div>
+                      <div className="font-bold text-slate-900">{formatPrice(order.totalPrice || order.total)}</div>
                       <div className="text-xs text-green-600">+{formatPrice(order.deliveryFee)}</div>
                     </div>
                   </div>
@@ -625,8 +669,23 @@ const CourierDashboard = () => {
                   <div className="mb-3 space-y-2">
                     <div className="flex items-start space-x-2">
                       <MapPin size={14} className="text-slate-400 mt-0.5" />
-                      <span className="text-sm text-slate-600 flex-1">{order.address}</span>
+                      <span className="text-sm text-slate-600 flex-1">{order.deliveryAddress}</span>
                     </div>
+                    {(order.deliveryRegion || order.deliveryDistrict) && (
+                      <div className="flex items-center space-x-2 mt-1">
+                        <span className="text-xs text-slate-400">Hudud:</span>
+                        <div className="flex items-center space-x-1">
+                          <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                            {regionNames[order.deliveryRegion] || order.deliveryRegion}
+                          </span>
+                          {order.deliveryDistrict && (
+                            <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
+                              {districtNames[order.deliveryDistrict] || order.deliveryDistrict}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     <div className="flex items-center space-x-2">
                       <Phone size={14} className="text-slate-400" />
                       <span className="text-sm text-slate-600">{order.customerPhone}</span>

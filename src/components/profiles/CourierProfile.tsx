@@ -98,6 +98,8 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
     address: user.address || '',
     vehicleType: user.vehicleType || 'bike',
     deliveryZone: user.deliveryZone || '',
+    deliveryRegion: user.deliveryRegion || 'toshkent',
+    deliveryDistrict: user.deliveryDistrict || '',
     avatar: null as File | null,
     vehicleNumber: user.vehicleNumber || '',
     emergencyContact: user.emergencyContact || '',
@@ -197,6 +199,8 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
         address: editForm.address,
         vehicleType: editForm.vehicleType,
         deliveryZone: editForm.deliveryZone,
+        deliveryRegion: editForm.deliveryRegion,
+        deliveryDistrict: editForm.deliveryDistrict,
         vehicleNumber: editForm.vehicleNumber,
         emergencyContact: editForm.emergencyContact,
         workingHours: editForm.workingHours,
@@ -221,6 +225,69 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
     { value: 'scooter', label: 'Skuter', icon: '🛵', efficiency: 'Yuqori' },
     { value: 'electric', label: 'Elektr transport', icon: '⚡', efficiency: 'Eng yuqori' }
   ];
+
+  const regions = [
+    { value: 'toshkent', label: 'Toshkent shahri' },
+    { value: 'toshkent_viloyat', label: 'Toshkent viloyati' },
+    { value: 'samarqand', label: 'Samarqand viloyati' },
+    { value: 'buxoro', label: 'Buxoro viloyati' },
+    { value: 'andijon', label: 'Andijon viloyati' },
+    { value: 'fargona', label: 'Farg\'ona viloyati' },
+    { value: 'namangan', label: 'Namangan viloyati' },
+    { value: 'qashqadaryo', label: 'Qashqadaryo viloyati' },
+    { value: 'surxondaryo', label: 'Surxondaryo viloyati' },
+    { value: 'jizzax', label: 'Jizzax viloyati' },
+    { value: 'sirdaryo', label: 'Sirdaryo viloyati' },
+    { value: 'xorazm', label: 'Xorazm viloyati' },
+    { value: 'navoiy', label: 'Navoiy viloyati' },
+    { value: 'qoraqalpogiston', label: 'Qoraqalpog\'iston' }
+  ];
+
+  const districts = {
+    toshkent: [
+      { value: 'bektemir', label: 'Bektemir tumani' },
+      { value: 'chilonzor', label: 'Chilonzor tumani' },
+      { value: 'mirzo_ulugbek', label: 'Mirzo Ulug\'bek tumani' },
+      { value: 'mirobod', label: 'Mirobod tumani' },
+      { value: 'olmazor', label: 'Olmazor tumani' },
+      { value: 'sergeli', label: 'Sergeli tumani' },
+      { value: 'shayxontohur', label: 'Shayxontohur tumani' },
+      { value: 'uchtepa', label: 'Uchtepa tumani' },
+      { value: 'yashnobod', label: 'Yashnobod tumani' },
+      { value: 'yakkasaroy', label: 'Yakkasaroy tumani' },
+      { value: 'yunusobod', label: 'Yunusobod tumani' }
+    ],
+    toshkent_viloyat: [
+      { value: 'bekobod', label: 'Bekobod shahri' },
+      { value: 'angren', label: 'Angren shahri' },
+      { value: 'chirchiq', label: 'Chirchiq shahri' },
+      { value: 'olmaliq', label: 'Olmaliq shahri' },
+      { value: 'yangiyo\'l', label: 'Yangiyo\'l tumani' },
+      { value: 'toshkent', label: 'Toshkent tumani' },
+      { value: 'qibray', label: 'Qibray tumani' }
+    ],
+    samarqand: [
+      { value: 'samarqand_shahar', label: 'Samarqand shahri' },
+      { value: 'kattaqo\'rg\'on', label: 'Kattaqo\'rg\'on tumani' },
+      { value: 'urgut', label: 'Urgut tumani' },
+      { value: 'ishtixon', label: 'Ishtixon tumani' }
+    ],
+    buxoro: [
+      { value: 'buxoro_shahar', label: 'Buxoro shahri' },
+      { value: 'kogon', label: 'Kogon tumani' },
+      { value: 'g\'ijduvon', label: 'G\'ijduvon tumani' }
+    ],
+    andijon: [
+      { value: 'andijon_shahar', label: 'Andijon shahri' },
+      { value: 'xonobod', label: 'Xonobod tumani' },
+      { value: 'marhamat', label: 'Marhamat tumani' }
+    ],
+    fargona: [
+      { value: 'fargona_shahar', label: 'Farg\'ona shahri' },
+      { value: 'marg\'ilon', label: 'Marg\'ilon shahri' },
+      { value: 'quva', label: 'Quva tumani' }
+    ]
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('uz-UZ').format(price) + ' so\'m';
@@ -384,7 +451,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4 text-sm text-slate-500">
+                <div className="flex items-center space-x-4 text-sm text-slate-500 mb-2">
                   <span className="flex items-center space-x-1">
                     <Calendar size={12} />
                     <span>{new Date(user.joinDate).toLocaleDateString('uz-UZ')} dan</span>
@@ -398,6 +465,18 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                     <span>Tasdiqlangan</span>
                   </span>
                 </div>
+
+                {(user.deliveryRegion || user.deliveryDistrict) && (
+                  <div className="flex items-center space-x-2 text-sm bg-blue-50 text-blue-700 px-3 py-1 rounded-lg">
+                    <MapPin size={12} />
+                    <span>
+                      {regions.find(r => r.value === user.deliveryRegion)?.label}
+                      {user.deliveryDistrict && districts[user.deliveryRegion] && 
+                        ` - ${districts[user.deliveryRegion].find(d => d.value === user.deliveryDistrict)?.label}`
+                      }
+                    </span>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -510,13 +589,53 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Yetkazish hududi</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Viloyat/Shahar</label>
+              <select
+                value={editForm.deliveryRegion}
+                onChange={(e) => {
+                  setEditForm(prev => ({ 
+                    ...prev, 
+                    deliveryRegion: e.target.value,
+                    deliveryDistrict: '' // Reset district when region changes
+                  }));
+                }}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              >
+                {regions.map(region => (
+                  <option key={region.value} value={region.value}>
+                    {region.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Tuman/Shahar</label>
+              <select
+                value={editForm.deliveryDistrict}
+                onChange={(e) => setEditForm(prev => ({ ...prev, deliveryDistrict: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                disabled={!editForm.deliveryRegion || !districts[editForm.deliveryRegion]}
+              >
+                <option value="">Tumanni tanlang</option>
+                {editForm.deliveryRegion && districts[editForm.deliveryRegion] && 
+                  districts[editForm.deliveryRegion].map(district => (
+                    <option key={district.value} value={district.value}>
+                      {district.label}
+                    </option>
+                  ))
+                }
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Yetkazish hududi (Qo'shimcha)</label>
               <input
                 type="text"
                 value={editForm.deliveryZone}
                 onChange={(e) => setEditForm(prev => ({ ...prev, deliveryZone: e.target.value }))}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                placeholder="Masalan: Toshkent shahar markazi"
+                placeholder="Masalan: Markaz atrofi, metro bekatlari yaqini"
               />
             </div>
 

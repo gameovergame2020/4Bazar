@@ -15,8 +15,10 @@ export interface UserData {
   rating?: number;
   shopName?: string;
   location?: string;
-  vehicleType?: string;
   deliveryZone?: string;
+  deliveryRegion?: string;
+  deliveryDistrict?: string;
+  vehicleType?: 'bike' | 'motorcycle' | 'car' | 'scooter' | 'electric';
   permissions?: string[];
 }
 
