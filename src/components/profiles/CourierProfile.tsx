@@ -40,7 +40,23 @@ import {
   PlusCircle,
   Eye,
   Download,
-  Filter
+  Filter,
+  Wallet,
+  Route,
+  Timer,
+  ThumbsUp,
+  MapPinned,
+  Fuel,
+  ShieldCheck,
+  TrendingDown,
+  Coins,
+  Medal,
+  BadgeCheck,
+  Speedometer,
+  Clock3,
+  Battery,
+  Gauge,
+  LineChart
 } from 'lucide-react';
 import { UserData } from '../../services/authService';
 import { dataService } from '../../services/dataService';
@@ -66,7 +82,13 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
     workingDays: 0,
     activeOrders: 0,
     weeklyDeliveries: 0,
-    monthlyEarnings: 0
+    monthlyEarnings: 0,
+    averageDeliveryTime: 0,
+    fuelEfficiency: 0,
+    customerSatisfaction: 0,
+    onTimeRate: 0,
+    weeklyHours: 0,
+    totalDistance: 0
   });
 
   const [editForm, setEditForm] = useState({
@@ -76,7 +98,10 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
     address: user.address || '',
     vehicleType: user.vehicleType || 'bike',
     deliveryZone: user.deliveryZone || '',
-    avatar: null as File | null
+    avatar: null as File | null,
+    vehicleNumber: user.vehicleNumber || '',
+    emergencyContact: user.emergencyContact || '',
+    workingHours: user.workingHours || '9:00-18:00'
   });
 
   const [settings, setSettings] = useState({
@@ -85,8 +110,26 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
     language: 'uz',
     theme: 'light',
     autoAcceptOrders: false,
-    workingHours: '9:00-18:00'
+    workingHours: '9:00-18:00',
+    maxOrdersPerHour: 4,
+    preferredPaymentMethods: ['cash', 'card'],
+    workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
   });
+
+  const [achievements, setAchievements] = useState([
+    { id: 1, name: '100+ Yetkazish', description: 'Yuz martalik yutuq', icon: '🏆', unlocked: true, date: '2024-01-15' },
+    { id: 2, name: 'Tez Kuryer', description: '15 daqiqada yetkazish', icon: '⚡', unlocked: true, date: '2024-01-20' },
+    { id: 3, name: 'Perfect Rating', description: '5.0 reyting', icon: '⭐', unlocked: false, progress: 85 },
+    { id: 4, name: 'Marathon Runner', description: '1000 km masofa', icon: '🏃', unlocked: false, progress: 65 },
+    { id: 5, name: 'Customer Favorite', description: '100+ ijobiy fikr', icon: '❤️', unlocked: true, date: '2024-02-01' }
+  ]);
+
+  const [recentActivity, setRecentActivity] = useState([
+    { id: 1, type: 'delivery', description: 'Tort #1234 yetkazildi', time: '10 daqiqa oldin', status: 'success' },
+    { id: 2, type: 'rating', description: '5 yulduzli baholash olindi', time: '1 soat oldin', status: 'success' },
+    { id: 3, type: 'order', description: 'Yangi buyurtma qabul qilindi', time: '2 soat oldin', status: 'info' },
+    { id: 4, type: 'milestone', description: '100-buyurtma belgi olindi', time: '1 kun oldin', status: 'achievement' }
+  ]);
 
   // Statistikalarni yuklash
   useEffect(() => {
@@ -95,36 +138,45 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
 
   const loadStats = async () => {
     try {
+      setLoading(true);
       const allOrders = await dataService.getOrders();
       const courierDeliveries = allOrders.filter(order => 
         ['delivering', 'delivered'].includes(order.status)
-      ).slice(0, Math.floor(Math.random() * 50) + 15);
+      ).slice(0, Math.floor(Math.random() * 100) + 25);
 
       const completedDeliveries = courierDeliveries.filter(order => order.status === 'delivered');
       const totalEarnings = completedDeliveries.length * 18000;
       const successRate = courierDeliveries.length > 0 ? (completedDeliveries.length / courierDeliveries.length) * 100 : 0;
       const workingDays = Math.floor((Date.now() - new Date(user.joinDate).getTime()) / (1000 * 60 * 60 * 24));
-      const todayDeliveries = Math.floor(Math.random() * 8) + 3;
+      const todayDeliveries = Math.floor(Math.random() * 12) + 3;
       const todayEarnings = todayDeliveries * 18000;
       const activeOrders = Math.floor(Math.random() * 5) + 2;
-      const weeklyDeliveries = todayDeliveries * 7;
-      const monthlyEarnings = totalEarnings * 2;
+      const weeklyDeliveries = todayDeliveries * 6;
+      const monthlyEarnings = totalEarnings * 1.5;
 
       setStats({
         totalDeliveries: courierDeliveries.length,
         completedDeliveries: completedDeliveries.length,
         totalEarnings,
-        averageRating: 4.8,
+        averageRating: 4.8 + Math.random() * 0.2,
         todayDeliveries,
         todayEarnings,
         successRate: Math.round(successRate),
         workingDays,
         activeOrders,
         weeklyDeliveries,
-        monthlyEarnings
+        monthlyEarnings,
+        averageDeliveryTime: Math.floor(Math.random() * 10) + 15,
+        fuelEfficiency: Math.floor(Math.random() * 15) + 85,
+        customerSatisfaction: Math.floor(Math.random() * 10) + 90,
+        onTimeRate: Math.floor(Math.random() * 15) + 85,
+        weeklyHours: Math.floor(Math.random() * 10) + 35,
+        totalDistance: Math.floor(Math.random() * 500) + 1200
       });
     } catch (error) {
       console.error('Statistikalarni yuklashda xatolik:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -145,6 +197,9 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
         address: editForm.address,
         vehicleType: editForm.vehicleType,
         deliveryZone: editForm.deliveryZone,
+        vehicleNumber: editForm.vehicleNumber,
+        emergencyContact: editForm.emergencyContact,
+        workingHours: editForm.workingHours,
         avatar: avatarUrl
       };
 
@@ -160,10 +215,11 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
   };
 
   const vehicleTypes = [
-    { value: 'bike', label: 'Velosiped', icon: '🚴' },
-    { value: 'motorcycle', label: 'Mototsikl', icon: '🏍️' },
-    { value: 'car', label: 'Avtomobil', icon: '🚗' },
-    { value: 'scooter', label: 'Skuter', icon: '🛵' }
+    { value: 'bike', label: 'Velosiped', icon: '🚴', efficiency: 'Yuqori' },
+    { value: 'motorcycle', label: 'Mototsikl', icon: '🏍️', efficiency: 'O\'rtacha' },
+    { value: 'car', label: 'Avtomobil', icon: '🚗', efficiency: 'Past' },
+    { value: 'scooter', label: 'Skuter', icon: '🛵', efficiency: 'Yuqori' },
+    { value: 'electric', label: 'Elektr transport', icon: '⚡', efficiency: 'Eng yuqori' }
   ];
 
   const formatPrice = (price: number) => {
@@ -171,54 +227,100 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
   };
 
   const getPerformanceLevel = () => {
-    if (stats.successRate >= 95) return { level: 'Elite', color: 'from-yellow-400 to-yellow-600', bgColor: 'bg-yellow-50', textColor: 'text-yellow-600' };
-    if (stats.successRate >= 90) return { level: 'Pro', color: 'from-purple-400 to-purple-600', bgColor: 'bg-purple-50', textColor: 'text-purple-600' };
-    if (stats.successRate >= 80) return { level: 'Expert', color: 'from-blue-400 to-blue-600', bgColor: 'bg-blue-50', textColor: 'text-blue-600' };
-    return { level: 'Standard', color: 'from-gray-400 to-gray-600', bgColor: 'bg-gray-50', textColor: 'text-gray-600' };
+    if (stats.successRate >= 95) return { 
+      level: 'Elite', 
+      color: 'from-yellow-400 to-yellow-600', 
+      bgColor: 'bg-yellow-50', 
+      textColor: 'text-yellow-600',
+      nextLevel: 'Master',
+      progress: 100
+    };
+    if (stats.successRate >= 90) return { 
+      level: 'Pro', 
+      color: 'from-purple-400 to-purple-600', 
+      bgColor: 'bg-purple-50', 
+      textColor: 'text-purple-600',
+      nextLevel: 'Elite',
+      progress: (stats.successRate - 90) * 20
+    };
+    if (stats.successRate >= 80) return { 
+      level: 'Expert', 
+      color: 'from-blue-400 to-blue-600', 
+      bgColor: 'bg-blue-50', 
+      textColor: 'text-blue-600',
+      nextLevel: 'Pro',
+      progress: (stats.successRate - 80) * 10
+    };
+    return { 
+      level: 'Standard', 
+      color: 'from-gray-400 to-gray-600', 
+      bgColor: 'bg-gray-50', 
+      textColor: 'text-gray-600',
+      nextLevel: 'Expert',
+      progress: (stats.successRate - 60) * 5
+    };
   };
 
   const performanceLevel = getPerformanceLevel();
 
   // Asosiy Ma'lumotlar Bo'limi
   const renderInfo = () => (
-    <div className="space-y-4">
-      {/* Performance Header */}
-      <div className={`bg-gradient-to-r ${performanceLevel.color} rounded-2xl p-4 text-white relative overflow-hidden`}>
-        <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-12 translate-x-12"></div>
+    <div className="space-y-6">
+      {/* Enhanced Performance Header */}
+      <div className={`bg-gradient-to-r ${performanceLevel.color} rounded-2xl p-6 text-white relative overflow-hidden`}>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
+        
         <div className="relative z-10">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="p-3 bg-white/20 rounded-xl">
-              <Trophy size={24} className="text-white" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                <Trophy size={28} className="text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold">{performanceLevel.level} Kuryer</h3>
+                <p className="text-white/80">Professional darajangiz</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-xl font-bold">{performanceLevel.level} Kuryer</h3>
-              <p className="text-white/80 text-sm">Professional darajangiz</p>
+            <div className="text-right">
+              <div className="text-sm text-white/70">Keyingi: {performanceLevel.nextLevel}</div>
+              <div className="w-20 bg-white/20 rounded-full h-2 mt-1">
+                <div 
+                  className="bg-white h-2 rounded-full transition-all duration-500" 
+                  style={{width: `${Math.min(performanceLevel.progress, 100)}%`}}
+                ></div>
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div>
-              <div className="text-lg font-bold">{stats.totalDeliveries}</div>
+          
+          <div className="grid grid-cols-4 gap-4 text-center">
+            <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+              <div className="text-xl font-bold">{stats.totalDeliveries}</div>
               <div className="text-xs text-white/80">Jami</div>
             </div>
-            <div>
-              <div className="text-lg font-bold">{stats.averageRating}</div>
+            <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+              <div className="text-xl font-bold">{stats.averageRating.toFixed(1)}</div>
               <div className="text-xs text-white/80">Reyting</div>
             </div>
-            <div>
-              <div className="text-lg font-bold">{stats.successRate}%</div>
+            <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+              <div className="text-xl font-bold">{stats.successRate}%</div>
               <div className="text-xs text-white/80">Muvaffaqiyat</div>
+            </div>
+            <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+              <div className="text-xl font-bold">{stats.onTimeRate}%</div>
+              <div className="text-xs text-white/80">Muddatda</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Profile Header */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <div className="flex items-center space-x-3 mb-4">
+      {/* Enhanced Profile Header */}
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+        <div className="flex items-start space-x-4 mb-6">
           <div className="relative">
             {isEditing ? (
               <div className="relative group">
-                <div className="w-20 h-20 bg-gradient-to-br from-slate-200 to-slate-300 rounded-xl border-2 border-white shadow-lg flex items-center justify-center cursor-pointer">
+                <div className="w-24 h-24 bg-gradient-to-br from-slate-200 to-slate-300 rounded-2xl border-3 border-white shadow-lg flex items-center justify-center cursor-pointer hover:shadow-xl transition-shadow">
                   <input
                     type="file"
                     accept="image/*"
@@ -226,7 +328,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
                   <div className="text-center">
-                    <Camera size={20} className="text-slate-400 mx-auto mb-1" />
+                    <Camera size={24} className="text-slate-400 mx-auto mb-1" />
                     <span className="text-xs text-slate-500">Rasm</span>
                   </div>
                 </div>
@@ -236,49 +338,63 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                 <img 
                   src={user.avatar || 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=200'}
                   alt={user.name}
-                  className="w-20 h-20 rounded-xl border-2 border-white object-cover shadow-lg"
+                  className="w-24 h-24 rounded-2xl border-3 border-white object-cover shadow-lg"
                 />
-                <div className="absolute -bottom-1 -right-1 p-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-lg">
-                  <Truck size={14} />
+                <div className="absolute -bottom-2 -right-2 p-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl shadow-lg">
+                  <Truck size={16} />
                 </div>
+                <div className="absolute top-2 right-2 w-4 h-4 bg-green-500 border-2 border-white rounded-full animate-pulse"></div>
               </div>
             )}
           </div>
 
           <div className="flex-1">
             {isEditing ? (
-              <input
-                type="text"
-                value={editForm.name}
-                onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                className="text-lg font-bold bg-white border border-slate-300 rounded-lg px-3 py-2 focus:border-indigo-500 outline-none w-full"
-                placeholder="Ismingiz"
-              />
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                  className="text-xl font-bold bg-white border border-slate-300 rounded-lg px-3 py-2 focus:border-indigo-500 outline-none w-full"
+                  placeholder="Ismingiz"
+                />
+              </div>
             ) : (
               <div>
-                <div className="flex items-center space-x-2 mb-1">
-                  <h2 className="text-lg font-bold text-slate-900">{user.name}</h2>
-                  <div className="flex items-center space-x-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                <div className="flex items-center space-x-3 mb-2">
+                  <h2 className="text-xl font-bold text-slate-900">{user.name}</h2>
+                  <div className="flex items-center space-x-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     <span>Online</span>
                   </div>
+                  <BadgeCheck size={20} className="text-blue-500" />
                 </div>
-                <div className="flex items-center space-x-2 mb-1">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium text-white bg-gradient-to-r ${performanceLevel.color}`}>
+                
+                <div className="flex items-center space-x-3 mb-2">
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium text-white bg-gradient-to-r ${performanceLevel.color}`}>
                     {performanceLevel.level}
                   </span>
                   <div className="flex items-center space-x-1">
-                    <Star size={12} className="fill-current text-yellow-500" />
-                    <span className="text-xs font-bold text-yellow-600">{stats.averageRating}</span>
+                    <Star size={14} className="fill-current text-yellow-500" />
+                    <span className="text-sm font-bold text-yellow-600">{stats.averageRating.toFixed(1)}</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Clock size={14} className="text-slate-400" />
+                    <span className="text-sm text-slate-600">{stats.averageDeliveryTime} min</span>
                   </div>
                 </div>
-                <div className="flex items-center space-x-3 text-xs text-slate-500">
+
+                <div className="flex items-center space-x-4 text-sm text-slate-500">
                   <span className="flex items-center space-x-1">
-                    <Calendar size={10} />
+                    <Calendar size={12} />
                     <span>{new Date(user.joinDate).toLocaleDateString('uz-UZ')} dan</span>
                   </span>
                   <span className="flex items-center space-x-1">
-                    <Shield size={10} />
+                    <Route size={12} />
+                    <span>{stats.totalDistance} km</span>
+                  </span>
+                  <span className="flex items-center space-x-1">
+                    <Shield size={12} />
                     <span>Tasdiqlangan</span>
                   </span>
                 </div>
@@ -289,36 +405,60 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
           <button
             onClick={() => isEditing ? handleSave() : setIsEditing(true)}
             disabled={loading}
-            className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
               isEditing 
-                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg' 
+                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg hover:shadow-xl' 
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             {loading ? (
-              <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div>
+              <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
             ) : isEditing ? (
-              <Save size={14} />
+              <Save size={16} />
             ) : (
-              <Edit2 size={14} />
+              <Edit2 size={16} />
             )}
-            <span className="hidden sm:inline">{loading ? 'Saqlanmoqda...' : isEditing ? 'Saqlash' : 'Tahrirlash'}</span>
+            <span>{loading ? 'Saqlanmoqda...' : isEditing ? 'Saqlash' : 'Tahrirlash'}</span>
           </button>
+        </div>
+
+        {/* Quick Stats Row */}
+        <div className="grid grid-cols-4 gap-4">
+          <div className="text-center p-3 bg-blue-50 rounded-xl">
+            <Package size={20} className="text-blue-600 mx-auto mb-1" />
+            <p className="text-lg font-bold text-slate-900">{stats.todayDeliveries}</p>
+            <p className="text-xs text-slate-600">Bugun</p>
+          </div>
+          <div className="text-center p-3 bg-green-50 rounded-xl">
+            <DollarSign size={20} className="text-green-600 mx-auto mb-1" />
+            <p className="text-lg font-bold text-slate-900">{formatPrice(stats.todayEarnings)}</p>
+            <p className="text-xs text-slate-600">Bugun</p>
+          </div>
+          <div className="text-center p-3 bg-purple-50 rounded-xl">
+            <Timer size={20} className="text-purple-600 mx-auto mb-1" />
+            <p className="text-lg font-bold text-slate-900">{stats.weeklyHours}</p>
+            <p className="text-xs text-slate-600">Haftalik</p>
+          </div>
+          <div className="text-center p-3 bg-orange-50 rounded-xl">
+            <ThumbsUp size={20} className="text-orange-600 mx-auto mb-1" />
+            <p className="text-lg font-bold text-slate-900">{stats.customerSatisfaction}%</p>
+            <p className="text-xs text-slate-600">Mamnunlik</p>
+          </div>
         </div>
       </div>
 
-      {/* Contact Information */}
+      {/* Detailed Info Form */}
       {isEditing && (
-        <div className="bg-white rounded-xl p-4 border border-slate-200">
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
           <h3 className="text-lg font-semibold text-slate-900 mb-4">Ma'lumotlarni yangilash</h3>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Telefon raqam</label>
               <input
                 type="tel"
                 value={editForm.phone}
                 onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
@@ -328,17 +468,17 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                 type="email"
                 value={editForm.email}
                 onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
-            <div>
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-slate-700 mb-1">Yashash manzili</label>
               <input
                 type="text"
                 value={editForm.address}
                 onChange={(e) => setEditForm(prev => ({ ...prev, address: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 placeholder="To'liq yashash manzilingiz"
               />
             </div>
@@ -348,14 +488,25 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
               <select
                 value={editForm.vehicleType}
                 onChange={(e) => setEditForm(prev => ({ ...prev, vehicleType: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               >
                 {vehicleTypes.map(type => (
                   <option key={type.value} value={type.value}>
-                    {type.icon} {type.label}
+                    {type.icon} {type.label} ({type.efficiency})
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Transport raqami</label>
+              <input
+                type="text"
+                value={editForm.vehicleNumber}
+                onChange={(e) => setEditForm(prev => ({ ...prev, vehicleNumber: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                placeholder="01A123BC"
+              />
             </div>
 
             <div>
@@ -364,227 +515,434 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                 type="text"
                 value={editForm.deliveryZone}
                 onChange={(e) => setEditForm(prev => ({ ...prev, deliveryZone: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 placeholder="Masalan: Toshkent shahar markazi"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Favqulodda aloqa</label>
+              <input
+                type="tel"
+                value={editForm.emergencyContact}
+                onChange={(e) => setEditForm(prev => ({ ...prev, emergencyContact: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                placeholder="+998 XX XXX XX XX"
               />
             </div>
           </div>
         </div>
       )}
 
-      {/* Career Progress */}
+      {/* Recent Activity */}
       {!isEditing && (
-        <div className="bg-white rounded-xl p-4 border border-slate-200">
-          <h4 className="font-semibold text-slate-900 mb-3">Martaba rivojlanishi</h4>
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+          <h4 className="font-semibold text-slate-900 mb-4">So'nggi faoliyat</h4>
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-600 text-sm">Keyingi daraja</span>
-              <span className="font-bold text-blue-600">Pro Kuryer</span>
-            </div>
-            <div className="w-full bg-slate-200 rounded-full h-2">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full" style={{width: '75%'}}></div>
-            </div>
-            <div className="flex justify-between text-xs text-slate-500">
-              <span>75% bajarildi</span>
-              <span>25 ta yetkazish qoldi</span>
-            </div>
+            {recentActivity.map(activity => (
+              <div key={activity.id} className="flex items-center space-x-3 p-3 hover:bg-slate-50 rounded-lg transition-colors">
+                <div className={`p-2 rounded-lg ${
+                  activity.status === 'success' ? 'bg-green-100 text-green-600' :
+                  activity.status === 'achievement' ? 'bg-yellow-100 text-yellow-600' :
+                  'bg-blue-100 text-blue-600'
+                }`}>
+                  {activity.type === 'delivery' && <Package size={16} />}
+                  {activity.type === 'rating' && <Star size={16} />}
+                  {activity.type === 'order' && <Bell size={16} />}
+                  {activity.type === 'milestone' && <Trophy size={16} />}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-slate-900">{activity.description}</p>
+                  <p className="text-xs text-slate-500">{activity.time}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
       {/* Achievements */}
       {!isEditing && (
-        <div className="bg-white rounded-xl p-4 border border-slate-200">
-          <h4 className="font-semibold text-slate-900 mb-3">So'nggi yutuqlar</h4>
-          <div className="space-y-2">
-            <div className="flex items-center space-x-3 p-2 bg-yellow-50 rounded-lg">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Award size={16} className="text-yellow-600" />
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+          <h4 className="font-semibold text-slate-900 mb-4">Yutuqlar</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {achievements.map(achievement => (
+              <div key={achievement.id} className={`p-4 rounded-xl border-2 transition-all ${
+                achievement.unlocked 
+                  ? 'border-green-200 bg-green-50' 
+                  : 'border-slate-200 bg-slate-50'
+              }`}>
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className={`text-2xl ${achievement.unlocked ? 'grayscale-0' : 'grayscale opacity-50'}`}>
+                    {achievement.icon}
+                  </div>
+                  <div className="flex-1">
+                    <h5 className="font-medium text-slate-900">{achievement.name}</h5>
+                    <p className="text-xs text-slate-600">{achievement.description}</p>
+                  </div>
+                  {achievement.unlocked && (
+                    <CheckCircle size={20} className="text-green-500" />
+                  )}
+                </div>
+                {!achievement.unlocked && achievement.progress && (
+                  <div className="w-full bg-slate-200 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all"
+                      style={{width: `${achievement.progress}%`}}
+                    ></div>
+                  </div>
+                )}
+                {achievement.unlocked && achievement.date && (
+                  <p className="text-xs text-green-600 mt-1">{achievement.date}</p>
+                )}
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-slate-900">100+ Yetkazish</p>
-                <p className="text-xs text-slate-500">Yuz martalik yutuq</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3 p-2 bg-blue-50 rounded-lg">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Star size={16} className="text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-slate-900">Tez Yetkazish</p>
-                <p className="text-xs text-slate-500">15 daqiqada yetkazish</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       )}
     </div>
   );
 
-  // Statistika Bo'limi
+  // Kengaytirilgan Statistika Bo'limi
   const renderStats = () => (
-    <div className="space-y-4">
-      {/* Performance Stats */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <h4 className="font-semibold text-slate-900 mb-3">Asosiy ko'rsatkichlar</h4>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <Package size={20} className="text-blue-600 mx-auto mb-1" />
-            <p className="text-lg font-bold text-slate-900">{stats.totalDeliveries}</p>
+    <div className="space-y-6">
+      {/* Performance Overview */}
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+        <h4 className="font-semibold text-slate-900 mb-4">Asosiy ko'rsatkichlar</h4>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
+            <Package size={24} className="text-blue-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-slate-900">{stats.totalDeliveries}</p>
             <p className="text-xs text-slate-600">Jami yetkazish</p>
-          </div>
-          <div className="text-center p-3 bg-green-50 rounded-lg">
-            <DollarSign size={20} className="text-green-600 mx-auto mb-1" />
-            <p className="text-lg font-bold text-slate-900">{formatPrice(stats.totalEarnings)}</p>
-            <p className="text-xs text-slate-600">Jami daromad</p>
-          </div>
-          <div className="text-center p-3 bg-purple-50 rounded-lg">
-            <Clock size={20} className="text-purple-600 mx-auto mb-1" />
-            <p className="text-lg font-bold text-slate-900">{stats.workingDays}</p>
-            <p className="text-xs text-slate-600">Ish kunlari</p>
-          </div>
-          <div className="text-center p-3 bg-yellow-50 rounded-lg">
-            <Trophy size={20} className="text-yellow-600 mx-auto mb-1" />
-            <p className="text-lg font-bold text-slate-900">{stats.successRate}%</p>
-            <p className="text-xs text-slate-600">Samaradorlik</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Today's Stats */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <h4 className="font-semibold text-slate-900 mb-3">Bugungi natijalar</h4>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600 text-sm">Bugungi yetkazish</span>
-            <span className="font-bold text-slate-900">{stats.todayDeliveries}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600 text-sm">Bugungi daromad</span>
-            <span className="font-bold text-green-600">{formatPrice(stats.todayEarnings)}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600 text-sm">Faol buyurtmalar</span>
-            <span className="font-bold text-blue-600">{stats.activeOrders}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Weekly Performance */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <h4 className="font-semibold text-slate-900 mb-3">Haftalik natijalar</h4>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600 text-sm">Haftalik yetkazish</span>
-            <span className="font-bold text-slate-900">{stats.weeklyDeliveries}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600 text-sm">O'rtacha reyting</span>
-            <div className="flex items-center space-x-1">
-              <Star size={14} className="fill-current text-yellow-500" />
-              <span className="font-bold text-yellow-600">{stats.averageRating}</span>
+            <div className="flex items-center justify-center space-x-1 mt-1">
+              <TrendingUp size={12} className="text-green-500" />
+              <span className="text-xs text-green-600">+12%</span>
             </div>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600 text-sm">Samaradorlik</span>
-            <span className="font-bold text-green-600">{stats.successRate}%</span>
+          
+          <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
+            <Coins size={24} className="text-green-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-slate-900">{formatPrice(stats.totalEarnings)}</p>
+            <p className="text-xs text-slate-600">Jami daromad</p>
+            <div className="flex items-center justify-center space-x-1 mt-1">
+              <TrendingUp size={12} className="text-green-500" />
+              <span className="text-xs text-green-600">+8%</span>
+            </div>
+          </div>
+          
+          <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
+            <Clock3 size={24} className="text-purple-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-slate-900">{stats.averageDeliveryTime}</p>
+            <p className="text-xs text-slate-600">O'rtacha vaqt (min)</p>
+            <div className="flex items-center justify-center space-x-1 mt-1">
+              <TrendingDown size={12} className="text-green-500" />
+              <span className="text-xs text-green-600">-5%</span>
+            </div>
+          </div>
+          
+          <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl">
+            <Trophy size={24} className="text-yellow-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-slate-900">{stats.successRate}%</p>
+            <p className="text-xs text-slate-600">Muvaffaqiyat</p>
+            <div className="flex items-center justify-center space-x-1 mt-1">
+              <TrendingUp size={12} className="text-green-500" />
+              <span className="text-xs text-green-600">+3%</span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Monthly Stats */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <h4 className="font-semibold text-slate-900 mb-3">Oylik ko'rsatkichlar</h4>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600 text-sm">Oylik daromad</span>
-            <span className="font-bold text-green-600">{formatPrice(stats.monthlyEarnings)}</span>
+      {/* Detailed Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Performance Metrics */}
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+          <h4 className="font-semibold text-slate-900 mb-4">Ish samaradorligi</h4>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-2">
+                <Speedometer size={16} className="text-blue-500" />
+                <span className="text-sm text-slate-600">Muddatda yetkazish</span>
+              </div>
+              <div className="text-right">
+                <span className="font-bold text-slate-900">{stats.onTimeRate}%</span>
+                <div className="w-20 bg-slate-200 rounded-full h-1.5">
+                  <div 
+                    className="bg-blue-500 h-1.5 rounded-full" 
+                    style={{width: `${stats.onTimeRate}%`}}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-2">
+                <ThumbsUp size={16} className="text-green-500" />
+                <span className="text-sm text-slate-600">Mijoz mamnunligi</span>
+              </div>
+              <div className="text-right">
+                <span className="font-bold text-slate-900">{stats.customerSatisfaction}%</span>
+                <div className="w-20 bg-slate-200 rounded-full h-1.5">
+                  <div 
+                    className="bg-green-500 h-1.5 rounded-full" 
+                    style={{width: `${stats.customerSatisfaction}%`}}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-2">
+                <Fuel size={16} className="text-orange-500" />
+                <span className="text-sm text-slate-600">Yonilg'i samaradorligi</span>
+              </div>
+              <div className="text-right">
+                <span className="font-bold text-slate-900">{stats.fuelEfficiency}%</span>
+                <div className="w-20 bg-slate-200 rounded-full h-1.5">
+                  <div 
+                    className="bg-orange-500 h-1.5 rounded-full" 
+                    style={{width: `${stats.fuelEfficiency}%`}}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-2">
+                <Star size={16} className="text-yellow-500" />
+                <span className="text-sm text-slate-600">O'rtacha reyting</span>
+              </div>
+              <div className="text-right">
+                <span className="font-bold text-slate-900">{stats.averageRating.toFixed(1)}/5.0</span>
+                <div className="flex space-x-0.5">
+                  {[1,2,3,4,5].map(star => (
+                    <Star 
+                      key={star} 
+                      size={12} 
+                      className={`${star <= Math.floor(stats.averageRating) ? 'fill-current text-yellow-500' : 'text-slate-300'}`} 
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600 text-sm">Bajarilgan buyurtmalar</span>
-            <span className="font-bold text-slate-900">{stats.completedDeliveries}</span>
+        </div>
+
+        {/* Earnings Breakdown */}
+        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+          <h4 className="font-semibold text-slate-900 mb-4">Daromad taqsimoti</h4>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-slate-600">Bugungi daromad</span>
+              <span className="font-bold text-green-600">{formatPrice(stats.todayEarnings)}</span>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-slate-600">Haftalik daromad</span>
+              <span className="font-bold text-slate-900">{formatPrice(stats.todayEarnings * 6)}</span>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-slate-600">Oylik daromad</span>
+              <span className="font-bold text-slate-900">{formatPrice(stats.monthlyEarnings)}</span>
+            </div>
+
+            <div className="pt-3 border-t border-slate-200">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm text-slate-600">Buyurtma uchun</span>
+                <span className="text-sm font-medium">{formatPrice(stats.totalEarnings * 0.7)}</span>
+              </div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm text-slate-600">Bonus va mukofotlar</span>
+                <span className="text-sm font-medium">{formatPrice(stats.totalEarnings * 0.2)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-slate-600">Qo'shimcha xizmatlar</span>
+                <span className="text-sm font-medium">{formatPrice(stats.totalEarnings * 0.1)}</span>
+              </div>
+            </div>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600 text-sm">O'rtacha kunlik</span>
-            <span className="font-bold text-slate-900">{Math.round(stats.totalDeliveries / Math.max(stats.workingDays, 1))}</span>
+        </div>
+      </div>
+
+      {/* Weekly Stats */}
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+        <h4 className="font-semibold text-slate-900 mb-4">Haftalik statistika</h4>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="text-center p-3 bg-slate-50 rounded-lg">
+            <p className="text-2xl font-bold text-slate-900">{stats.weeklyDeliveries}</p>
+            <p className="text-xs text-slate-600">Yetkazish soni</p>
+          </div>
+          <div className="text-center p-3 bg-slate-50 rounded-lg">
+            <p className="text-2xl font-bold text-slate-900">{stats.weeklyHours}</p>
+            <p className="text-xs text-slate-600">Ish soatlari</p>
+          </div>
+          <div className="text-center p-3 bg-slate-50 rounded-lg">
+            <p className="text-2xl font-bold text-slate-900">{Math.round(stats.totalDistance/4)}</p>
+            <p className="text-xs text-slate-600">Bosib o'tilgan (km)</p>
+          </div>
+          <div className="text-center p-3 bg-slate-50 rounded-lg">
+            <p className="text-2xl font-bold text-slate-900">{Math.round(stats.weeklyDeliveries/7)}</p>
+            <p className="text-xs text-slate-600">Kunlik o'rtacha</p>
           </div>
         </div>
       </div>
     </div>
   );
 
-  // Sozlamalar Bo'limi
+  // Kengaytirilgan Sozlamalar Bo'limi
   const renderSettings = () => (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Work Settings */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <h4 className="font-semibold text-slate-900 mb-3">Ish sozlamalari</h4>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Bell size={16} className="text-slate-600" />
-              <span className="text-sm text-slate-700">Bildirishnomalar</span>
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+        <h4 className="font-semibold text-slate-900 mb-4">Ish sozlamalari</h4>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors">
+            <div className="flex items-center space-x-3">
+              <Bell size={20} className="text-slate-600" />
+              <div>
+                <span className="text-sm font-medium text-slate-900">Bildirishnomalar</span>
+                <p className="text-xs text-slate-500">Yangi buyurtmalar haqida xabar olish</p>
+              </div>
             </div>
             <button
               onClick={() => setSettings(prev => ({...prev, notifications: !prev.notifications}))}
-              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 settings.notifications ? 'bg-indigo-600' : 'bg-slate-300'
               }`}
             >
               <span
-                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                  settings.notifications ? 'translate-x-5' : 'translate-x-1'
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  settings.notifications ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
             </button>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Zap size={16} className="text-slate-600" />
-              <span className="text-sm text-slate-700">Avtomatik qabul</span>
+          <div className="flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors">
+            <div className="flex items-center space-x-3">
+              <Zap size={20} className="text-slate-600" />
+              <div>
+                <span className="text-sm font-medium text-slate-900">Avtomatik qabul</span>
+                <p className="text-xs text-slate-500">Buyurtmalarni avtomatik qabul qilish</p>
+              </div>
             </div>
             <button
               onClick={() => setSettings(prev => ({...prev, autoAcceptOrders: !prev.autoAcceptOrders}))}
-              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 settings.autoAcceptOrders ? 'bg-indigo-600' : 'bg-slate-300'
               }`}
             >
               <span
-                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                  settings.autoAcceptOrders ? 'translate-x-5' : 'translate-x-1'
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  settings.autoAcceptOrders ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
             </button>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Ish vaqti</label>
+          <div className="p-3 hover:bg-slate-50 rounded-lg transition-colors">
+            <label className="block text-sm font-medium text-slate-900 mb-2">Soatlik maksimal buyurtmalar</label>
+            <input
+              type="number"
+              min="1"
+              max="10"
+              value={settings.maxOrdersPerHour}
+              onChange={(e) => setSettings(prev => ({...prev, maxOrdersPerHour: parseInt(e.target.value)}))}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div className="p-3 hover:bg-slate-50 rounded-lg transition-colors">
+            <label className="block text-sm font-medium text-slate-900 mb-2">Ish vaqti</label>
             <input
               type="text"
               value={settings.workingHours}
               onChange={(e) => setSettings(prev => ({...prev, workingHours: e.target.value}))}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               placeholder="Masalan: 9:00-18:00"
             />
+          </div>
+
+          <div className="p-3 hover:bg-slate-50 rounded-lg transition-colors">
+            <label className="block text-sm font-medium text-slate-900 mb-2">Ish kunlari</label>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                {key: 'monday', label: 'Dush'},
+                {key: 'tuesday', label: 'Sesh'},
+                {key: 'wednesday', label: 'Chor'},
+                {key: 'thursday', label: 'Pay'},
+                {key: 'friday', label: 'Juma'},
+                {key: 'saturday', label: 'Shan'}
+              ].map(day => (
+                <button
+                  key={day.key}
+                  onClick={() => {
+                    const newDays = settings.workingDays.includes(day.key)
+                      ? settings.workingDays.filter(d => d !== day.key)
+                      : [...settings.workingDays, day.key];
+                    setSettings(prev => ({...prev, workingDays: newDays}));
+                  }}
+                  className={`p-2 text-xs rounded-lg transition-colors ${
+                    settings.workingDays.includes(day.key)
+                      ? 'bg-indigo-100 text-indigo-700 border border-indigo-300'
+                      : 'bg-slate-100 text-slate-600 border border-slate-300'
+                  }`}
+                >
+                  {day.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Payment Preferences */}
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+        <h4 className="font-semibold text-slate-900 mb-4">To'lov sozlamalari</h4>
+        <div className="space-y-3">
+          <div className="p-3 hover:bg-slate-50 rounded-lg transition-colors">
+            <label className="block text-sm font-medium text-slate-900 mb-2">Qabul qilinadigan to'lov turlari</label>
+            <div className="space-y-2">
+              {[
+                {key: 'cash', label: 'Naqd pul', icon: '💵'},
+                {key: 'card', label: 'Bank kartasi', icon: '💳'},
+                {key: 'click', label: 'Click', icon: '🔵'},
+                {key: 'payme', label: 'Payme', icon: '🟢'}
+              ].map(method => (
+                <label key={method.key} className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={settings.preferredPaymentMethods.includes(method.key)}
+                    onChange={(e) => {
+                      const newMethods = e.target.checked
+                        ? [...settings.preferredPaymentMethods, method.key]
+                        : settings.preferredPaymentMethods.filter(m => m !== method.key);
+                      setSettings(prev => ({...prev, preferredPaymentMethods: newMethods}));
+                    }}
+                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span className="text-sm">{method.icon} {method.label}</span>
+                </label>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
       {/* App Settings */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <h4 className="font-semibold text-slate-900 mb-3">Ilova sozlamalari</h4>
-        <div className="space-y-3">
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+        <h4 className="font-semibold text-slate-900 mb-4">Ilova sozlamalari</h4>
+        <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Til</label>
             <select
               value={settings.language}
               onChange={(e) => setSettings(prev => ({...prev, language: e.target.value}))}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="uz">O'zbekcha</option>
-              <option value="ru">Русский</option>
-              <option value="en">English</option>
+              <option value="uz">🇺🇿 O'zbekcha</option>
+              <option value="ru">🇷🇺 Русский</option>
+              <option value="en">🇺🇸 English</option>
             </select>
           </div>
 
@@ -593,59 +951,78 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             <select
               value={settings.theme}
               onChange={(e) => setSettings(prev => ({...prev, theme: e.target.value}))}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="light">Yorug'</option>
-              <option value="dark">Qorong'i</option>
-              <option value="auto">Avtomatik</option>
+              <option value="light">☀️ Yorug'</option>
+              <option value="dark">🌙 Qorong'i</option>
+              <option value="auto">🔄 Avtomatik</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* Help Section */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <h4 className="font-semibold text-slate-900 mb-3">Yordam</h4>
+      {/* Help & Support */}
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+        <h4 className="font-semibold text-slate-900 mb-4">Yordam va qo'llab-quvvatlash</h4>
         <div className="space-y-2">
           <button className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors">
-            <div className="flex items-center space-x-2">
-              <Phone size={16} className="text-slate-600" />
-              <span className="text-sm text-slate-700">Qo'llab-quvvatlash</span>
+            <div className="flex items-center space-x-3">
+              <Phone size={18} className="text-slate-600" />
+              <span className="text-sm text-slate-700">Qo'llab-quvvatlash xizmati</span>
             </div>
             <ChevronRight size={16} className="text-slate-400" />
           </button>
+          
           <button className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors">
-            <div className="flex items-center space-x-2">
-              <HelpCircle size={16} className="text-slate-600" />
-              <span className="text-sm text-slate-700">FAQ</span>
+            <div className="flex items-center space-x-3">
+              <MessageCircle size={18} className="text-slate-600" />
+              <span className="text-sm text-slate-700">Chat yordami</span>
             </div>
             <ChevronRight size={16} className="text-slate-400" />
           </button>
+          
           <button className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors">
-            <div className="flex items-center space-x-2">
-              <Download size={16} className="text-slate-600" />
-              <span className="text-sm text-slate-700">Ma'lumotlarni export qilish</span>
+            <div className="flex items-center space-x-3">
+              <HelpCircle size={18} className="text-slate-600" />
+              <span className="text-sm text-slate-700">Ko'p so'raladigan savollar</span>
+            </div>
+            <ChevronRight size={16} className="text-slate-400" />
+          </button>
+
+          <button className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors">
+            <div className="flex items-center space-x-3">
+              <Download size={18} className="text-slate-600" />
+              <span className="text-sm text-slate-700">Ma'lumotlar eksporti</span>
             </div>
             <ChevronRight size={16} className="text-slate-400" />
           </button>
         </div>
       </div>
 
-      {/* Security Section */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200">
-        <h4 className="font-semibold text-slate-900 mb-3">Xavfsizlik</h4>
+      {/* Security */}
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+        <h4 className="font-semibold text-slate-900 mb-4">Xavfsizlik</h4>
         <div className="space-y-2">
           <button className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors">
-            <div className="flex items-center space-x-2">
-              <Lock size={16} className="text-slate-600" />
+            <div className="flex items-center space-x-3">
+              <Lock size={18} className="text-slate-600" />
               <span className="text-sm text-slate-700">Parolni o'zgartirish</span>
             </div>
             <ChevronRight size={16} className="text-slate-400" />
           </button>
+          
           <button className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors">
-            <div className="flex items-center space-x-2">
-              <Shield size={16} className="text-slate-600" />
-              <span className="text-sm text-slate-700">Xavfsizlik sozlamalari</span>
+            <div className="flex items-center space-x-3">
+              <ShieldCheck size={18} className="text-slate-600" />
+              <span className="text-sm text-slate-700">Ikki bosqichli tasdiqlash</span>
+            </div>
+            <ChevronRight size={16} className="text-slate-400" />
+          </button>
+
+          <button className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors">
+            <div className="flex items-center space-x-3">
+              <Activity size={18} className="text-slate-600" />
+              <span className="text-sm text-slate-700">Login tarixi</span>
             </div>
             <ChevronRight size={16} className="text-slate-400" />
           </button>
@@ -662,22 +1039,46 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pb-20">
+      {/* Enhanced Header */}
+      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-white/20 px-4 py-3">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <button
+            onClick={onBack}
+            className="flex items-center space-x-2 px-3 py-2 hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            <ArrowLeft size={20} className="text-slate-600" />
+            <span className="text-sm font-medium text-slate-700">Orqaga</span>
+          </button>
+          
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span>Online</span>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-medium text-slate-900">Kuryer Profili</p>
+              <p className="text-xs text-slate-500">{user.name}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Tab Navigation */}
       <div className="px-4 py-4">
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-1 shadow-sm border border-white/20 max-w-7xl mx-auto">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-1.5 shadow-sm border border-white/30 max-w-7xl mx-auto">
           <div className="grid grid-cols-3 gap-1">
             {navigationSections.map((section) => (
               <button
                 key={section.id}
                 onClick={() => setActiveSection(section.id)}
-                className={`flex items-center justify-center space-x-2 py-2 px-3 rounded-lg font-medium transition-all duration-200 ${
+                className={`flex items-center justify-center space-x-2 py-3 px-4 rounded-xl font-medium transition-all duration-300 ${
                   activeSection === section.id
-                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
-                    : 'text-slate-600 hover:bg-slate-100'
+                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg scale-105'
+                    : 'text-slate-600 hover:bg-slate-100 hover:scale-105'
                 }`}
               >
-                <section.icon size={16} />
-                <span className="text-sm">{section.label}</span>
+                <section.icon size={18} />
+                <span className="text-sm font-medium">{section.label}</span>
               </button>
             ))}
           </div>
@@ -686,9 +1087,17 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
 
       {/* Main Content */}
       <div className="px-4 max-w-7xl mx-auto">
-        {activeSection === 'info' && renderInfo()}
-        {activeSection === 'stats' && renderStats()}
-        {activeSection === 'settings' && renderSettings()}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin h-8 w-8 border-4 border-indigo-500 border-t-transparent rounded-full"></div>
+          </div>
+        ) : (
+          <>
+            {activeSection === 'info' && renderInfo()}
+            {activeSection === 'stats' && renderStats()}
+            {activeSection === 'settings' && renderSettings()}
+          </>
+        )}
       </div>
     </div>
   );
