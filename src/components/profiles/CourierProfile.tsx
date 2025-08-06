@@ -842,19 +842,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             </div>
           </div>
 
-          {/* Quick Actions - Mobile Only */}
-          <div className="mt-4 md:hidden">
-            <div className="flex space-x-2">
-              <button className="flex-1 flex items-center justify-center space-x-2 py-3 bg-white/20 backdrop-blur-sm text-white rounded-xl font-medium active:bg-white/30 transition-all duration-200 touch-manipulation">
-                <MapPin size={16} />
-                <span className="text-sm">Joylashuvim</span>
-              </button>
-              <button className="flex-1 flex items-center justify-center space-x-2 py-3 bg-white/20 backdrop-blur-sm text-white rounded-xl font-medium active:bg-white/30 transition-all duration-200 touch-manipulation">
-                <Activity size={16} />
-                <span className="text-sm">Faoliyat</span>
-              </button>
-            </div>
-          </div>
+          
 
 
         </div>
