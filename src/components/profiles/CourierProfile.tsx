@@ -1338,21 +1338,13 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pb-20">
       {/* Enhanced Header */}
       <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-white/20 px-4 py-3">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <button
-            onClick={onBack}
-            className="flex items-center space-x-2 px-3 py-2 hover:bg-slate-100 rounded-lg transition-colors"
-          >
-            <ArrowLeft size={20} className="text-slate-600" />
-            <span className="text-sm font-medium text-slate-700">Orqaga</span>
-          </button>
-          
+        <div className="flex items-center justify-center max-w-7xl mx-auto">
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span>Online</span>
             </div>
-            <div className="text-right">
+            <div className="text-center">
               <p className="text-sm font-medium text-slate-900">Kuryer Profili</p>
               <p className="text-xs text-slate-500">{user.name}</p>
             </div>
