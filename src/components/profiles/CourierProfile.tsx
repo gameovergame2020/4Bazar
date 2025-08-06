@@ -125,12 +125,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
     { id: 5, name: 'Customer Favorite', description: '100+ ijobiy fikr', icon: '❤️', unlocked: true, date: '2024-02-01' }
   ]);
 
-  const [recentActivity, setRecentActivity] = useState([
-    { id: 1, type: 'delivery', description: 'Tort #1234 yetkazildi', time: '10 daqiqa oldin', status: 'success' },
-    { id: 2, type: 'rating', description: '5 yulduzli baholash olindi', time: '1 soat oldin', status: 'success' },
-    { id: 3, type: 'order', description: 'Yangi buyurtma qabul qilindi', time: '2 soat oldin', status: 'info' },
-    { id: 4, type: 'milestone', description: '100-buyurtma belgi olindi', time: '1 kun oldin', status: 'achievement' }
-  ]);
+  
 
   // Statistikalarni yuklash
   useEffect(() => {
@@ -817,32 +812,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
         </div>
       )}
 
-      {/* Recent Activity */}
-      {!isEditing && (
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-          <h4 className="font-semibold text-slate-900 mb-4">So'nggi faoliyat</h4>
-          <div className="space-y-3">
-            {recentActivity.map(activity => (
-              <div key={activity.id} className="flex items-center space-x-3 p-3 hover:bg-slate-50 rounded-lg transition-colors">
-                <div className={`p-2 rounded-lg ${
-                  activity.status === 'success' ? 'bg-green-100 text-green-600' :
-                  activity.status === 'achievement' ? 'bg-yellow-100 text-yellow-600' :
-                  'bg-blue-100 text-blue-600'
-                }`}>
-                  {activity.type === 'delivery' && <Package size={16} />}
-                  {activity.type === 'rating' && <Star size={16} />}
-                  {activity.type === 'order' && <Bell size={16} />}
-                  {activity.type === 'milestone' && <Trophy size={16} />}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-900">{activity.description}</p>
-                  <p className="text-xs text-slate-500">{activity.time}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      
 
       {/* Achievements */}
       {!isEditing && (
