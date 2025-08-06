@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
@@ -128,7 +127,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
     { id: 5, name: 'Customer Favorite', description: '100+ ijobiy fikr', icon: '❤️', unlocked: true, date: '2024-02-01' }
   ]);
 
-  
+
 
   // Statistikalarni yuklash
   useEffect(() => {
@@ -508,7 +507,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
 
   // Swipe navigation
   const minSwipeDistance = 50;
-  
+
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
@@ -542,7 +541,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
       <div className={`bg-gradient-to-r ${performanceLevel.color} rounded-2xl p-4 md:p-6 text-white relative overflow-hidden`}>
         <div className="absolute top-0 right-0 w-20 h-20 md:w-32 md:h-32 bg-white/10 rounded-full -translate-y-8 md:-translate-y-16 translate-x-8 md:translate-x-16"></div>
         <div className="absolute bottom-0 left-0 w-16 h-16 md:w-24 md:h-24 bg-white/5 rounded-full translate-y-8 md:translate-y-12 -translate-x-8 md:-translate-x-12"></div>
-        
+
         <div className="relative z-10">
           {/* Profile Header Section - Mobile First */}
           <div className="relative flex flex-col md:flex-row md:items-start space-y-4 md:space-y-0 md:space-x-4 mb-4 md:mb-6">
@@ -576,7 +575,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                     <div className="absolute top-1 right-1 md:top-2 md:right-2 w-3 h-3 md:w-4 md:h-4 bg-green-400 border-2 border-white rounded-full animate-pulse"></div>
                   </div>
                 )}
-                
+
                 {/* Achievements below profile image - Mobile Hidden, Tablet+ Visible */}
                 <div className="hidden md:flex justify-center items-center space-x-1 mt-3">
                   {achievements.slice(0, 5).map(achievement => {
@@ -592,7 +591,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                     };
 
                     const IconComponent = getAchievementIcon(achievement.id);
-                    
+
                     return (
                       <div key={achievement.id} className={`relative ${
                         achievement.unlocked 
@@ -662,7 +661,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                     </div>
                     <BadgeCheck size={18} className="text-white/80" />
                   </div>
-                  
+
                   <div className="flex flex-wrap items-center gap-2 mb-3">
                     <span className="px-2 py-1 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm text-white">
                       {performanceLevel.level} Kuryer
@@ -743,7 +742,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                 };
 
                 const IconComponent = getAchievementIcon(achievement.id);
-                
+
                 return (
                   <button
                     key={achievement.id}
@@ -753,15 +752,15 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                         : 'text-white/40'
                     }`}
                   >
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
                       achievement.unlocked 
                         ? 'bg-white/20 backdrop-blur-sm active:bg-white/30 active:scale-110' 
                         : 'bg-white/10 backdrop-blur-sm'
                     }`}>
-                      <IconComponent size={16} />
+                      <IconComponent size={12} />
                     </div>
                     {achievement.unlocked && (
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border border-white/50"></div>
+                      <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border border-white/50"></div>
                     )}
                   </button>
                 );
@@ -788,7 +787,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
               <span className="text-xs text-white/70">{Math.round(performanceLevel.progress)}% progress</span>
             </div>
           </div>
-          
+
           {/* Mobile-Optimized Stats Grid */}
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 md:gap-4">
             {/* Deliveries Card */}
@@ -807,7 +806,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                 <span className="text-lg font-semibold text-white">{stats.todayDeliveries}</span>
               </div>
             </div>
-            
+
             {/* Performance Card */}
             <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 border border-white/20 active:bg-white/20 transition-all duration-200 touch-manipulation">
               <div className="flex items-center justify-between mb-3">
@@ -824,7 +823,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
                 <span className="text-lg font-semibold text-white">{stats.onTimeRate}%</span>
               </div>
             </div>
-            
+
             {/* Earnings Card */}
             <div className="bg-white/15 backdrop-blur-md rounded-xl p-4 border border-white/20 active:bg-white/20 transition-all duration-200 touch-manipulation md:col-span-2 lg:col-span-1">
               <div className="flex items-center justify-between mb-3">
@@ -857,15 +856,15 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             </div>
           </div>
 
-          
+
         </div>
       </div>
 
-      
 
-      
 
-      
+
+
+
     </div>
   );
 
@@ -885,7 +884,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
               <span className="text-xs text-green-600">+12%</span>
             </div>
           </div>
-          
+
           <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
             <Coins size={24} className="text-green-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-slate-900">{formatPrice(stats.totalEarnings)}</p>
@@ -895,7 +894,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
               <span className="text-xs text-green-600">+8%</span>
             </div>
           </div>
-          
+
           <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
             <Clock3 size={24} className="text-purple-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-slate-900">{stats.averageDeliveryTime}</p>
@@ -905,7 +904,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
               <span className="text-xs text-green-600">-5%</span>
             </div>
           </div>
-          
+
           <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl">
             <Trophy size={24} className="text-yellow-600 mx-auto mb-2" />
             <p className="text-2xl font-bold text-slate-900">{stats.successRate}%</p>
@@ -1001,12 +1000,12 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
               <span className="text-sm text-slate-600">Bugungi daromad</span>
               <span className="font-bold text-green-600">{formatPrice(stats.todayEarnings)}</span>
             </div>
-            
+
             <div className="flex justify-between items-center">
               <span className="text-sm text-slate-600">Haftalik daromad</span>
               <span className="font-bold text-slate-900">{formatPrice(stats.todayEarnings * 6)}</span>
             </div>
-            
+
             <div className="flex justify-between items-center">
               <span className="text-sm text-slate-600">Oylik daromad</span>
               <span className="font-bold text-slate-900">{formatPrice(stats.monthlyEarnings)}</span>
@@ -1324,7 +1323,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             </div>
             <ChevronRight size={16} className="text-slate-400" />
           </button>
-          
+
           <button className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors">
             <div className="flex items-center space-x-3">
               <MessageCircle size={18} className="text-slate-600" />
@@ -1332,7 +1331,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             </div>
             <ChevronRight size={16} className="text-slate-400" />
           </button>
-          
+
           <button className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors">
             <div className="flex items-center space-x-3">
               <HelpCircle size={18} className="text-slate-600" />
@@ -1362,7 +1361,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             </div>
             <ChevronRight size={16} className="text-slate-400" />
           </button>
-          
+
           <button className="w-full flex items-center justify-between p-3 hover:bg-slate-50 rounded-lg transition-colors">
             <div className="flex items-center space-x-3">
               <ShieldCheck size={18} className="text-slate-600" />
@@ -1402,7 +1401,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
             <ArrowLeft size={18} />
             <span className="text-sm font-medium">Orqaga</span>
           </button>
-          
+
           {/* Swipe indicator */}
           <div className="flex items-center space-x-1 text-xs text-slate-400">
             <span>Surish</span>
@@ -1428,7 +1427,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
               >
                 <section.icon size={18} className="mb-1" />
                 <span className="text-xs font-medium leading-tight">{section.label}</span>
-                
+
                 {/* Active indicator */}
                 {activeSection === section.id && (
                   <div className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"></div>
