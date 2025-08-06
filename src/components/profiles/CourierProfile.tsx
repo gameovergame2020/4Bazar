@@ -511,195 +511,181 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
   // Asosiy Ma'lumotlar Bo'limi
   const renderInfo = () => (
     <div className="space-y-6">
-      {/* Enhanced Performance Header */}
+      {/* Enhanced Unified Profile Header */}
       <div className={`bg-gradient-to-r ${performanceLevel.color} rounded-2xl p-6 text-white relative overflow-hidden`}>
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
         
         <div className="relative z-10">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                <Trophy size={28} className="text-white" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold">{performanceLevel.level} Kuryer</h3>
-                <p className="text-white/80">Professional darajangiz</p>
-              </div>
+          {/* Profile Header Section */}
+          <div className="flex items-start space-x-4 mb-6">
+            <div className="relative">
+              {isEditing ? (
+                <div className="relative group">
+                  <div className="w-24 h-24 bg-white/20 rounded-2xl border-3 border-white/30 shadow-lg flex items-center justify-center cursor-pointer hover:shadow-xl transition-shadow">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setEditForm(prev => ({ ...prev, avatar: e.target.files?.[0] || null }))}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <div className="text-center">
+                      <Camera size={24} className="text-white/70 mx-auto mb-1" />
+                      <span className="text-xs text-white/60">Rasm</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative">
+                  <img 
+                    src={user.avatar || 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=200'}
+                    alt={user.name}
+                    className="w-24 h-24 rounded-2xl border-3 border-white/30 object-cover shadow-lg"
+                  />
+                  <div className="absolute -bottom-2 -right-2 p-2 bg-white/20 backdrop-blur-sm text-white rounded-xl shadow-lg">
+                    <Truck size={16} />
+                  </div>
+                  <div className="absolute top-2 right-2 w-4 h-4 bg-green-400 border-2 border-white rounded-full animate-pulse"></div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1">
+              {isEditing ? (
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                    className="text-xl font-bold bg-white/20 border border-white/30 rounded-lg px-3 py-2 text-white placeholder-white/60 focus:border-white/50 outline-none w-full backdrop-blur-sm"
+                    placeholder="Ismingiz"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <div className="flex items-center space-x-3 mb-2">
+                    <h2 className="text-2xl font-bold text-white">{user.name}</h2>
+                    <div className="flex items-center space-x-1 px-3 py-1 bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span>Online</span>
+                    </div>
+                    <BadgeCheck size={20} className="text-white/80" />
+                  </div>
+                  
+                  <div className="flex items-center space-x-3 mb-3">
+                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-white/20 backdrop-blur-sm text-white">
+                      {performanceLevel.level} Kuryer
+                    </span>
+                    <div className="flex items-center space-x-1">
+                      <Star size={14} className="fill-current text-yellow-300" />
+                      <span className="text-sm font-bold text-white">{stats.averageRating.toFixed(1)}</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Clock size={14} className="text-white/70" />
+                      <span className="text-sm text-white/90">{stats.averageDeliveryTime} min</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-4 text-sm text-white/70 mb-3">
+                    <span className="flex items-center space-x-1">
+                      <Calendar size={12} />
+                      <span>{new Date(user.joinDate).toLocaleDateString('uz-UZ')} dan</span>
+                    </span>
+                    <span className="flex items-center space-x-1">
+                      <Route size={12} />
+                      <span>{stats.totalDistance} km</span>
+                    </span>
+                    <span className="flex items-center space-x-1">
+                      <Shield size={12} />
+                      <span>Tasdiqlangan</span>
+                    </span>
+                  </div>
+
+                  {(user.deliveryRegion || user.deliveryDistrict) && (
+                    <div className="flex items-center space-x-2 text-sm bg-white/20 backdrop-blur-sm text-white px-3 py-1 rounded-lg">
+                      <MapPin size={12} />
+                      <span>
+                        {regions.find(r => r.value === user.deliveryRegion)?.label}
+                        {user.deliveryDistrict && districts[user.deliveryRegion] && 
+                          ` - ${districts[user.deliveryRegion].find(d => d.value === user.deliveryDistrict)?.label}`
+                        }
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => isEditing ? handleSave() : setIsEditing(true)}
+              disabled={loading}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                isEditing 
+                  ? 'bg-white/20 backdrop-blur-sm text-white border border-white/30 hover:bg-white/30' 
+                  : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30'
+              }`}
+            >
+              {loading ? (
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+              ) : isEditing ? (
+                <Save size={16} />
+              ) : (
+                <Edit2 size={16} />
+              )}
+              <span>{loading ? 'Saqlanmoqda...' : isEditing ? 'Saqlash' : 'Tahrirlash'}</span>
+            </button>
+          </div>
+
+          {/* Performance Level Progress */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-white/90">Professional daraja</h3>
+              <p className="text-white/70 text-sm">Keyingi: {performanceLevel.nextLevel}</p>
             </div>
             <div className="text-right">
-              <div className="text-sm text-white/70">Keyingi: {performanceLevel.nextLevel}</div>
-              <div className="w-20 bg-white/20 rounded-full h-2 mt-1">
+              <div className="w-32 bg-white/20 rounded-full h-3 mb-1">
                 <div 
-                  className="bg-white h-2 rounded-full transition-all duration-500" 
+                  className="bg-white h-3 rounded-full transition-all duration-500" 
                   style={{width: `${Math.min(performanceLevel.progress, 100)}%`}}
                 ></div>
               </div>
+              <span className="text-xs text-white/70">{Math.round(performanceLevel.progress)}% progress</span>
             </div>
           </div>
           
-          <div className="grid grid-cols-4 gap-4 text-center">
-            <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-              <div className="text-xl font-bold">{stats.totalDeliveries}</div>
-              <div className="text-xs text-white/80">Jami</div>
+          {/* Unified Stats Grid */}
+          <div className="grid grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm">
+              <Package size={24} className="text-white mx-auto mb-2" />
+              <div className="text-2xl font-bold text-white">{stats.totalDeliveries}</div>
+              <div className="text-xs text-white/70">Jami yetkazish</div>
+              <div className="text-lg font-bold text-white mt-1">{stats.todayDeliveries}</div>
+              <div className="text-xs text-white/60">Bugun</div>
             </div>
-            <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-              <div className="text-xl font-bold">{stats.averageRating.toFixed(1)}</div>
-              <div className="text-xs text-white/80">Reyting</div>
+            
+            <div className="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm">
+              <Star size={24} className="text-white mx-auto mb-2" />
+              <div className="text-2xl font-bold text-white">{stats.averageRating.toFixed(1)}</div>
+              <div className="text-xs text-white/70">Reyting</div>
+              <div className="text-lg font-bold text-white mt-1">{stats.customerSatisfaction}%</div>
+              <div className="text-xs text-white/60">Mamnunlik</div>
             </div>
-            <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-              <div className="text-xl font-bold">{stats.successRate}%</div>
-              <div className="text-xs text-white/80">Muvaffaqiyat</div>
+            
+            <div className="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm">
+              <Trophy size={24} className="text-white mx-auto mb-2" />
+              <div className="text-2xl font-bold text-white">{stats.successRate}%</div>
+              <div className="text-xs text-white/70">Muvaffaqiyat</div>
+              <div className="text-lg font-bold text-white mt-1">{stats.onTimeRate}%</div>
+              <div className="text-xs text-white/60">Muddatda</div>
             </div>
-            <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-              <div className="text-xl font-bold">{stats.onTimeRate}%</div>
-              <div className="text-xs text-white/80">Muddatda</div>
+            
+            <div className="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm">
+              <DollarSign size={24} className="text-white mx-auto mb-2" />
+              <div className="text-xl font-bold text-white">{formatPrice(stats.totalEarnings)}</div>
+              <div className="text-xs text-white/70">Jami daromad</div>
+              <div className="text-lg font-bold text-white mt-1">{formatPrice(stats.todayEarnings)}</div>
+              <div className="text-xs text-white/60">Bugun</div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Enhanced Profile Header */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-        <div className="flex items-start space-x-4 mb-6">
-          <div className="relative">
-            {isEditing ? (
-              <div className="relative group">
-                <div className="w-24 h-24 bg-gradient-to-br from-slate-200 to-slate-300 rounded-2xl border-3 border-white shadow-lg flex items-center justify-center cursor-pointer hover:shadow-xl transition-shadow">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setEditForm(prev => ({ ...prev, avatar: e.target.files?.[0] || null }))}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                  <div className="text-center">
-                    <Camera size={24} className="text-slate-400 mx-auto mb-1" />
-                    <span className="text-xs text-slate-500">Rasm</span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="relative">
-                <img 
-                  src={user.avatar || 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=200'}
-                  alt={user.name}
-                  className="w-24 h-24 rounded-2xl border-3 border-white object-cover shadow-lg"
-                />
-                <div className="absolute -bottom-2 -right-2 p-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl shadow-lg">
-                  <Truck size={16} />
-                </div>
-                <div className="absolute top-2 right-2 w-4 h-4 bg-green-500 border-2 border-white rounded-full animate-pulse"></div>
-              </div>
-            )}
-          </div>
-
-          <div className="flex-1">
-            {isEditing ? (
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  value={editForm.name}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                  className="text-xl font-bold bg-white border border-slate-300 rounded-lg px-3 py-2 focus:border-indigo-500 outline-none w-full"
-                  placeholder="Ismingiz"
-                />
-              </div>
-            ) : (
-              <div>
-                <div className="flex items-center space-x-3 mb-2">
-                  <h2 className="text-xl font-bold text-slate-900">{user.name}</h2>
-                  <div className="flex items-center space-x-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span>Online</span>
-                  </div>
-                  <BadgeCheck size={20} className="text-blue-500" />
-                </div>
-                
-                <div className="flex items-center space-x-3 mb-2">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium text-white bg-gradient-to-r ${performanceLevel.color}`}>
-                    {performanceLevel.level}
-                  </span>
-                  <div className="flex items-center space-x-1">
-                    <Star size={14} className="fill-current text-yellow-500" />
-                    <span className="text-sm font-bold text-yellow-600">{stats.averageRating.toFixed(1)}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Clock size={14} className="text-slate-400" />
-                    <span className="text-sm text-slate-600">{stats.averageDeliveryTime} min</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-4 text-sm text-slate-500 mb-2">
-                  <span className="flex items-center space-x-1">
-                    <Calendar size={12} />
-                    <span>{new Date(user.joinDate).toLocaleDateString('uz-UZ')} dan</span>
-                  </span>
-                  <span className="flex items-center space-x-1">
-                    <Route size={12} />
-                    <span>{stats.totalDistance} km</span>
-                  </span>
-                  <span className="flex items-center space-x-1">
-                    <Shield size={12} />
-                    <span>Tasdiqlangan</span>
-                  </span>
-                </div>
-
-                {(user.deliveryRegion || user.deliveryDistrict) && (
-                  <div className="flex items-center space-x-2 text-sm bg-blue-50 text-blue-700 px-3 py-1 rounded-lg">
-                    <MapPin size={12} />
-                    <span>
-                      {regions.find(r => r.value === user.deliveryRegion)?.label}
-                      {user.deliveryDistrict && districts[user.deliveryRegion] && 
-                        ` - ${districts[user.deliveryRegion].find(d => d.value === user.deliveryDistrict)?.label}`
-                      }
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <button
-            onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-            disabled={loading}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              isEditing 
-                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg hover:shadow-xl' 
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            {loading ? (
-              <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-            ) : isEditing ? (
-              <Save size={16} />
-            ) : (
-              <Edit2 size={16} />
-            )}
-            <span>{loading ? 'Saqlanmoqda...' : isEditing ? 'Saqlash' : 'Tahrirlash'}</span>
-          </button>
-        </div>
-
-        {/* Quick Stats Row */}
-        <div className="grid grid-cols-4 gap-4">
-          <div className="text-center p-3 bg-blue-50 rounded-xl">
-            <Package size={20} className="text-blue-600 mx-auto mb-1" />
-            <p className="text-lg font-bold text-slate-900">{stats.todayDeliveries}</p>
-            <p className="text-xs text-slate-600">Bugun</p>
-          </div>
-          <div className="text-center p-3 bg-green-50 rounded-xl">
-            <DollarSign size={20} className="text-green-600 mx-auto mb-1" />
-            <p className="text-lg font-bold text-slate-900">{formatPrice(stats.todayEarnings)}</p>
-            <p className="text-xs text-slate-600">Bugun</p>
-          </div>
-          <div className="text-center p-3 bg-purple-50 rounded-xl">
-            <Timer size={20} className="text-purple-600 mx-auto mb-1" />
-            <p className="text-lg font-bold text-slate-900">{stats.weeklyHours}</p>
-            <p className="text-xs text-slate-600">Haftalik</p>
-          </div>
-          <div className="text-center p-3 bg-orange-50 rounded-xl">
-            <ThumbsUp size={20} className="text-orange-600 mx-auto mb-1" />
-            <p className="text-lg font-bold text-slate-900">{stats.customerSatisfaction}%</p>
-            <p className="text-xs text-slate-600">Mamnunlik</p>
           </div>
         </div>
       </div>
