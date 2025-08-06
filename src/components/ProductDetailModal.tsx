@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Star, Heart, ShoppingCart, Plus, Minus, Package, Clock, User, MapPin, MessageCircle, Send, ChevronRight, Phone, Mail, Award } from 'lucide-react';
-import { Cake } from '../services/dataService';
+import { Cake, dataService } from '../services/dataService';
 import { useAuth } from '../hooks/useAuth';
 
 interface Review {
