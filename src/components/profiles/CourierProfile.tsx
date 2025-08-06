@@ -52,7 +52,6 @@ import {
   Coins,
   Medal,
   BadgeCheck,
-  Speedometer,
   Clock3,
   Battery,
   Gauge,
@@ -958,7 +957,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
-                <Speedometer size={16} className="text-blue-500" />
+                <Gauge size={16} className="text-blue-500" />
                 <span className="text-sm text-slate-600">Muddatda yetkazish</span>
               </div>
               <div className="text-right">
