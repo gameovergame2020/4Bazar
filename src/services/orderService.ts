@@ -262,7 +262,7 @@ class OrderService {
   }
 
   // Buyurtmani bekor qilish
-  async cancelOrder(orderId: string): Promise<void> {
+  async cancelOrder(orderId: string, cancelledBy?: 'customer' | 'courier' | 'operator'): Promise<void> {
     try {
       // Buyurtma ma'lumotlarini olish
       const orderDoc = await getDoc(doc(db, 'orders', orderId));
@@ -277,11 +277,38 @@ class OrderService {
         cakeId: orderData.cakeId,
         quantity: orderData.quantity,
         cakeName: orderData.cakeName,
-        fromStock: orderData.fromStock
+        fromStock: orderData.fromStock,
+        status: orderData.status,
+        cancelledBy: cancelledBy || 'customer'
       });
 
-      // Buyurtma holatini cancelled ga o'zgartirish
-      await this.updateOrderStatus(orderId, 'cancelled');
+      // Agar kuryer qabul qilgan buyurtmani mijoz bekor qilsa
+      if (orderData.status === 'delivering' && cancelledBy === 'customer') {
+        console.log('⚠️ DIQQAT: Kuryer qabul qilgan buyurtma mijoz tomonidan bekor qilindi!');
+        
+        // Kuryer kompensatsiyasini hisoblash va qo'shish
+        await this.handleCourierCompensation(orderId, orderData);
+        
+        // Buyurtma holatini special status ga o'zgartirish
+        await updateDoc(doc(db, 'orders', orderId), {
+          status: 'cancelled',
+          cancellationReason: 'customer_cancelled_after_courier_acceptance',
+          cancelledBy: 'customer',
+          cancelledAt: Timestamp.now(),
+          courierCompensationApplied: true,
+          updatedAt: Timestamp.now()
+        });
+      } else {
+        // Oddiy bekor qilish
+        await this.updateOrderStatus(orderId, 'cancelled');
+        
+        // Bekor qilish ma'lumotlarini qo'shish
+        await updateDoc(doc(db, 'orders', orderId), {
+          cancelledBy: cancelledBy || 'customer',
+          cancelledAt: Timestamp.now(),
+          updatedAt: Timestamp.now()
+        });
+      }
 
       // Mahsulot quantity/amount ni qaytarish
       try {
@@ -311,6 +338,88 @@ class OrderService {
     } catch (error) {
       console.error('Buyurtmani bekor qilishda xatolik:', error);
       throw error;
+    }
+  }
+
+  // Kuryer kompensatsiyasini boshqarish
+  private async handleCourierCompensation(orderId: string, orderData: Order): Promise<void> {
+    try {
+      console.log('💰 Kuryer kompensatsiyasi jarayoni boshlandi:', orderId);
+
+      // Kompensatsiya miqdorini hisoblash (yetkazib berish haqining 50%)
+      const compensationAmount = Math.round(orderData.deliveryFee * 0.5);
+
+      // Kuryer kompensatsiyasi ma'lumotlarini yaratish
+      const compensationData = {
+        orderId,
+        orderUniqueId: orderData.orderUniqueId,
+        courierName: 'Demo Kuryer', // Haqiqatda orderData.courierName bo'ladi
+        courierId: 'demo-courier-id', // Haqiqatda orderData.courierId bo'ladi
+        compensationAmount,
+        originalDeliveryFee: orderData.deliveryFee,
+        reason: 'customer_cancelled_after_acceptance',
+        customerName: orderData.customerName,
+        customerPhone: orderData.customerPhone,
+        status: 'pending', // pending, approved, paid
+        createdAt: Timestamp.now(),
+        processedAt: null,
+        notes: `Mijoz tomonidan kuryer qabul qilgandan keyin bekor qilingan buyurtma uchun kompensatsiya. Buyurtma: ${orderData.orderUniqueId}`
+      };
+
+      // Courier compensations collection'ga yozish
+      const compensationDocRef = await addDoc(collection(db, 'courierCompensations'), compensationData);
+
+      console.log('✅ Kuryer kompensatsiyasi yaratildi:', compensationDocRef.id);
+
+      // Operator uchun bildirishnoma yaratish
+      try {
+        const { notificationService } = await import('./notificationService');
+        await notificationService.createNotification({
+          userId: 'operator-compensations',
+          type: 'system',
+          title: 'Kuryer kompensatsiyasi so\'rovi',
+          message: `Mijoz buyurtmani kuryer qabul qilgandan keyin bekor qildi. Kompensatsiya: ${compensationAmount.toLocaleString()} so'm`,
+          data: {
+            orderId,
+            compensationId: compensationDocRef.id,
+            compensationAmount,
+            courierName: 'Demo Kuryer',
+            customerName: orderData.customerName
+          },
+          read: false,
+          priority: 'high',
+          actionUrl: `/operator/compensations/${compensationDocRef.id}`
+        });
+      } catch (notifError) {
+        console.warn('⚠️ Kompensatsiya bildirishnomasi yuborishda xato:', notifError);
+      }
+
+      // Kuryer uchun bildirishnoma yuborish
+      this.sendCompensationNotificationToCourier(orderData, compensationAmount);
+
+    } catch (error) {
+      console.error('❌ Kuryer kompensatsiyasida xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Kuryerga kompensatsiya haqida xabar yuborish
+  private async sendCompensationNotificationToCourier(orderData: Order, compensationAmount: number): Promise<void> {
+    try {
+      console.log(`📱 Kuryerga kompensatsiya xabari yuborildi: ${compensationAmount.toLocaleString()} so'm`);
+
+      // Log sifatida saqlash
+      await addDoc(collection(db, 'courierNotifications'), {
+        courierName: 'Demo Kuryer',
+        courierId: 'demo-courier-id',
+        type: 'compensation_notification',
+        message: `Buyurtma ${orderData.orderUniqueId} mijoz tomonidan bekor qilindi. Kompensatsiya: ${compensationAmount.toLocaleString()} so'm operator tomonidan tasdiqlanadi.`,
+        sentAt: Timestamp.now(),
+        method: 'app_notification'
+      });
+
+    } catch (error) {
+      console.warn('⚠️ Kuryerga xabar yuborishda xato:', error);
     }
   }
 
@@ -695,6 +804,62 @@ class OrderService {
       }, 0);
     } catch (error) {
       console.error('Buyurtma miqdorini olishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Kuryer kompensatsiyalarini olish
+  async getCourierCompensations(filters?: { 
+    status?: string; 
+    courierId?: string;
+    orderId?: string;
+  }): Promise<any[]> {
+    try {
+      let q = query(collection(db, 'courierCompensations'), orderBy('createdAt', 'desc'));
+
+      if (filters?.status) {
+        q = query(q, where('status', '==', filters.status));
+      }
+      if (filters?.courierId) {
+        q = query(q, where('courierId', '==', filters.courierId));
+      }
+      if (filters?.orderId) {
+        q = query(q, where('orderId', '==', filters.orderId));
+      }
+
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate(),
+        processedAt: doc.data().processedAt?.toDate()
+      }));
+    } catch (error) {
+      console.error('Kuryer kompensatsiyalarini olishda xatolik:', error);
+      throw error;
+    }
+  }
+
+  // Kuryer kompensatsiyasi holatini yangilash
+  async updateCompensationStatus(compensationId: string, status: 'pending' | 'approved' | 'paid' | 'rejected', notes?: string): Promise<void> {
+    try {
+      const updateData: any = {
+        status,
+        updatedAt: Timestamp.now()
+      };
+
+      if (status === 'approved' || status === 'paid') {
+        updateData.processedAt = Timestamp.now();
+      }
+
+      if (notes) {
+        updateData.notes = notes;
+      }
+
+      await updateDoc(doc(db, 'courierCompensations', compensationId), updateData);
+
+    } catch (error) {
+      console.error('Kompensatsiya holatini yangilashda xatolik:', error);
       throw error;
     }
   }

@@ -323,14 +323,30 @@ const CustomerDashboard = () => {
   };
 
   const handleCancelOrder = async (orderId: string) => {
-    if (!confirm('Buyurtmani bekor qilishni xohlaysizmi?')) return;
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    // Agar kuryer qabul qilgan bo'lsa, ogohlantirish
+    if (order.status === 'delivering') {
+      const confirmMessage = `DIQQAT! Bu buyurtmani kuryer qabul qilgan va yetkazib kelmoqda. 
+
+Agar bekor qilsangiz:
+• Kuryerga kompensatsiya to'lanadi (${(18000 * 0.5).toLocaleString()} so'm)
+• Kompensatsiya sizning keyingi buyurtmalaringizdan hisobga olinadi
+
+Rostdan ham bekor qilishni xohlaysizmi?`;
+      
+      if (!confirm(confirmMessage)) return;
+    } else {
+      if (!confirm('Buyurtmani bekor qilishni xohlaysizmi?')) return;
+    }
 
     try {
       setLoading(true);
 
       console.log('🚫 Foydalanuvchi buyurtmani bekor qilmoqda:', orderId);
 
-      await dataService.cancelOrder(orderId);
+      await dataService.cancelOrder(orderId, 'customer');
 
       console.log('✅ Buyurtma muvaffaqiyatli bekor qilindi');
 
@@ -344,7 +360,11 @@ const CustomerDashboard = () => {
         }
       }, 1000);
 
-      alert('Buyurtma muvaffaqiyatli bekor qilindi');
+      if (order.status === 'delivering') {
+        alert('Buyurtma bekor qilindi. Kuryer kompensatsiyasi sizning keyingi buyurtmalaringizdan hisobga olinadi.');
+      } else {
+        alert('Buyurtma muvaffaqiyatli bekor qilindi');
+      }
     } catch (error) {
       console.error('Buyurtmani bekor qilishda xatolik:', error);
       alert('Buyurtmani bekor qilishda xatolik yuz berdi');

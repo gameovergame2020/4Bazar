@@ -68,6 +68,19 @@ export interface Order {
   createdAt: Date;
   updatedAt: Date;
   rated?: boolean; // Mijoz tomonidan baholangan yoki yo'q
+  deliveryFee?: number;
+  refundId?: string;
+  refundAmount?: number;
+  refundStatus?: 'pending' | 'processed' | 'failed';
+  // Bekor qilish ma'lumotlari
+  cancelledBy?: 'customer' | 'courier' | 'operator';
+  cancelledAt?: Date;
+  cancellationReason?: string;
+  courierCompensationApplied?: boolean;
+  // Kuryer ma'lumotlari
+  courierId?: string;
+  courierName?: string;
+  courierAcceptedAt?: Date;
 }
 
 // Sharhlar uchun interface
@@ -119,4 +132,23 @@ export interface SupportResponse {
   authorType: 'customer' | 'operator' | 'admin';
   message: string;
   createdAt: Date;
+}
+
+// Kuryer kompensatsiyasi uchun interface
+export interface CourierCompensation {
+  id: string;
+  orderId: string;
+  orderUniqueId: string;
+  courierName: string;
+  courierId: string;
+  compensationAmount: number;
+  originalDeliveryFee: number;
+  reason: string;
+  customerName: string;
+  customerPhone: string;
+  status: 'pending' | 'approved' | 'paid' | 'rejected';
+  createdAt: Date;
+  processedAt?: Date;
+  processedBy?: string;
+  notes?: string;
 }
