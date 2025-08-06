@@ -676,24 +676,10 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
               )}
             </div>
 
-            <button
-              onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-              disabled={loading}
-              className={`flex-shrink-0 flex items-center justify-center space-x-1 md:space-x-2 px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all ${
-                isEditing 
-                  ? 'bg-white/20 backdrop-blur-sm text-white border border-white/30 hover:bg-white/30' 
-                  : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30'
-              }`}
-            >
-              {loading ? (
-                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-              ) : isEditing ? (
-                <Save size={14} />
-              ) : (
-                <Edit2 size={14} />
-              )}
-              <span className="hidden sm:inline">{loading ? 'Saqlanmoqda...' : isEditing ? 'Saqlash' : 'Tahrirlash'}</span>
-            </button>
+            <div className="flex-shrink-0 flex items-center justify-center space-x-1 md:space-x-2 px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-medium bg-white/10 backdrop-blur-sm text-white/60">
+              <Eye size={14} />
+              <span className="hidden sm:inline">Ko'rish</span>
+            </div>
           </div>
 
           {/* Mobile Status Info */}
@@ -804,163 +790,91 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
         </div>
       </div>
 
-      {/* Detailed Info Form - Mobile Optimized */}
-      {isEditing && (
-        <div className="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-sm">
-          <h3 className="text-base md:text-lg font-semibold text-slate-900 mb-4">Ma'lumotlarni yangilash</h3>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Telefon raqam</label>
-                <input
-                  type="tel"
-                  value={editForm.phone}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
-                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="+998 XX XXX XX XX"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Email manzil</label>
-                <input
-                  type="email"
-                  value={editForm.email}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="email@example.com"
-                />
+      {/* Read-only Profile Details - Mobile Optimized */}
+      <div className="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-sm">
+        <h3 className="text-base md:text-lg font-semibold text-slate-900 mb-4 flex items-center space-x-2">
+          <User size={20} className="text-slate-600" />
+          <span>Shaxsiy ma'lumotlar</span>
+        </h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <label className="block text-sm font-medium text-slate-600 mb-1">Telefon raqam</label>
+              <div className="flex items-center space-x-2">
+                <Phone size={16} className="text-slate-400" />
+                <span className="text-slate-900">{user.phone || 'Kiritilmagan'}</span>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Yashash manzili</label>
-              <textarea
-                value={editForm.address}
-                onChange={(e) => setEditForm(prev => ({ ...prev, address: e.target.value }))}
-                rows={2}
-                className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
-                placeholder="To'liq yashash manzilingiz"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Transport turi</label>
-                <select
-                  value={editForm.vehicleType}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, vehicleType: e.target.value }))}
-                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                >
-                  {vehicleTypes.map(type => (
-                    <option key={type.value} value={type.value}>
-                      {type.icon} {type.label} ({type.efficiency})
-                    </option>
-                  ))}
-                </select>
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <label className="block text-sm font-medium text-slate-600 mb-1">Email manzil</label>
+              <div className="flex items-center space-x-2">
+                <Mail size={16} className="text-slate-400" />
+                <span className="text-slate-900">{user.email || 'Kiritilmagan'}</span>
               </div>
+            </div>
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Transport raqami</label>
-                <input
-                  type="text"
-                  value={editForm.vehicleNumber}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, vehicleNumber: e.target.value }))}
-                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="01A123BC"
-                />
+          <div className="p-3 bg-slate-50 rounded-lg">
+            <label className="block text-sm font-medium text-slate-600 mb-1">Yashash manzili</label>
+            <div className="flex items-start space-x-2">
+              <MapPin size={16} className="text-slate-400 mt-0.5" />
+              <span className="text-slate-900">{user.address || 'Kiritilmagan'}</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <label className="block text-sm font-medium text-slate-600 mb-1">Transport turi</label>
+              <div className="flex items-center space-x-2">
+                <Truck size={16} className="text-slate-400" />
+                <span className="text-slate-900">
+                  {vehicleTypes.find(t => t.value === user.vehicleType)?.label || 'Kiritilmagan'}
+                </span>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Viloyat/Shahar</label>
-                <select
-                  value={editForm.deliveryRegion}
-                  onChange={(e) => {
-                    setEditForm(prev => ({ 
-                      ...prev, 
-                      deliveryRegion: e.target.value,
-                      deliveryDistrict: '' // Reset district when region changes
-                    }));
-                  }}
-                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                >
-                  {regions.map(region => (
-                    <option key={region.value} value={region.value}>
-                      {region.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <label className="block text-sm font-medium text-slate-600 mb-1">Transport raqami</label>
+              <span className="text-slate-900">{user.vehicleNumber || 'Kiritilmagan'}</span>
+            </div>
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Tuman/Shahar</label>
-                <select
-                  value={editForm.deliveryDistrict}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, deliveryDistrict: e.target.value }))}
-                  className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
-                  disabled={!editForm.deliveryRegion || !districts[editForm.deliveryRegion]}
-                >
-                  <option value="">Tumanni tanlang</option>
-                  {editForm.deliveryRegion && districts[editForm.deliveryRegion] && 
-                    districts[editForm.deliveryRegion].map(district => (
-                      <option key={district.value} value={district.value}>
-                        {district.label}
-                      </option>
-                    ))
-                  }
-                </select>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <label className="block text-sm font-medium text-slate-600 mb-1">Hudud</label>
+              <span className="text-slate-900">
+                {regions.find(r => r.value === user.deliveryRegion)?.label || 'Kiritilmagan'}
+              </span>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Yetkazish hududi (Qo'shimcha)</label>
-              <input
-                type="text"
-                value={editForm.deliveryZone}
-                onChange={(e) => setEditForm(prev => ({ ...prev, deliveryZone: e.target.value }))}
-                className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Masalan: Markaz atrofi, metro bekatlari yaqini"
-              />
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <label className="block text-sm font-medium text-slate-600 mb-1">Tuman</label>
+              <span className="text-slate-900">
+                {user.deliveryDistrict && districts[user.deliveryRegion] 
+                  ? districts[user.deliveryRegion].find(d => d.value === user.deliveryDistrict)?.label 
+                  : 'Kiritilmagan'
+                }
+              </span>
             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Favqulodda aloqa</label>
-              <input
-                type="tel"
-                value={editForm.emergencyContact}
-                onChange={(e) => setEditForm(prev => ({ ...prev, emergencyContact: e.target.value }))}
-                className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="+998 XX XXX XX XX"
-              />
+          <div className="p-3 bg-slate-50 rounded-lg">
+            <label className="block text-sm font-medium text-slate-600 mb-1">Favqulodda aloqa</label>
+            <div className="flex items-center space-x-2">
+              <Phone size={16} className="text-slate-400" />
+              <span className="text-slate-900">{user.emergencyContact || 'Kiritilmagan'}</span>
             </div>
+          </div>
 
-            {/* Mobile Save/Cancel Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-200">
-              <button
-                onClick={handleSave}
-                disabled={loading}
-                className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl font-medium transition-all"
-              >
-                {loading ? (
-                  <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
-                ) : (
-                  <Save size={18} />
-                )}
-                <span>{loading ? 'Saqlanmoqda...' : 'Saqlash'}</span>
-              </button>
-              <button
-                onClick={() => setIsEditing(false)}
-                disabled={loading}
-                className="flex-1 sm:flex-none px-6 py-3 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-all"
-              >
-                Bekor qilish
-              </button>
+          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center space-x-2 text-blue-700">
+              <Settings size={16} />
+              <span className="text-sm font-medium">Ma'lumotlarni o'zgartirish uchun "Sozlamalar" bo'limiga o'ting</span>
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       
 
