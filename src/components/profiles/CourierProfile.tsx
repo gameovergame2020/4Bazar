@@ -55,7 +55,8 @@ import {
   Clock3,
   Battery,
   Gauge,
-  LineChart
+  LineChart,
+  Heart
 } from 'lucide-react';
 import { UserData } from '../../services/authService';
 import { dataService } from '../../services/dataService';
