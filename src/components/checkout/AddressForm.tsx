@@ -191,7 +191,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
           <div
             ref={mapRef}
             id="leaflet-map"
-            className="w-full h-64 bg-gray-100 rounded-lg border border-gray-200"
+            className="w-full h-64 bg-gray-100 rounded-lg border border-gray-200 relative z-10"
             style={{ minHeight: '300px' }}
           />
         )}

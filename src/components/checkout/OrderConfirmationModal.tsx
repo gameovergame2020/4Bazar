@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface OrderDetails {
@@ -52,7 +51,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] animate-fadeIn">
       <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl transform animate-slideUp">
         <div className="text-center">
           {/* Animated Success Icon */}
