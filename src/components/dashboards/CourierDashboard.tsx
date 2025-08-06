@@ -501,19 +501,82 @@ const CourierDashboard = () => {
                       </div>
                       <p className="text-xs text-slate-600 mb-1">#{order.id}</p>
                       
+                      {/* Manzil */}
+                      <div className="mb-2 p-2 bg-white rounded border">
+                        <div className="text-xs font-medium text-slate-700 mb-1">Yetkazish manzili:</div>
+                        <div className="text-xs text-slate-600 flex items-start">
+                          <MapPin size={10} className="mr-1 mt-0.5 flex-shrink-0" />
+                          <span>{order.address}</span>
+                        </div>
+                      </div>
+
+                      {/* Mijoz ma'lumotlari */}
+                      <div className="mb-2 p-2 bg-white rounded border">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-medium text-slate-700">Mijoz:</span>
+                          <span className="text-xs text-slate-900 font-medium">{order.customerName}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium text-slate-700">Telefon:</span>
+                          <span className="text-xs text-blue-600">{order.customerPhone}</span>
+                        </div>
+                      </div>
+                      
                       {/* Mahsulotlar ro'yxati */}
-                      <div className="mb-2">
-                        <div className="text-xs text-slate-700 font-medium mb-1">Mahsulotlar:</div>
-                        <div className="space-y-0.5">
-                          {order.items.slice(0, 2).map((item, index) => (
-                            <div key={item.id} className="text-xs text-slate-600 flex justify-between">
-                              <span>{item.quantity}x {item.name}</span>
-                              <span className="text-blue-600 font-medium">{formatPrice(item.price * item.quantity)}</span>
+                      <div className="mb-2 p-2 bg-white rounded border">
+                        <div className="text-xs text-slate-700 font-medium mb-1">Buyurtma tarkibi:</div>
+                        <div className="space-y-1">
+                          {order.items.map((item, index) => (
+                            <div key={item.id} className="flex justify-between items-center text-xs border-b border-slate-100 pb-1 last:border-b-0">
+                              <div className="flex items-center space-x-2">
+                                <Package size={10} className="text-slate-400" />
+                                <span className="text-slate-700">{item.name}</span>
+                                <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-xs font-medium">
+                                  {item.quantity}x
+                                </span>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-slate-900 font-medium">{formatPrice(item.price * item.quantity)}</div>
+                                <div className="text-slate-500">{formatPrice(item.price)} /ta</div>
+                              </div>
                             </div>
                           ))}
-                          {order.items.length > 2 && (
-                            <div className="text-xs text-slate-500">+{order.items.length - 2} ta yana...</div>
-                          )}
+                        </div>
+                      </div>
+
+                      {/* Narxlar tafsiloti */}
+                      <div className="mb-2 p-2 bg-slate-50 rounded border">
+                        <div className="space-y-1 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Mahsulotlar:</span>
+                            <span className="text-slate-900">{formatPrice(order.total - order.deliveryFee)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Yetkazish:</span>
+                            <span className="text-green-600">{formatPrice(order.deliveryFee)}</span>
+                          </div>
+                          <div className="border-t border-slate-200 pt-1 mt-1">
+                            <div className="flex justify-between font-medium">
+                              <span className="text-slate-700">Jami:</span>
+                              <span className="text-slate-900 font-bold">{formatPrice(order.total)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Vaqt va holat */}
+                      <div className="mb-2 p-2 bg-blue-50 rounded border border-blue-200">
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-blue-700 font-medium">Vaqt:</span>
+                            <div className="text-blue-600">{new Date(order.orderTime).toLocaleString('uz-UZ')}</div>
+                          </div>
+                          <div>
+                            <span className="text-blue-700 font-medium">Holat:</span>
+                            <div className={`font-medium ${order.status === 'ready' ? 'text-green-600' : 'text-blue-600'}`}>
+                              {order.status === 'ready' ? 'Tayyor' : 'Yetkazilmoqda'}
+                            </div>
+                          </div>
                         </div>
                       </div>
 
@@ -599,103 +662,7 @@ const CourierDashboard = () => {
             )}
           </div>
 
-          {/* Tanlangan buyurtma tafsilotlari */}
-          {selectedOrder && (
-            <div className="mt-4 p-3 bg-slate-50 rounded-xl border">
-              <h4 className="font-medium text-slate-900 mb-3 text-sm">Buyurtma tafsilotlari</h4>
-              
-              {/* Mijoz ma'lumotlari */}
-              <div className="mb-3 p-2 bg-white rounded-lg border">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium text-slate-700">Mijoz:</span>
-                  <span className="text-xs text-slate-900 font-medium">{selectedOrder.customerName}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-slate-700">Telefon:</span>
-                  <span className="text-xs text-blue-600">{selectedOrder.customerPhone}</span>
-                </div>
-              </div>
-
-              {/* Manzil */}
-              <div className="mb-3 p-2 bg-white rounded-lg border">
-                <div className="text-xs font-medium text-slate-700 mb-1">Yetkazish manzili:</div>
-                <div className="text-xs text-slate-600 flex items-start">
-                  <MapPin size={10} className="mr-1 mt-0.5 flex-shrink-0" />
-                  <span>{selectedOrder.address}</span>
-                </div>
-              </div>
-
-              {/* Mahsulotlar tafsiloti */}
-              <div className="mb-3 p-2 bg-white rounded-lg border">
-                <div className="text-xs font-medium text-slate-700 mb-2">Buyurtma tarkibi:</div>
-                <div className="space-y-1.5">
-                  {selectedOrder.items.map((item, index) => (
-                    <div key={item.id} className="flex justify-between items-center text-xs border-b border-slate-100 pb-1 last:border-b-0">
-                      <div className="flex items-center space-x-2">
-                        <Package size={10} className="text-slate-400" />
-                        <span className="text-slate-700">{item.name}</span>
-                        <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-xs font-medium">
-                          {item.quantity}x
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-slate-900 font-medium">{formatPrice(item.price * item.quantity)}</div>
-                        <div className="text-slate-500">{formatPrice(item.price)} /ta</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Narxlar tafsiloti */}
-              <div className="p-2 bg-white rounded-lg border">
-                <div className="space-y-1 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Mahsulotlar:</span>
-                    <span className="text-slate-900">{formatPrice(selectedOrder.total - selectedOrder.deliveryFee)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Yetkazish xizmati:</span>
-                    <span className="text-green-600">{formatPrice(selectedOrder.deliveryFee)}</span>
-                  </div>
-                  <div className="border-t border-slate-200 pt-1 mt-1">
-                    <div className="flex justify-between font-medium">
-                      <span className="text-slate-700">Jami summa:</span>
-                      <span className="text-slate-900 font-bold">{formatPrice(selectedOrder.total)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Buyurtma ma'lumotlari */}
-              <div className="mt-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="text-blue-700 font-medium">Vaqt:</span>
-                    <div className="text-blue-600">{new Date(selectedOrder.orderTime).toLocaleString('uz-UZ')}</div>
-                  </div>
-                  <div>
-                    <span className="text-blue-700 font-medium">Holat:</span>
-                    <div className={`font-medium ${selectedOrder.status === 'ready' ? 'text-green-600' : 'text-blue-600'}`}>
-                      {selectedOrder.status === 'ready' ? 'Tayyor' : 'Yetkazilmoqda'}
-                    </div>
-                  </div>
-                  {selectedOrder.distance && (
-                    <div>
-                      <span className="text-blue-700 font-medium">Masofa:</span>
-                      <div className="text-blue-600">{selectedOrder.distance}</div>
-                    </div>
-                  )}
-                  {selectedOrder.estimatedTime && (
-                    <div>
-                      <span className="text-blue-700 font-medium">Vaqt:</span>
-                      <div className="text-blue-600">{selectedOrder.estimatedTime}</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+          
         </div>
       </div>
     </div>
