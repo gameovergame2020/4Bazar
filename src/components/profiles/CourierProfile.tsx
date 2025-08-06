@@ -514,7 +514,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
         
         <div className="relative z-10">
           {/* Profile Header Section - Mobile First */}
-          <div className="flex flex-col md:flex-row md:items-start space-y-4 md:space-y-0 md:space-x-4 mb-4 md:mb-6">
+          <div className="relative flex flex-col md:flex-row md:items-start space-y-4 md:space-y-0 md:space-x-4 mb-4 md:mb-6">
             <div className="flex items-center space-x-4 md:block md:space-x-0">
               <div className="relative flex-shrink-0">
                 {isEditing ? (
@@ -676,7 +676,7 @@ const CourierProfile: React.FC<CourierProfileProps> = ({ user, onBack, onUpdate 
               )}
             </div>
 
-            <button className="flex-shrink-0 flex items-center justify-center p-2 rounded-xl text-xs md:text-sm font-medium bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors absolute top-4 right-4 md:relative md:top-auto md:right-auto">
+            <button className="flex-shrink-0 flex items-center justify-center p-2 rounded-xl text-xs md:text-sm font-medium bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors absolute top-2 right-2 md:relative md:top-auto md:right-auto">
               <Bell size={14} />
             </button>
           </div>
