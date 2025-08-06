@@ -152,7 +152,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50 overflow-y-auto">
       {/* Header */}
-      {(activePage === 'home' || (isAuthenticated && userData?.role)) && (
+      {(activePage === 'home' || activePage === 'community') && (
         <header className="bg-white shadow-sm border-b border-gray-100">
         <div className="px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between max-w-6xl mx-auto">
@@ -162,7 +162,7 @@ function App() {
               </div>
               <div>
                 <h1 className="text-lg sm:text-xl font-bold text-gray-900">Tort Bazar</h1>
-                {isAuthenticated && userData?.role && (
+                {isAuthenticated && userData?.role && activePage === 'community' && (
                   <p className="text-xs text-gray-600">
                     {userData.role === 'baker' && 'Tort tayyorlovchi'}
                     {userData.role === 'shop' && 'Do\'kon'}
