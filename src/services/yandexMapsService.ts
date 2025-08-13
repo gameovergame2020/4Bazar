@@ -98,15 +98,8 @@ class YandexMapsService {
         return;
       }
 
-      // API kalitini tekshirish
-      const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY || 'your_yandex_maps_api_key_here';
-
-      console.log('🔑 API kaliti tekshirilmoqda:', apiKey ? `${apiKey.substring(0, 10)}...` : 'mavjud emas');
-
-      if (!apiKey || apiKey === 'undefined' || apiKey.includes('your_') || apiKey.trim() === '') {
-        reject(new Error('Yandex Maps API kaliti to\'g\'ri konfiguratsiya qilinmagan. .env faylida VITE_YANDEX_MAPS_API_KEY ni to\'ldiring.'));
-        return;
-      }
+      // API kalitini tekshirish - Leaflet'dan foydalanish uchun Yandex API'siz
+      console.log('🗺️ Bepul Leaflet xaritasidan foydalanilmoqda');
 
       console.log('🗺️ Yangi Yandex Maps skripti yuklanmoqda...');
 

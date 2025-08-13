@@ -124,7 +124,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     };
 
     window.addEventListener('orderModalRendered', handleModalRendered);
-    
+
     return () => {
       window.removeEventListener('orderModalRendered', handleModalRendered);
     };
@@ -337,7 +337,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       console.error('❌ Leaflet ishga tushirishda xato:', error);
 
       let errorMessage = 'Xaritani yuklashda xato yuz berdi';
-      if (error && typeof error === 'object' && error.message) {
+      if (error && typeof error === 'object') {
         if (error.message.includes('network') || error.message.includes('fetch')) {
           errorMessage = 'Internet aloqasi muammosi. Qaytadan urinib ko\'ring.';
         } else if (error.message.includes('timeout')) {
@@ -764,19 +764,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       };
 
       console.log('📋 OrderDetails o\'rnatilmoqda:', newOrderDetails);
-      setOrderDetails(newOrderDetails);
 
       // Buyurtma tasdiqlash oynasini ko'rsatish
-      console.log('🎯 Modal ochilish jarayoni boshlandi...');
-      console.log('📋 OrderDetails o\'rnatilmoqda:', newOrderDetails);
-      
-      // State'larni sodda usulda o'rnatish
+      console.log('✅ Buyurtma muvaffaqiyatli yaratildi:', orderResult.orderUniqueId);
+
       setOrderDetails(newOrderDetails);
       setOrderConfirmed(true);
-      
-      console.log('✅ Modal state\'lari o\'rnatildi - Portal orqali render qilinadi');
-
-      console.log('✅ Buyurtma tasdiqlash oynasi ochish buyrug\'i yuborildi');
 
       // Savatni tozalash
       Object.keys(cart).forEach(cakeId => {
@@ -810,7 +803,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
     } catch (error) {
       console.error('❌ Buyurtma yuborishda xato:', error);
-      
+
       // Xato ma'lumotlarini batafsil ko'rsatish
       if (error && typeof error === 'object') {
         console.error('❌ Xato tafsilotlari:', {
@@ -819,36 +812,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           name: error.name
         });
       }
-      
+
       alert('Buyurtma yuborishda xato yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
-      
-      // Xato bo'lganda test modal ko'rsatish
-      console.log('🧪 Xato holatida test modal ko\'rsatilmoqda');
-      const testOrderDetails = { 
-        orderId: 'TEST-ERROR-' + Date.now(),
-        operatorPhone: '+998 90 123 45 67'
-      };
-      
-      console.log('📋 Test OrderDetails o\'rnatilmoqda:', testOrderDetails);
-      
-      // Test uchun state'larni majburiy o'rnatish
-      setTimeout(() => {
-        setOrderDetails(testOrderDetails);
-        setOrderConfirmed(true);
-        
-        console.log('✅ Test modal state\'lari o\'rnatildi');
-        
-        // Test modal ochilgani tekshirish
-        setTimeout(() => {
-          console.log('🔍 Test modal DOM da tekshirilmoqda...');
-          const modalElement = document.querySelector('[class*="fixed inset-0"]');
-          if (modalElement) {
-            console.log('✅ Test modal muvaffaqiyatli ochildi');
-          } else {
-            console.warn('❌ Test modal ham ochilmadi - boshqa muammo bor');
-          }
-        }, 300);
-      }, 200);
     }
   };
 

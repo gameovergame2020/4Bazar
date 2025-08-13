@@ -1,7 +1,8 @@
-
 class LeafletMapService {
   private static instance: LeafletMapService | null = null;
   private isLoaded = false;
+  private retryCount = 0;
+  private maxRetries = 2;
 
   private constructor() {}
 
