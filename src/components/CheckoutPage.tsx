@@ -755,13 +755,22 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
       // Buyurtma tasdiqlash oynasini ko'rsatish
       console.log('🎯 setOrderConfirmed(true) chaqirilmoqda...');
-      setOrderConfirmed(true);
       
-      // Kichik kechikish bilan qayta tekshirish
+      // State'ni majburiy yangilash
+      setOrderConfirmed(false); // Avval false qilib
+      setOrderDetails(newOrderDetails); // OrderDetails'ni o'rnatish
+      
+      // Kichik kechikish bilan true qilish
       setTimeout(() => {
-        console.log('🔍 OrderConfirmed holati:', orderConfirmed);
-        console.log('🔍 OrderDetails holati:', orderDetails);
-      }, 100);
+        console.log('🔄 Modal ochilish majburiy ravishda amalga oshirilmoqda...');
+        setOrderConfirmed(true);
+        
+        // Yana bir bor tekshirish
+        setTimeout(() => {
+          console.log('🔍 Final OrderConfirmed holati:', orderConfirmed);
+          console.log('🔍 Final OrderDetails holati:', orderDetails);
+        }, 200);
+      }, 50);
 
       console.log('✅ Buyurtma tasdiqlash oynasi ochish buyrug\'i yuborildi');
 

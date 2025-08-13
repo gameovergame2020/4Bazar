@@ -37,8 +37,22 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   }, [isVisible, orderDetails]);
 
   console.log('🔍 Modal render - holati:', { isVisible, orderDetails: !!orderDetails });
+  console.log('🔍 Modal render - orderDetails tafsiloti:', orderDetails);
   
-  if (!isVisible || !orderDetails) {
+  // Agar orderDetails mavjud bo'lsa lekin isVisible false bo'lsa, ogohlantirish
+  if (orderDetails && !isVisible) {
+    console.warn('⚠️ OrderDetails mavjud lekin modal yashirin!', { isVisible, orderDetails });
+  }
+  
+  // Test uchun - agar orderDetails mavjud bo'lsa, majburiy ko'rsatish
+  const shouldShowModal = isVisible && orderDetails;
+  const forceShow = orderDetails && !isVisible; // Debug uchun
+  
+  if (forceShow) {
+    console.log('🧪 TEST: Modal majburiy ko\'rsatilmoqda, isVisible false bo\'lsa ham');
+  }
+  
+  if (!shouldShowModal && !forceShow) {
     console.log('❌ Modal ko\'rsatilmaydi:', { isVisible, hasOrderDetails: !!orderDetails });
     return null;
   }
