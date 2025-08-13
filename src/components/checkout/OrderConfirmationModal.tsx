@@ -1,4 +1,6 @@
+
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface OrderDetails {
   orderId: string;
@@ -30,167 +32,52 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   onClose,
   onBackToHome
 }) => {
-  // Modal state'ini kuzatish
-  useEffect(() => {
-    console.log('🔄 Modal useEffect - isVisible o\'zgardi:', isVisible);
-    console.log('🔄 Modal useEffect - orderDetails:', orderDetails);
-  }, [isVisible, orderDetails]);
+  // Debug log'lar
+  console.log('🔍 Modal render:', { isVisible, orderDetails: !!orderDetails });
 
-  console.log('🔍 Modal render - holati:', { isVisible, orderDetails: !!orderDetails });
-  console.log('🔍 Modal render - orderDetails tafsiloti:', orderDetails);
-  
-  // Batafsil debug ma'lumotlari
-  console.log('🔍 Modal render - batafsil tekshiruv:', {
-    isVisible,
-    orderDetails,
-    hasOrderDetails: !!orderDetails,
-    orderDetailsType: typeof orderDetails,
-    orderId: orderDetails?.orderId,
-    operatorPhone: orderDetails?.operatorPhone
-  });
-  
-  // Test rejimi - agar URL da test=true bo'lsa, majburiy ko'rsatish
-  const urlParams = new URLSearchParams(window.location.search);
-  const isTestMode = urlParams.get('test') === 'true';
-  
-  if (isTestMode) {
-    console.log('🧪 TEST REJIMI: Modal majburiy ko\'rsatilmoqda');
-    // Test uchun fake orderDetails yaratish
-    const testOrderDetails = orderDetails || {
-      orderId: 'TEST-' + Date.now(),
-      operatorPhone: '+998 90 123 45 67'
-    };
-    
-    return (
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] animate-fadeIn">
-        <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl transform animate-slideUp">
-          <div className="text-center">
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">
-              🧪 TEST REJIMI - Modal ishlayapti!
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Modal komponenti to'g'ri ishlayapti. URL dan ?test=true ni olib tashlang.
-            </p>
-            <button
-              onClick={onClose}
-              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 px-6 rounded-2xl font-semibold"
-            >
-              Yopish
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
-  // Soddalashtirilgan shart - ikkala shart ham bajarilishi kerak
+  // Modal ko'rsatish shartini tekshirish
   if (!isVisible || !orderDetails) {
     console.log('❌ Modal ko\'rsatilmaydi:', { 
       isVisible, 
-      hasOrderDetails: !!orderDetails,
-      sebab: !isVisible ? 'isVisible=false' : 'orderDetails yo\'q',
-      orderDetails
+      hasOrderDetails: !!orderDetails 
     });
     return null;
   }
 
-  console.log('✅ Modal ko\'rsatilmoqda - isVisible:', isVisible, 'orderDetails:', !!orderDetails);
-  
-  // Modal render bo'lganini DOM ga signal sifatida yuborish
-  useEffect(() => {
-    if (isVisible && orderDetails) {
-      console.log('🎯 Modal render useEffect - signal yuborilmoqda');
-      
-      // DOM ga element qo'shilganini kutish
-      const signalModalRendered = () => {
-        try {
-          // Custom event yuborish
-          const modalEvent = new CustomEvent('orderModalRendered', {
-            detail: { isVisible, orderDetails, timestamp: Date.now() }
-          });
-          window.dispatchEvent(modalEvent);
-          
-          // Global o'zgaruvchi orqali ham signal berish
-          window.orderModalRendered = true;
-          
-          console.log('✅ Modal render signali yuborildi');
-        } catch (error) {
-          console.error('❌ Modal render signali yuborishda xato:', error);
-        }
-      };
-      
-      // DOM yangilanishini kutish
-      requestAnimationFrame(() => {
-        requestAnimationFrame(signalModalRendered);
-      });
-      
-      return () => {
-        window.orderModalRendered = false;
-      };
-    }
-  }, [isVisible, orderDetails]);
-  
-  // Modal DOM da borligini ta'minlash uchun qo'shimcha useEffect
-  useEffect(() => {
-    if (isVisible && orderDetails) {
-      console.log('🔍 Modal DOM mavjudligini tekshirish...');
-      
-      const checkSelfInDOM = () => {
-        const modalElement = document.getElementById('order-confirmation-modal');
-        if (modalElement) {
-          console.log('✅ Modal o\'zi DOM da topildi');
-          modalElement.style.display = 'flex'; // Majburiy ko'rsatish
-          modalElement.style.opacity = '1';
-        } else {
-          console.warn('⚠️ Modal o\'zi DOM da topilmadi');
-        }
-      };
-      
-      // Bir necha marta tekshirish
-      setTimeout(checkSelfInDOM, 0);
-      setTimeout(checkSelfInDOM, 50);
-      setTimeout(checkSelfInDOM, 100);
-    }
-  }, [isVisible, orderDetails]);
+  console.log('✅ Modal render qilinmoqda');
 
-  // CSS animatsiyalari uchun style tag qo'shish
-  const animationStyles = `
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-    @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-    .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
-    .animate-slideUp { animation: slideUp 0.4s ease-out; }
-    .animate-slideDown { animation: slideDown 0.3s ease-out; }
-  `;
-
-  // Style tag ni head ga qo'shish
-  if (typeof document !== 'undefined' && !document.getElementById('confirmation-animations')) {
-    const styleElement = document.createElement('style');
-    styleElement.id = 'confirmation-animations';
-    styleElement.textContent = animationStyles;
-    document.head.appendChild(styleElement);
-  }
-
-  return (
+  // Modal komponenti
+  const modalContent = (
     <div 
       id="order-confirmation-modal"
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] animate-fadeIn"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
       style={{ 
-        display: 'flex !important', 
-        opacity: 1, 
-        visibility: 'visible',
+        zIndex: 999999,
         position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
-        bottom: 0,
-        zIndex: 9999
+        bottom: 0
+      }}
+      onClick={(e) => {
+        // Faqat backdrop bosilganda yopish
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
       }}
     >
-      <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl transform animate-slideUp">
+      <div 
+        className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl transform transition-all duration-300 animate-pulse"
+        style={{ 
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          animation: 'slideUp 0.4s ease-out'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="text-center">
-          {/* Animated Success Icon */}
-          <div className="relative w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+          {/* Success Icon */}
+          <div className="relative w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
             </svg>
@@ -200,7 +87,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
           </div>
 
           <h3 className="text-2xl font-bold text-gray-900 mb-3">
-            Buyurtma muvaffaqiyatli qabul qilindi!
+            Buyurtma muvaffaqiyatli qabul qilindi! 
           </h3>
 
           <p className="text-gray-600 mb-6 text-sm leading-relaxed">
@@ -208,7 +95,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
             Tez orada siz bilan bog'lanishadi.
           </p>
 
-          {/* Order Summary Card */}
+          {/* Order Summary */}
           <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-5 mb-6 border border-orange-100">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -242,12 +129,12 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
                   {userInfo.deliveryTime === 'asap' ? 'Tez (2-3 soat)' :
                    userInfo.deliveryTime === 'today' ? 'Bugun (09:00-22:00)' :
                    userInfo.deliveryTime === 'tomorrow' ? 'Ertaga (09:00-22:00)' :
-                   userInfo.deliveryTime === 'custom' ? `${userInfo.customDeliveryDate ? new Date(userInfo.customDeliveryDate).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' }) : 'Kun tanlanmagan'} ${userInfo.customDeliveryTime || ''}` :
+                   userInfo.deliveryTime === 'custom' ? 
+                     `${userInfo.customDeliveryDate ? new Date(userInfo.customDeliveryDate).toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' }) : 'Kun tanlanmagan'} ${userInfo.customDeliveryTime || ''}` :
                    userInfo.deliveryTime}
                 </span>
               </div>
 
-              {/* Payment Method */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
@@ -266,7 +153,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
             </div>
           </div>
 
-          {/* Contact Information */}
+          {/* Contact Info */}
           <div className="bg-blue-50 rounded-2xl p-4 mb-6 border border-blue-100">
             <div className="flex items-center justify-center gap-2 mb-2">
               <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
@@ -283,7 +170,7 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
             <p className="text-xs text-blue-600 mt-1">Savollaringiz bo'lsa, qo'ng'iroq qiling</p>
           </div>
 
-          {/* Status Timeline */}
+          {/* Timeline */}
           <div className="bg-gray-50 rounded-2xl p-4 mb-6">
             <h4 className="font-semibold text-gray-800 mb-3 text-sm">Keyingi qadamlar:</h4>
             <div className="space-y-2 text-left">
@@ -325,6 +212,13 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
             >
               📋 Buyurtmalar
             </button>
+            
+            <button
+              onClick={onClose}
+              className="w-full bg-gray-200 text-gray-800 py-3 px-6 rounded-2xl font-medium hover:bg-gray-300 transition-colors"
+            >
+              Yopish
+            </button>
           </div>
 
           {/* Additional Info */}
@@ -338,6 +232,85 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
       </div>
     </div>
   );
+
+  // CSS animatsiyalarini qo'shish
+  useEffect(() => {
+    if (isVisible) {
+      console.log('✅ Modal ko\'rsatildi - CSS animatsiyalari qo\'shilmoqda');
+      
+      // Style element yaratish va qo'shish
+      const styleId = 'order-modal-animations';
+      let styleElement = document.getElementById(styleId);
+      
+      if (!styleElement) {
+        styleElement = document.createElement('style');
+        styleElement.id = styleId;
+        styleElement.textContent = `
+          @keyframes slideUp {
+            from { 
+              opacity: 0; 
+              transform: translateY(20px) scale(0.95); 
+            }
+            to { 
+              opacity: 1; 
+              transform: translateY(0) scale(1); 
+            }
+          }
+          
+          #order-confirmation-modal {
+            animation: fadeIn 0.3s ease-out;
+          }
+          
+          #order-confirmation-modal > div {
+            animation: slideUp 0.4s ease-out;
+          }
+          
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+        `;
+        document.head.appendChild(styleElement);
+      }
+      
+      // Body scroll'ni to'xtatish
+      document.body.style.overflow = 'hidden';
+      
+      // Cleanup
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [isVisible]);
+
+  // DOM'ga signal yuborish
+  useEffect(() => {
+    if (isVisible && orderDetails) {
+      console.log('📡 Modal render signali yuborilmoqda...');
+      
+      // Custom event
+      try {
+        const event = new CustomEvent('orderModalRendered', {
+          detail: { isVisible, orderDetails, timestamp: Date.now() }
+        });
+        window.dispatchEvent(event);
+        console.log('✅ Modal render eventi yuborildi');
+      } catch (error) {
+        console.error('❌ Event yuborishda xato:', error);
+      }
+      
+      // Global flag
+      (window as any).orderModalRendered = true;
+      
+      return () => {
+        (window as any).orderModalRendered = false;
+      };
+    }
+  }, [isVisible, orderDetails]);
+
+  // React Portal yordamida body ga render qilish
+  console.log('🎯 Modal createPortal orqali render qilinmoqda...');
+  return createPortal(modalContent, document.body);
 };
 
 export default OrderConfirmationModal;
