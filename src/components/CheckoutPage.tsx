@@ -772,56 +772,96 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       // State'larni to'g'ri ketma-ketlikda o'rnatish
       console.log('📋 OrderDetails va OrderConfirmed o\'rnatilmoqda:', newOrderDetails);
       
-      // React state'larini flushSync bilan sinxron o'rnatish
+      // React state'larini ketma-ket o'rnatish va DOM tekshiruvi
       try {
+        console.log('🔧 Modal state\'larini o\'rnatish boshlandi...');
+        
         // Avval orderDetails ni o'rnatish
         setOrderDetails(newOrderDetails);
         
-        // Keyinchalik orderConfirmed ni o'rnatish
-        setOrderConfirmed(true);
-        
-        console.log('✅ Modal state\'lari o\'rnatildi:', { 
-          orderDetails: newOrderDetails, 
-          orderConfirmed: true 
+        // RequestAnimationFrame orqali DOM yangilanishini kutish
+        requestAnimationFrame(() => {
+          // Keyingi render tsiklida orderConfirmed ni o'rnatish
+          setOrderConfirmed(true);
+          
+          console.log('✅ Modal state\'lari o\'rnatildi:', { 
+            orderDetails: newOrderDetails, 
+            orderConfirmed: true 
+          });
+          
+          // Modal DOM ni ketma-ket tekshirish (yaxshilangan)
+          const checkModalInDOM = (attempt = 1, maxAttempts = 15) => {
+            console.log(`🔍 Modal DOM tekshiruvi - urinish ${attempt}/${maxAttempts}`);
+            
+            const modalSelectors = [
+              '#order-confirmation-modal',
+              '[class*="fixed inset-0"]',
+              '.animate-fadeIn',
+              '[class*="bg-black/60"]',
+              '[class*="backdrop-blur-sm"]'
+            ];
+            
+            const modalElements = modalSelectors
+              .map(selector => document.querySelector(selector))
+              .filter(Boolean);
+            
+            if (modalElements.length > 0) {
+              console.log('✅ Modal DOM da topildi:', modalElements.length, 'element(lar)');
+              console.log('✅ Topilgan elementlar:', modalElements.map(el => el.tagName + '.' + el.className));
+              return true;
+            }
+            
+            if (attempt < maxAttempts) {
+              // Progressive delay: har urinishda kutish vaqtini oshirish
+              const delay = Math.min(50 * attempt, 500);
+              setTimeout(() => checkModalInDOM(attempt + 1, maxAttempts), delay);
+            } else {
+              console.warn('❌ Modal DOM da topilmadi barcha urinishlardan keyin');
+              console.log('🔧 Fallback: Modal ni qayta ochishga urinish...');
+              
+              // Fallback strategiya: state'ni reset qilib qayta o'rnatish
+              setOrderConfirmed(false);
+              setOrderDetails(null);
+              
+              setTimeout(() => {
+                console.log('🔧 Fallback: Modal state\'larini qayta o\'rnatish...');
+                setOrderDetails(newOrderDetails);
+                
+                setTimeout(() => {
+                  setOrderConfirmed(true);
+                  console.log('🔧 Fallback: Modal qayta ochildi');
+                  
+                  // Fallback tekshiruvi
+                  setTimeout(() => {
+                    const fallbackModal = document.getElementById('order-confirmation-modal');
+                    if (fallbackModal) {
+                      console.log('✅ Fallback: Modal muvaffaqiyatli ochildi');
+                    } else {
+                      console.error('❌ Fallback: Modal hali ham ochilmadi');
+                      // Test modal ko'rsatish
+                      const searchParams = new URLSearchParams(window.location.search);
+                      searchParams.set('test', 'true');
+                      window.history.pushState({}, '', `${window.location.pathname}?${searchParams.toString()}`);
+                      console.log('🧪 Test rejimi yoqildi: sahifani yangilang');
+                    }
+                  }, 200);
+                }, 100);
+              }, 300);
+            }
+            
+            return false;
+          };
+          
+          // DOM tekshiruvini RequestAnimationFrame bilan boshlash
+          requestAnimationFrame(() => {
+            checkModalInDOM();
+          });
         });
-        
-        // Modal DOM ni ketma-ket tekshirish
-        const checkModalInDOM = (attempt = 1, maxAttempts = 10) => {
-          console.log(`🔍 Modal DOM tekshiruvi - urinish ${attempt}/${maxAttempts}`);
-          
-          const modalElements = [
-            document.querySelector('[class*="fixed inset-0"]'),
-            document.querySelector('.animate-fadeIn'),
-            document.querySelector('[class*="bg-black/60"]'),
-            document.getElementById('order-confirmation-modal')
-          ].filter(Boolean);
-          
-          if (modalElements.length > 0) {
-            console.log('✅ Modal DOM da topildi:', modalElements.length, 'element');
-            return true;
-          }
-          
-          if (attempt < maxAttempts) {
-            setTimeout(() => checkModalInDOM(attempt + 1, maxAttempts), 100 * attempt);
-          } else {
-            console.warn('❌ Modal DOM da topilmadi barcha urinishlardan keyin');
-            // Majburiy modal ko'rsatish
-            console.log('🔧 Majburiy modal ochish jarayoni...');
-            setOrderConfirmed(false);
-            setTimeout(() => {
-              setOrderConfirmed(true);
-              console.log('🔧 Majburiy modal qayta ochildi');
-            }, 200);
-          }
-          
-          return false;
-        };
-        
-        // DOM tekshiruvini boshlash
-        setTimeout(() => checkModalInDOM(), 50);
         
       } catch (error) {
         console.error('❌ Modal state o\'rnatishda xato:', error);
+        // Xato holatida ham test rejimini taklif qilish
+        alert('Modal ochishda xato yuz berdi. URL ga ?test=true qo\'shib, test rejimida sinab ko\'ring.');
       }
 
       console.log('✅ Buyurtma tasdiqlash oynasi ochish buyrug\'i yuborildi');

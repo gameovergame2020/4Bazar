@@ -101,18 +101,55 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
     if (isVisible && orderDetails) {
       console.log('🎯 Modal render useEffect - signal yuborilmoqda');
       
-      // Custom event yuborish
-      const modalEvent = new CustomEvent('orderModalRendered', {
-        detail: { isVisible, orderDetails }
-      });
-      window.dispatchEvent(modalEvent);
+      // DOM ga element qo'shilganini kutish
+      const signalModalRendered = () => {
+        try {
+          // Custom event yuborish
+          const modalEvent = new CustomEvent('orderModalRendered', {
+            detail: { isVisible, orderDetails, timestamp: Date.now() }
+          });
+          window.dispatchEvent(modalEvent);
+          
+          // Global o'zgaruvchi orqali ham signal berish
+          window.orderModalRendered = true;
+          
+          console.log('✅ Modal render signali yuborildi');
+        } catch (error) {
+          console.error('❌ Modal render signali yuborishda xato:', error);
+        }
+      };
       
-      // Global o'zgaruvchi orqali ham signal berish
-      window.orderModalRendered = true;
+      // DOM yangilanishini kutish
+      requestAnimationFrame(() => {
+        requestAnimationFrame(signalModalRendered);
+      });
       
       return () => {
         window.orderModalRendered = false;
       };
+    }
+  }, [isVisible, orderDetails]);
+  
+  // Modal DOM da borligini ta'minlash uchun qo'shimcha useEffect
+  useEffect(() => {
+    if (isVisible && orderDetails) {
+      console.log('🔍 Modal DOM mavjudligini tekshirish...');
+      
+      const checkSelfInDOM = () => {
+        const modalElement = document.getElementById('order-confirmation-modal');
+        if (modalElement) {
+          console.log('✅ Modal o\'zi DOM da topildi');
+          modalElement.style.display = 'flex'; // Majburiy ko'rsatish
+          modalElement.style.opacity = '1';
+        } else {
+          console.warn('⚠️ Modal o\'zi DOM da topilmadi');
+        }
+      };
+      
+      // Bir necha marta tekshirish
+      setTimeout(checkSelfInDOM, 0);
+      setTimeout(checkSelfInDOM, 50);
+      setTimeout(checkSelfInDOM, 100);
     }
   }, [isVisible, orderDetails]);
 
@@ -138,7 +175,17 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
     <div 
       id="order-confirmation-modal"
       className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] animate-fadeIn"
-      style={{ display: 'flex' }}
+      style={{ 
+        display: 'flex !important', 
+        opacity: 1, 
+        visibility: 'visible',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 9999
+      }}
     >
       <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl transform animate-slideUp">
         <div className="text-center">
