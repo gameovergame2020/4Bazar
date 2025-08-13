@@ -102,45 +102,35 @@ const RestaurantsPage: React.FC = () => {
         zoom: 12
       });
 
-          // Restoranlar uchun placemarklar qo'shish
-          restaurants.forEach((restaurant: Restaurant) => {
-            const placemark = new window.ymaps!.Placemark(
-              restaurant.coordinates,
-              {
-                balloonContentHeader: `<strong>${restaurant.name}</strong>`,
-                balloonContentBody: `
-                  <div style="max-width: 250px;">
-                    <img src="${restaurant.image}" alt="${restaurant.name}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;">
-                    <p style="margin: 4px 0; color: #666; font-size: 14px;">${restaurant.cuisine}</p>
-                    <div style="display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 14px;">
-                      <span style="color: #f59e0b;">⭐ ${restaurant.rating}</span>
-                      <span style="color: #666;">🕒 ${restaurant.deliveryTime}</span>
-                      <span style="color: #666;">📍 ${restaurant.distance}</span>
-                    </div>
-                    <p style="margin: 4px 0; color: #666; font-size: 12px;">${restaurant.address}</p>
-                    <div style="margin-top: 8px;">
-                      ${restaurant.specialties.map((specialty: string) => 
-                        `<span style="background: #f3f4f6; color: #374151; padding: 2px 6px; border-radius: 12px; font-size: 11px; margin-right: 4px;">${specialty}</span>`
-                      ).join('')}
-                    </div>
-                  </div>
-                `,
-                balloonContentFooter: `<small style="color: #9ca3af;">Batafsil ma'lumot uchun bosing</small>`
-              },
-              {
-                preset: 'islands#redFoodIcon',
-                iconColor: '#ff6b35'
-              }
-            );
-
-            map.geoObjects.add(placemark);
-          });
-
-          setYandexMap(map);
-          setMapLoaded(true);
-          resolve();
-        });
+      // Restoranlar uchun markerlar qo'shish (Leaflet uchun)
+      restaurants.forEach((restaurant: Restaurant) => {
+        const marker = window.L.marker(restaurant.coordinates).addTo(map);
+        
+        const popupContent = `
+          <div style="max-width: 250px;">
+            <img src="${restaurant.image}" alt="${restaurant.name}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;">
+            <h4 style="margin: 0 0 4px 0; font-weight: bold;">${restaurant.name}</h4>
+            <p style="margin: 4px 0; color: #666; font-size: 14px;">${restaurant.cuisine}</p>
+            <div style="display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 14px;">
+              <span style="color: #f59e0b;">⭐ ${restaurant.rating}</span>
+              <span style="color: #666;">🕒 ${restaurant.deliveryTime}</span>
+              <span style="color: #666;">📍 ${restaurant.distance}</span>
+            </div>
+            <p style="margin: 4px 0; color: #666; font-size: 12px;">${restaurant.address}</p>
+            <div style="margin-top: 8px;">
+              ${restaurant.specialties.map((specialty: string) => 
+                `<span style="background: #f3f4f6; color: #374151; padding: 2px 6px; border-radius: 12px; font-size: 11px; margin-right: 4px;">${specialty}</span>`
+              ).join('')}
+            </div>
+          </div>
+        `;
+        
+        marker.bindPopup(popupContent);
       });
+
+      setYandexMap(map);
+      setMapLoaded(true);
+
     } catch (error) {
       console.error('Xaritani ishga tushirishda xatolik:', error);
     }
