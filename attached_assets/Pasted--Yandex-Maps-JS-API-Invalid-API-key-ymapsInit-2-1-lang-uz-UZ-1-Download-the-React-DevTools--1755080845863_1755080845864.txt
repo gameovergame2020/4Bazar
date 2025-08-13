@@ -1,0 +1,190 @@
+ (Yandex Maps JS API): Invalid API key
+ymapsInit @ 2.1/?lang=uz_UZ:1
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+ 🔍 Environment variables debug: Object
+ 🔍 Firebase configuration: Object
+ 🚀 Firebase initialization starting...
+ Environment: Development
+ ✅ Firebase muvaffaqiyatli ishga tushirildi Object
+ 🔄 Real-time subscription: Umumiy buyurtmalar
+ 🔚 HomePage subscriptions yopilmoqda...
+ 🔄 Real-time subscription: Umumiy buyurtmalar
+ 🔄 Real-time cakes yangilandi: 1 ta mahsulot
+ 📥 Real-time Orders (Umumiy): 51 ta hujjat keldi
+ ✅ Real-time Orders (Umumiy): 51 ta buyurtma qayta ishlandi
+ 🔄 Real-time orders yangilandi: 51 ta buyurtma
+ 📋 Fresh orders: 51 ta buyurtma
+ 🔍 Baker mahsulot: sd - available: false, quantity: 0
+ 📋 Baker mahsuloti "Buyurtma uchun": sd
+ 📦 sd: available=false, quantity=0, orderedQuantity=25
+ ✅ Processed cakes: 1 ta mahsulot
+ ✅ Orders o'zgarishi bilan tortlar yangilandi: 1
+ Adding to cart: vJn2nJr9G55uCTOiprjt
+ New cart state: Object
+ Cart clicked, cart: Object keys length: 1
+ Switching directly to checkout
+ 🔍 Modal render - holati: Object
+ 🔍 Modal render - orderDetails tafsiloti: null
+ 🔍 Modal render - batafsil tekshiruv: Object
+ ❌ Modal ko'rsatilmaydi: Object
+ 🔍 Modal render - holati: Object
+ 🔍 Modal render - orderDetails tafsiloti: null
+ 🔍 Modal render - batafsil tekshiruv: Object
+ ❌ Modal ko'rsatilmaydi: Object
+ 🔄 Modal useEffect - isVisible o'zgardi: false
+ 🔄 Modal useEffect - orderDetails: null
+ 🔄 CheckoutPage - orderConfirmed o'zgardi: false
+ 🔄 CheckoutPage - orderDetails o'zgardi: null
+ 🔄 Modal useEffect - isVisible o'zgardi: false
+ 🔄 Modal useEffect - orderDetails: null
+ 🔄 CheckoutPage - orderConfirmed o'zgardi: false
+ 🔄 CheckoutPage - orderDetails o'zgardi: null
+ 🔍 Modal render - holati: Object
+ 🔍 Modal render - orderDetails tafsiloti: null
+ 🔍 Modal render - batafsil tekshiruv: Object
+ ❌ Modal ko'rsatilmaydi: Object
+ 🔍 Modal render - holati: Object
+ 🔍 Modal render - orderDetails tafsiloti: null
+ 🔍 Modal render - batafsil tekshiruv: Object
+ ❌ Modal ko'rsatilmaydi: Object
+ ✅ Yandex Maps allaqachon mavjud
+ ✅ ymaps.ready() bajarildi
+ 🚀 Leaflet xaritasi ishga tushirilmoqda...
+ ✅ Leaflet xaritasi yuklandi
+ ✅ Leaflet API yuklandi
+ 🗺️ Leaflet xaritasi yaratilmoqda...
+ ✅ Leaflet xaritasi muvaffaqiyatli yaratildi
+ 🔍 Modal render - holati: Object
+ 🔍 Modal render - orderDetails tafsiloti: null
+ 🔍 Modal render - batafsil tekshiruv: Object
+ ❌ Modal ko'rsatilmaydi: Object
+ 🔍 Modal render - holati: Object
+ 🔍 Modal render - orderDetails tafsiloti: null
+ 🔍 Modal render - batafsil tekshiruv: Object
+ ❌ Modal ko'rsatilmaydi: Object
+ 🔍 Modal render - holati: Object
+ 🔍 Modal render - orderDetails tafsiloti: null
+ 🔍 Modal render - batafsil tekshiruv: Object
+ ❌ Modal ko'rsatilmaydi: Object
+ 🔍 Modal render - holati: Object
+ 🔍 Modal render - orderDetails tafsiloti: null
+ 🔍 Modal render - batafsil tekshiruv: Object
+ ❌ Modal ko'rsatilmaydi: Object
+ 🔍 Modal render - holati: Object
+ 🔍 Modal render - orderDetails tafsiloti: null
+ 🔍 Modal render - batafsil tekshiruv: Object
+ ❌ Modal ko'rsatilmaydi: Object
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+CheckoutPage.tsx:396 📍 Leaflet xaritada bosilgan koordinata: Array(2)
+CheckoutPage.tsx:426 🔄 Leaflet reverse geocoding boshlanmoqda: Array(2)
+CheckoutPage.tsx:433 📍 Reverse geocoding uchun koordinatalar: Array(2)
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+CheckoutPage.tsx:438 ✅ Manzil topildi: 103, Islom Karimov ko'chasi, Beshagach mahalla, Chilanzar district, Toshkent, 100000, Oʻzbekiston
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+CheckoutPage.tsx:679 🚀 ProcessOrder boshlandi
+CheckoutPage.tsx:680 📱 Customer telefon: dsf
+CheckoutPage.tsx:681 🛒 Cart mahsulotlari: Array(1)
+CheckoutPage.tsx:682 💰 Total Price: 15012
+CheckoutPage.tsx:732 🛒 Buyurtma Firebase ga yuborilmoqda: Object
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+orderService.ts:51 ✅ 8 belgilik noyob ID topildi: BEDL4ULE
+orderService.ts:79 🆔 8 belgilik noyob buyurtma ID yaratildi: BEDL4ULE
+orderService.ts:80 🍰 Mahsulot ID: vJn2nJr9G55uCTOiprjt
+orderService.ts:81 👤 Customer ID (User ID): OckNSsys67O5fLtJcOeb6ZXeQd53
+orderService.ts:682 📥 Real-time Orders (Umumiy): 52 ta hujjat keldi
+orderService.ts:732 ✅ Real-time Orders (Umumiy): 52 ta buyurtma qayta ishlandi
+HomePage.tsx:169 🔄 Real-time orders yangilandi: 52 ta buyurtma
+HomePage.tsx:217 ✅ Orders o'zgarishi bilan tortlar yangilandi: 1
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+OrderConfirmationModal.tsx:39 🔍 Modal render - holati: Object
+OrderConfirmationModal.tsx:40 🔍 Modal render - orderDetails tafsiloti: null
+OrderConfirmationModal.tsx:43 🔍 Modal render - batafsil tekshiruv: Object
+OrderConfirmationModal.tsx:88 ❌ Modal ko'rsatilmaydi: Object
+orderService.ts:100 ✅ Firebase hujjat ID: ixcCjO5PaCKPIBJf6UyY
+orderService.ts:101 🆔 Noyob buyurtma ID: BEDL4ULE
+orderService.ts:102 👤 Customer ID bilan bog'langan: OckNSsys67O5fLtJcOeb6ZXeQd53
+productService.ts:172 📦 Mahsulot quantity processing: Object
+productService.ts:221 🔄 Baker "Buyurtma uchun" dan olindi - FAQAT amount oshirildi: Object
+HomePage.tsx:118 🔄 Real-time cakes yangilandi: 1 ta mahsulot
+productService.ts:266 ✅ Mahsulot quantity muvaffaqiyatli yangilandi: Object
+orderService.ts:109 📦 Mahsulot quantity muvaffaqiyatli yangilandi, fromStock: false
+CheckoutPage.tsx:737 ✅ Buyurtma yaratildi, Firebase ID: ixcCjO5PaCKPIBJf6UyY
+CheckoutPage.tsx:738 🆔 Buyurtma raqami: BEDL4ULE
+CheckoutPage.tsx:753 📋 OrderDetails o'rnatilmoqda: Object
+CheckoutPage.tsx:757 🎯 Modal ochilish jarayoni boshlandi...
+CheckoutPage.tsx:760 📋 OrderDetails va OrderConfirmed birga o'rnatilmoqda: Object
+CheckoutPage.tsx:784 ✅ Buyurtma tasdiqlash oynasi ochish buyrug'i yuborildi
+CheckoutPage.tsx:791 🗑️ Savat tozalandi
+CheckoutPage.tsx:116 🔄 CheckoutPage - orderConfirmed o'zgardi: false
+CheckoutPage.tsx:117 🔄 CheckoutPage - orderDetails o'zgardi: Object
+CheckoutPage.tsx:767 ✅ Modal state'lari o'rnatildi: Object
+CheckoutPage.tsx:116 🔄 CheckoutPage - orderConfirmed o'zgardi: true
+CheckoutPage.tsx:117 🔄 CheckoutPage - orderDetails o'zgardi: Object
+CheckoutPage.tsx:811 📢 Operator bildirishnomasi yuborildi
+HomePage.tsx:121 📋 Fresh orders: 52 ta buyurtma
+HomePage.tsx:128 🔍 Baker mahsulot: sd - available: false, quantity: 0
+HomePage.tsx:133 📋 Baker mahsuloti "Buyurtma uchun": sd
+HomePage.tsx:151 📦 sd: available=false, quantity=0, orderedQuantity=26
+HomePage.tsx:161 ✅ Processed cakes: 1 ta mahsulot
+CheckoutPage.tsx:774 🔍 Modal ochilgani tekshirilmoqda...
+CheckoutPage.tsx:779 ❌ Modal DOM da topilmadi
+(anonymous) @ CheckoutPage.tsx:779
