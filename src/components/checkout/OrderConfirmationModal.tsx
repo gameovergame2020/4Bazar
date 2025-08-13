@@ -39,12 +39,57 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   console.log('🔍 Modal render - holati:', { isVisible, orderDetails: !!orderDetails });
   console.log('🔍 Modal render - orderDetails tafsiloti:', orderDetails);
   
+  // Batafsil debug ma'lumotlari
+  console.log('🔍 Modal render - batafsil tekshiruv:', {
+    isVisible,
+    orderDetails,
+    hasOrderDetails: !!orderDetails,
+    orderDetailsType: typeof orderDetails,
+    orderId: orderDetails?.orderId,
+    operatorPhone: orderDetails?.operatorPhone
+  });
+  
+  // Test rejimi - agar URL da test=true bo'lsa, majburiy ko'rsatish
+  const urlParams = new URLSearchParams(window.location.search);
+  const isTestMode = urlParams.get('test') === 'true';
+  
+  if (isTestMode) {
+    console.log('🧪 TEST REJIMI: Modal majburiy ko\'rsatilmoqda');
+    // Test uchun fake orderDetails yaratish
+    const testOrderDetails = orderDetails || {
+      orderId: 'TEST-' + Date.now(),
+      operatorPhone: '+998 90 123 45 67'
+    };
+    
+    return (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] animate-fadeIn">
+        <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl transform animate-slideUp">
+          <div className="text-center">
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">
+              🧪 TEST REJIMI - Modal ishlayapti!
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Modal komponenti to'g'ri ishlayapti. URL dan ?test=true ni olib tashlang.
+            </p>
+            <button
+              onClick={onClose}
+              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 px-6 rounded-2xl font-semibold"
+            >
+              Yopish
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   // Soddalashtirilgan shart - ikkala shart ham bajarilishi kerak
   if (!isVisible || !orderDetails) {
     console.log('❌ Modal ko\'rsatilmaydi:', { 
       isVisible, 
       hasOrderDetails: !!orderDetails,
-      sebab: !isVisible ? 'isVisible=false' : 'orderDetails yo\'q'
+      sebab: !isVisible ? 'isVisible=false' : 'orderDetails yo\'q',
+      orderDetails
     });
     return null;
   }

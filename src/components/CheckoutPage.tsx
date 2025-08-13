@@ -756,19 +756,30 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       // Buyurtma tasdiqlash oynasini ko'rsatish
       console.log('🎯 Modal ochilish jarayoni boshlandi...');
       
-      // Avval orderDetails'ni o'rnatish
-      console.log('📋 OrderDetails o\'rnatilmoqda:', newOrderDetails);
-      setOrderDetails(newOrderDetails);
+      // State'larni batch update qilish
+      console.log('📋 OrderDetails va OrderConfirmed birga o\'rnatilmoqda:', newOrderDetails);
       
-      // Bir xil vaqtda orderConfirmed'ni true qilish
-      console.log('✅ OrderConfirmed true qilinmoqda...');
-      setOrderConfirmed(true);
-      
-      // Tekshirish uchun log
-      console.log('🔍 State o\'rnatildi:', { 
-        newOrderDetails, 
-        orderConfirmed: true 
-      });
+      // React.unstable_batchedUpdates yoki setTimeout bilan batch update
+      setTimeout(() => {
+        setOrderDetails(newOrderDetails);
+        setOrderConfirmed(true);
+        
+        console.log('✅ Modal state\'lari o\'rnatildi:', { 
+          orderDetails: newOrderDetails, 
+          orderConfirmed: true 
+        });
+        
+        // Modal ochilganini tekshirish
+        setTimeout(() => {
+          console.log('🔍 Modal ochilgani tekshirilmoqda...');
+          const modalElement = document.querySelector('[class*="fixed inset-0"]');
+          if (modalElement) {
+            console.log('✅ Modal DOM da topildi');
+          } else {
+            console.warn('❌ Modal DOM da topilmadi');
+          }
+        }, 500);
+      }, 100);
 
       console.log('✅ Buyurtma tasdiqlash oynasi ochish buyrug\'i yuborildi');
 
@@ -816,20 +827,33 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       
       alert('Buyurtma yuborishda xato yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
       
-      // Xato bo'lganda ham test modal ko'rsatish
+      // Xato bo'lganda test modal ko'rsatish
       console.log('🧪 Xato holatida test modal ko\'rsatilmoqda');
       const testOrderDetails = { 
         orderId: 'TEST-ERROR-' + Date.now(),
         operatorPhone: '+998 90 123 45 67'
       };
       
-      console.log('📋 Test OrderDetails:', testOrderDetails);
-      setOrderDetails(testOrderDetails);
+      console.log('📋 Test OrderDetails o\'rnatilmoqda:', testOrderDetails);
       
+      // Test uchun state'larni majburiy o'rnatish
       setTimeout(() => {
-        console.log('✅ Test modal ochilishi kerak');
+        setOrderDetails(testOrderDetails);
         setOrderConfirmed(true);
-      }, 100);
+        
+        console.log('✅ Test modal state\'lari o\'rnatildi');
+        
+        // Test modal ochilgani tekshirish
+        setTimeout(() => {
+          console.log('🔍 Test modal DOM da tekshirilmoqda...');
+          const modalElement = document.querySelector('[class*="fixed inset-0"]');
+          if (modalElement) {
+            console.log('✅ Test modal muvaffaqiyatli ochildi');
+          } else {
+            console.warn('❌ Test modal ham ochilmadi - boshqa muammo bor');
+          }
+        }, 300);
+      }, 200);
     }
   };
 
