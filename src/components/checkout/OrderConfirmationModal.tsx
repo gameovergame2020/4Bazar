@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface OrderDetails {
   orderId: string;
@@ -30,14 +30,20 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   onClose,
   onBackToHome
 }) => {
-  console.log('🔍 Modal holati:', { isVisible, orderDetails: !!orderDetails });
+  // Modal state'ini kuzatish
+  useEffect(() => {
+    console.log('🔄 Modal useEffect - isVisible o\'zgardi:', isVisible);
+    console.log('🔄 Modal useEffect - orderDetails:', orderDetails);
+  }, [isVisible, orderDetails]);
+
+  console.log('🔍 Modal render - holati:', { isVisible, orderDetails: !!orderDetails });
   
   if (!isVisible || !orderDetails) {
     console.log('❌ Modal ko\'rsatilmaydi:', { isVisible, hasOrderDetails: !!orderDetails });
     return null;
   }
 
-  console.log('✅ Modal ko\'rsatilmoqda');
+  console.log('✅ Modal ko\'rsatilmoqda - isVisible:', isVisible, 'orderDetails:', !!orderDetails);
 
   // CSS animatsiyalari uchun style tag qo'shish
   const animationStyles = `

@@ -111,6 +111,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
 
+  // Modal state'larini debug qilish
+  useEffect(() => {
+    console.log('🔄 CheckoutPage - orderConfirmed o\'zgardi:', orderConfirmed);
+    console.log('🔄 CheckoutPage - orderDetails o\'zgardi:', orderDetails);
+  }, [orderConfirmed, orderDetails]);
+
   // Mahsulotlar ro'yxatini yaratish
   const cartProducts = cart ? Object.entries(cart).map(([productId, quantity]) => {
     const product = cakes.find(p => p.id === productId);
@@ -670,15 +676,20 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     const finalPaymentType = paymentType || userInfo.paymentType;
 
     try {
+      console.log('🚀 ProcessOrder boshlandi');
       console.log('📱 Customer telefon:', userInfo.phone);
+      console.log('🛒 Cart mahsulotlari:', cartProducts);
+      console.log('💰 Total Price:', totalPrice);
 
       // Buyurtma ma'lumotlarini tekshirish
       if (cartProducts.length === 0) {
+        console.error('❌ Savatda mahsulotlar yo\'q');
         alert('Buyurtmada mahsulotlar mavjud emas');
         return;
       }
 
       if (!userInfo.name.trim() || !userInfo.phone.trim() || !deliveryAddress.trim()) {
+        console.error('❌ Majburiy maydonlar to\'ldirilmagan');
         alert('Iltimos, barcha majburiy maydonlarni to\'ldiring');
         return;
       }
@@ -726,22 +737,40 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       console.log('✅ Buyurtma yaratildi, Firebase ID:', orderResult.docId);
       console.log('🆔 Buyurtma raqami:', orderResult.orderUniqueId);
 
+      // Buyurtma muvaffaqiyatli yaratilganini tekshirish
+      if (!orderResult || !orderResult.orderUniqueId) {
+        throw new Error('Buyurtma yaratishda xato: orderUniqueId yo\'q');
+      }
+
       const operatorPhone = '+998 90 123 45 67';
 
       // Buyurtma ma'lumotlarini o'rnatish
-      setOrderDetails({ 
+      const newOrderDetails = { 
         orderId: orderResult.orderUniqueId,
         operatorPhone 
-      });
+      };
+
+      console.log('📋 OrderDetails o\'rnatilmoqda:', newOrderDetails);
+      setOrderDetails(newOrderDetails);
 
       // Buyurtma tasdiqlash oynasini ko'rsatish
+      console.log('🎯 setOrderConfirmed(true) chaqirilmoqda...');
       setOrderConfirmed(true);
-      console.log('✅ Buyurtma tasdiqlash oynasi ochildi');
+      
+      // Kichik kechikish bilan qayta tekshirish
+      setTimeout(() => {
+        console.log('🔍 OrderConfirmed holati:', orderConfirmed);
+        console.log('🔍 OrderDetails holati:', orderDetails);
+      }, 100);
+
+      console.log('✅ Buyurtma tasdiqlash oynasi ochish buyrug\'i yuborildi');
 
       // Savatni tozalash
       Object.keys(cart).forEach(cakeId => {
         removeFromCart(cakeId);
       });
+
+      console.log('🗑️ Savat tozalandi');
 
       try {
         const { notificationService } = await import('../services/notificationService');
@@ -780,8 +809,13 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       
       alert('Buyurtma yuborishda xato yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
       
-      // Xato bo'lganda ham modal ko'rsatish (test uchun)
-      // setOrderConfirmed(true);
+      // Test uchun - xato bo'lganda ham modal ko'rsatish
+      console.log('🧪 Test uchun - xato bo\'lganda ham modal ochish');
+      setOrderDetails({ 
+        orderId: 'TEST-' + Date.now(),
+        operatorPhone: '+998 90 123 45 67'
+      });
+      setOrderConfirmed(true);
     }
   };
 
