@@ -95,6 +95,26 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   }
 
   console.log('✅ Modal ko\'rsatilmoqda - isVisible:', isVisible, 'orderDetails:', !!orderDetails);
+  
+  // Modal render bo'lganini DOM ga signal sifatida yuborish
+  useEffect(() => {
+    if (isVisible && orderDetails) {
+      console.log('🎯 Modal render useEffect - signal yuborilmoqda');
+      
+      // Custom event yuborish
+      const modalEvent = new CustomEvent('orderModalRendered', {
+        detail: { isVisible, orderDetails }
+      });
+      window.dispatchEvent(modalEvent);
+      
+      // Global o'zgaruvchi orqali ham signal berish
+      window.orderModalRendered = true;
+      
+      return () => {
+        window.orderModalRendered = false;
+      };
+    }
+  }, [isVisible, orderDetails]);
 
   // CSS animatsiyalari uchun style tag qo'shish
   const animationStyles = `
@@ -115,7 +135,11 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] animate-fadeIn">
+    <div 
+      id="order-confirmation-modal"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] animate-fadeIn"
+      style={{ display: 'flex' }}
+    >
       <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl transform animate-slideUp">
         <div className="text-center">
           {/* Animated Success Icon */}

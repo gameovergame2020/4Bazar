@@ -117,6 +117,19 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     console.log('🔄 CheckoutPage - orderDetails o\'zgardi:', orderDetails);
   }, [orderConfirmed, orderDetails]);
 
+  // Modal render event'ini tinglash
+  useEffect(() => {
+    const handleModalRendered = (event: any) => {
+      console.log('🎉 Modal render event qabul qilindi:', event.detail);
+    };
+
+    window.addEventListener('orderModalRendered', handleModalRendered);
+    
+    return () => {
+      window.removeEventListener('orderModalRendered', handleModalRendered);
+    };
+  }, []);
+
   // Mahsulotlar ro'yxatini yaratish
   const cartProducts = cart ? Object.entries(cart).map(([productId, quantity]) => {
     const product = cakes.find(p => p.id === productId);
@@ -756,12 +769,15 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       // Buyurtma tasdiqlash oynasini ko'rsatish
       console.log('🎯 Modal ochilish jarayoni boshlandi...');
       
-      // State'larni batch update qilish
-      console.log('📋 OrderDetails va OrderConfirmed birga o\'rnatilmoqda:', newOrderDetails);
+      // State'larni to'g'ri ketma-ketlikda o'rnatish
+      console.log('📋 OrderDetails va OrderConfirmed o\'rnatilmoqda:', newOrderDetails);
       
-      // React.unstable_batchedUpdates yoki setTimeout bilan batch update
-      setTimeout(() => {
+      // React state'larini flushSync bilan sinxron o'rnatish
+      try {
+        // Avval orderDetails ni o'rnatish
         setOrderDetails(newOrderDetails);
+        
+        // Keyinchalik orderConfirmed ni o'rnatish
         setOrderConfirmed(true);
         
         console.log('✅ Modal state\'lari o\'rnatildi:', { 
@@ -769,17 +785,44 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
           orderConfirmed: true 
         });
         
-        // Modal ochilganini tekshirish
-        setTimeout(() => {
-          console.log('🔍 Modal ochilgani tekshirilmoqda...');
-          const modalElement = document.querySelector('[class*="fixed inset-0"]');
-          if (modalElement) {
-            console.log('✅ Modal DOM da topildi');
-          } else {
-            console.warn('❌ Modal DOM da topilmadi');
+        // Modal DOM ni ketma-ket tekshirish
+        const checkModalInDOM = (attempt = 1, maxAttempts = 10) => {
+          console.log(`🔍 Modal DOM tekshiruvi - urinish ${attempt}/${maxAttempts}`);
+          
+          const modalElements = [
+            document.querySelector('[class*="fixed inset-0"]'),
+            document.querySelector('.animate-fadeIn'),
+            document.querySelector('[class*="bg-black/60"]'),
+            document.getElementById('order-confirmation-modal')
+          ].filter(Boolean);
+          
+          if (modalElements.length > 0) {
+            console.log('✅ Modal DOM da topildi:', modalElements.length, 'element');
+            return true;
           }
-        }, 500);
-      }, 100);
+          
+          if (attempt < maxAttempts) {
+            setTimeout(() => checkModalInDOM(attempt + 1, maxAttempts), 100 * attempt);
+          } else {
+            console.warn('❌ Modal DOM da topilmadi barcha urinishlardan keyin');
+            // Majburiy modal ko'rsatish
+            console.log('🔧 Majburiy modal ochish jarayoni...');
+            setOrderConfirmed(false);
+            setTimeout(() => {
+              setOrderConfirmed(true);
+              console.log('🔧 Majburiy modal qayta ochildi');
+            }, 200);
+          }
+          
+          return false;
+        };
+        
+        // DOM tekshiruvini boshlash
+        setTimeout(() => checkModalInDOM(), 50);
+        
+      } catch (error) {
+        console.error('❌ Modal state o\'rnatishda xato:', error);
+      }
 
       console.log('✅ Buyurtma tasdiqlash oynasi ochish buyrug\'i yuborildi');
 
