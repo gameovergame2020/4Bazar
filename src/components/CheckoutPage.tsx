@@ -105,10 +105,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   } | null>(null);
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
 
-  const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
 
   // Mahsulotlar ro'yxatini yaratish
   const cartProducts = cart ? Object.entries(cart).map(([productId, quantity]) => {
@@ -585,12 +585,52 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     window.dispatchEvent(event);
   };
 
+  // Formani validatsiya qilish
+  const validateForm = (): boolean => {
+    const errors: string[] = [];
+
+    // Asosiy maydonlarni tekshirish
+    if (!userInfo.name || !userInfo.name.trim()) {
+      errors.push('Ism va familiya');
+    }
+
+    if (!userInfo.phone || !userInfo.phone.trim()) {
+      errors.push('Telefon raqami');
+    }
+
+    // To'lov usulini tekshirish
+    if (!userInfo.paymentMethod) {
+      errors.push('To\'lov usuli');
+    }
+
+    // Reverse geocoding xatosi bo'lsa, manzil majburiy emas
+    const isReverseGeocodingError = geocodingError && geocodingError.includes('Reverse geocoding xatosi');
+    const hasValidAddress = deliveryAddress && deliveryAddress.trim();
+    const hasValidCoordinates = selectedCoordinates && selectedCoordinates.length === 2;
+
+    if (!isReverseGeocodingError && !hasValidAddress && !hasValidCoordinates) {
+      errors.push('Yetkazib berish manzili yoki xaritadan joy tanlash');
+    }
+
+    // Mahsulotlar mavjudligini tekshirish
+    if (!cartProducts || cartProducts.length === 0) {
+      errors.push('Savatda mahsulotlar');
+    }
+
+    if (errors.length > 0) {
+      alert(`❌ Quyidagi maydonlarni to'ldiring:\n• ${errors.join('\n• ')}`);
+      return false;
+    }
+
+    return true;
+  };
+
   // Buyurtmani yuborish
   const handleSubmitOrder = async () => {
     if (isProcessingOrder) return;
 
-    if (!userInfo.name || !userInfo.phone || !deliveryAddress) {
-      alert('Iltimos, barcha maydonlarni to\'ldiring');
+    // Formani validatsiya qilish
+    if (!validateForm()) {
       return;
     }
 

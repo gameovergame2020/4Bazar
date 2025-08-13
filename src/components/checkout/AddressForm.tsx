@@ -145,7 +145,11 @@ const AddressForm: React.FC<AddressFormProps> = ({
             value={deliveryAddress}
             onChange={(e) => handleAddressInputChange(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            placeholder="Manzilni kiriting yoki xaritadan tanlang"
+            placeholder={geocodingError && geocodingError.includes('Reverse geocoding xatosi')
+              ? "Manzilni kiriting (ixtiyoriy)"
+              : "Manzilni kiriting yoki xaritadan tanlang"
+            }
+            required={!(geocodingError && geocodingError.includes('Reverse geocoding xatosi'))}
           />
 
           {isLoadingGeocoding && (

@@ -65,12 +65,14 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
 
       <button
         onClick={onSubmitOrder}
-        disabled={isProcessing} // Disable button while processing
-        className={`w-full mt-6 text-white py-3 px-6 rounded-lg font-semibold transition-colors ${
-          isProcessing ? 'bg-orange-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'
+        disabled={cartProducts.length === 0}
+        className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-colors ${
+          cartProducts.length === 0 
+            ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+            : 'bg-orange-500 text-white hover:bg-orange-600'
         }`}
       >
-        {isProcessing ? 'Qayta ishlanmoqda...' : 'Buyurtmani rasmiylashtirish'}
+        {cartProducts.length === 0 ? 'Savatda mahsulot yo\'q' : 'Buyurtma berish'}
       </button>
     </div>
   );
