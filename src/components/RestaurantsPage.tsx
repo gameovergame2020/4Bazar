@@ -79,29 +79,28 @@ const RestaurantsPage: React.FC = () => {
 
   const cuisines = ['All', 'Italian', 'Japanese', 'American', 'Uzbek', 'Chinese', 'Indian'];
 
-  // Yandex Maps API ni yuklash
-  const loadYandexMaps = async (): Promise<void> => {
-    const { yandexMapsService } = await import('../services/yandexMapsService');
-    await yandexMapsService.loadYandexMaps();
-    setYmapsReady(true);
+  // Leaflet xaritasini yuklash (Yandex Maps o'rniga)
+  const loadLeafletMaps = async (): Promise<void> => {
+    const { leafletMapService } = await import('../services/leafletMapService');
+    await leafletMapService.loadLeaflet();
+    setYmapsReady(true); // State nomi o'zgartirilmagan, lekin Leaflet uchun ishlatiladi
   };
 
-  // Xaritani ishga tushirish
-  const initYandexMap = async (): Promise<void> => {
-    if (!ymapsReady || !mapRef.current || !window.ymaps) return;
+  // Leaflet xaritasini ishga tushirish
+  const initLeafletMap = async (): Promise<void> => {
+    if (!ymapsReady || !mapRef.current) return;
 
     try {
-      await new Promise<void>((resolve) => {
-        window.ymaps!.ready(() => {
-          if (yandexMap) {
-            yandexMap.destroy();
-          }
+      const { leafletMapService } = await import('../services/leafletMapService');
+      
+      if (yandexMap) {
+        yandexMap.remove(); // Leaflet .remove() method
+      }
 
-          const map = new window.ymaps!.Map(mapRef.current!, {
-            center: [41.2995, 69.2401], // Toshkent markazi
-            zoom: 12,
-            controls: ['zoomControl', 'fullscreenControl', 'geolocationControl']
-          });
+      const map = leafletMapService.createMap(mapRef.current.id || 'restaurant-map', {
+        center: [41.2995, 69.2401], // Toshkent markazi
+        zoom: 12
+      });
 
           // Restoranlar uchun placemarklar qo'shish
           restaurants.forEach((restaurant: Restaurant) => {
@@ -151,11 +150,11 @@ const RestaurantsPage: React.FC = () => {
   useEffect(() => {
     if (viewMode === 'map') {
       if (!ymapsReady) {
-        loadYandexMaps().then(() => {
-          setTimeout(() => initYandexMap(), 100);
+        loadLeafletMaps().then(() => {
+          setTimeout(() => initLeafletMap(), 100);
         });
       } else {
-        setTimeout(() => initYandexMap(), 100);
+        setTimeout(() => initLeafletMap(), 100);
       }
     }
   }, [viewMode, ymapsReady]);

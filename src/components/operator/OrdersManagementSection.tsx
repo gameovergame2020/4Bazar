@@ -454,47 +454,34 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
     }
   };
 
-  // Xaritani yuklash
+  // Leaflet xaritasini yuklash
   const initializeMap = async () => {
     if (!order.coordinates || !mapRef.current || mapLoaded) return;
 
     try {
-      const { yandexMapsService } = await import('../../services/yandexMapsService');
-      await yandexMapsService.loadYandexMaps();
+      const { leafletMapService } = await import('../../services/leafletMapService');
+      await leafletMapService.loadLeaflet();
 
-      if (!window.ymaps) return;
+      if (!window.L) return;
 
-      window.ymaps.ready(() => {
-        if (!mapRef.current) return;
-
-        const map = new window.ymaps.Map(mapRef.current, {
-          center: [order.coordinates.lat, order.coordinates.lng],
-          zoom: 16,
-          controls: ['zoomControl']
-        });
-
-        const placemark = new window.ymaps.Placemark(
-          [order.coordinates.lat, order.coordinates.lng],
-          {
-            hintContent: 'Yetkazib berish manzili',
-            balloonContent: `
-              <div style="padding: 10px;">
-                <strong>Yetkazib berish manzili:</strong><br>
-                ${order.deliveryAddress}<br><br>
-                <strong>Mijoz:</strong> ${order.customerName}<br>
-                <strong>Telefon:</strong> ${order.customerPhone}
-              </div>
-            `
-          },
-          {
-            preset: 'islands#redIcon'
-          }
-        );
-
-        map.geoObjects.add(placemark);
-        setYandexMap(map);
-        setMapLoaded(true);
+      const map = leafletMapService.createMap(mapRef.current.id || 'order-map', {
+        center: [order.coordinates.lat, order.coordinates.lng],
+        zoom: 16
       });
+
+      const marker = window.L.marker([order.coordinates.lat, order.coordinates.lng])
+        .addTo(map)
+        .bindPopup(`
+          <div style="padding: 10px;">
+            <strong>Yetkazib berish manzili:</strong><br>
+            ${order.deliveryAddress}<br><br>
+            <strong>Mijoz:</strong> ${order.customerName}<br>
+            <strong>Telefon:</strong> ${order.customerPhone}
+          </div>
+        `);
+
+      setYandexMap(map); // State nomi o'zgartirilmagan
+      setMapLoaded(true);
     } catch (error) {
       console.error('Xaritani yuklashda xato:', error);
     }

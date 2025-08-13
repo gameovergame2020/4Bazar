@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
