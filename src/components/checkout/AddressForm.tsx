@@ -66,53 +66,45 @@ const AddressForm: React.FC<AddressFormProps> = ({
     if (!isComponentMounted || !mapRef.current || isMapInitialized) return;
 
     try {
-      const { yandexMapsService } = await import('../../services/yandexMapsService');
-      await yandexMapsService.loadYandexMaps();
+      const { leafletMapService } = await import('../../services/leafletMapService');
+      await leafletMapService.loadLeaflet();
 
       // Double check component is still mounted
-      if (!isComponentMounted || !window.ymaps) return;
+      if (!isComponentMounted || !window.L) return;
 
-      window.ymaps.ready(() => {
-        // Triple check component and DOM element are still valid
-        if (!isComponentMounted || !mapRef.current || !mapRef.current.parentNode) return;
+      // Triple check component and DOM element are still valid
+      if (!isComponentMounted || !mapRef.current || !mapRef.current.parentNode) return;
 
-        try {
-          const map = new window.ymaps.Map(mapRef.current, {
-            center: selectedCoordinates || [41.2995, 69.2401],
-            zoom: 13,
-            controls: ['zoomControl', 'searchControl']
-          });
+      try {
+        const map = leafletMapService.createMap(mapRef.current.id || 'address-map', {
+          center: selectedCoordinates || [41.2995, 69.2401],
+          zoom: 13
+        });
 
-          mapInstanceRef.current = map;
+        mapInstanceRef.current = map;
 
-          // Only update state if component is still mounted
-          if (isComponentMounted) {
-            // This state update is not directly used here but is kept for consistency if needed elsewhere.
-            // The primary check for map initialization is `isMapInitialized` prop.
+        // Add click handler for coordinate selection
+        map.on('click', (e: any) => {
+          if (e.latlng && onSelectAddress && isComponentMounted) {
+            const coords = [e.latlng.lat, e.latlng.lng];
+            console.log("Map clicked, coordinates:", coords);
+            // For now, we'll just log the coordinates
+            // If there was a coordinate change handler, we would call it here
           }
+        });
 
-          // Add click handler
-          map.events.add('click', (e: any) => {
-            const coords = e.get('coords');
-            if (coords && onSelectAddress && isComponentMounted) {
-              // Assuming onSelectAddress can also handle coordinate selection or we need a separate handler
-              // For now, we'll use onAddressChange or a dedicated coordinate handler if available
-              // Since the original code had onCoordinatesChange, let's assume that's the intended use
-              // If onSelectAddress is meant for coordinate selection, this might need adjustment.
-              // For this fix, we assume coordinates are handled by a prop like onCoordinatesChange if it were present.
-              // Given the current props, we'll simulate coordinate change if possible or log it.
-              // console.log("Map clicked, coordinates:", [coords[0], coords[1]]);
-              // If a prop for coordinate change existed: onCoordinatesChange([coords[0], coords[1]]);
-            }
-          });
-        } catch (mapError) {
-          console.warn('Map creation error:', mapError);
+        // Add marker if coordinates are selected
+        if (selectedCoordinates) {
+          window.L.marker(selectedCoordinates).addTo(map);
         }
-      });
+
+      } catch (mapError) {
+        console.warn('Map creation error:', mapError);
+      }
     } catch (error) {
       console.error('Map initialization error:', error);
     }
-  }, [isComponentMounted, isMapInitialized, selectedCoordinates, onSelectAddress, mapRef]); // Added mapRef to dependencies
+  }, [isComponentMounted, isMapInitialized, selectedCoordinates, onSelectAddress, mapRef]);
 
   useEffect(() => {
     if (isComponentMounted) {
