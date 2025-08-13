@@ -728,12 +728,17 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
       const operatorPhone = '+998 90 123 45 67';
 
+      // Buyurtma ma'lumotlarini o'rnatish
       setOrderDetails({ 
         orderId: orderResult.orderUniqueId,
         operatorPhone 
       });
-      setOrderConfirmed(true);
 
+      // Buyurtma tasdiqlash oynasini ko'rsatish
+      setOrderConfirmed(true);
+      console.log('✅ Buyurtma tasdiqlash oynasi ochildi');
+
+      // Savatni tozalash
       Object.keys(cart).forEach(cakeId => {
         removeFromCart(cakeId);
       });
@@ -763,7 +768,20 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
 
     } catch (error) {
       console.error('❌ Buyurtma yuborishda xato:', error);
+      
+      // Xato ma'lumotlarini batafsil ko'rsatish
+      if (error && typeof error === 'object') {
+        console.error('❌ Xato tafsilotlari:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        });
+      }
+      
       alert('Buyurtma yuborishda xato yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
+      
+      // Xato bo'lganda ham modal ko'rsatish (test uchun)
+      // setOrderConfirmed(true);
     }
   };
 

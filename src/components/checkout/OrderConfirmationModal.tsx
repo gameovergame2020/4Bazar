@@ -30,7 +30,14 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   onClose,
   onBackToHome
 }) => {
-  if (!isVisible || !orderDetails) return null;
+  console.log('🔍 Modal holati:', { isVisible, orderDetails: !!orderDetails });
+  
+  if (!isVisible || !orderDetails) {
+    console.log('❌ Modal ko\'rsatilmaydi:', { isVisible, hasOrderDetails: !!orderDetails });
+    return null;
+  }
+
+  console.log('✅ Modal ko\'rsatilmoqda');
 
   // CSS animatsiyalari uchun style tag qo'shish
   const animationStyles = `
