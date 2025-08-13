@@ -295,67 +295,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     setUserInfo(prev => ({ ...prev, ...updates }));
   };
 
-  // Leaflet xaritasini ishga tushirish
-  const initializeLeafletMap = async () => {
-    try {
-      console.log('🚀 Leaflet xaritasi ishga tushirilmoqda...');
-      setGeocodingError(null);
-
-      // Leaflet kutubxonasini yuklash
-      await leafletMapService.loadLeaflet();
-      setIsLeafletLoaded(true);
-      console.log('✅ Leaflet API yuklandi');
-
-      // Xaritani yaratish
-      if (mapRef.current && !mapInstanceRef.current) {
-        try {
-          console.log('🗺️ Leaflet xaritasi yaratilmoqda...');
-
-          // Eski xarita kontentini tozalash
-          mapRef.current.innerHTML = '';
-
-          mapInstanceRef.current = leafletMapService.createMap(mapRef.current.id || 'leaflet-map', {
-            center: [41.311158, 69.240562], // Toshkent koordinatalari
-            zoom: 12
-          });
-
-          console.log('✅ Leaflet xaritasi muvaffaqiyatli yaratildi');
-          setIsMapInitialized(true);
-          setGeocodingError(null);
-
-          // Xarita click hodisasini qo'shish
-          mapInstanceRef.current.on('click', handleLeafletMapClick);
-
-        } catch (mapError) {
-          console.error('❌ Leaflet xaritani yaratishda xato:', mapError);
-          setGeocodingError('Xaritani yaratishda xato yuz berdi: ' + mapError.message);
-          await initSimpleMap();
-        }
-      }
-
-    } catch (error) {
-      console.error('❌ Leaflet ishga tushirishda xato:', error);
-
-      let errorMessage = 'Xaritani yuklashda xato yuz berdi';
-      if (error && typeof error === 'object') {
-        if (error.message.includes('network') || error.message.includes('fetch')) {
-          errorMessage = 'Internet aloqasi muammosi. Qaytadan urinib ko\'ring.';
-        } else if (error.message.includes('timeout')) {
-          errorMessage = 'Xarita yuklash vaqti tugadi. Qaytadan urinib ko\'ring.';
-        } else {
-          errorMessage = `Xato: ${error.message}`;
-        }
-      }
-
-      setGeocodingError(errorMessage);
-      setIsLeafletLoaded(false);
-      setIsMapInitialized(false);
-
-      // Fallback - oddiy xarita
-      await initSimpleMap();
-    }
-  };
-
   // Oddiy xarita (API kalitisiz)
   const initSimpleMap = async () => {
     try {
