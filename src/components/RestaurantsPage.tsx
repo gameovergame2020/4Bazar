@@ -97,7 +97,7 @@ const RestaurantsPage: React.FC = () => {
         yandexMap.remove(); // Leaflet .remove() method
       }
 
-      const map = leafletMapService.createMap(mapRef.current.id || 'restaurant-map', {
+      const map = leafletMapService.createMap('restaurant-map', {
         center: [41.2995, 69.2401], // Toshkent markazi
         zoom: 12
       });
@@ -403,6 +403,7 @@ const RestaurantsPage: React.FC = () => {
             <div className="relative h-[600px]">
               <div 
                 ref={mapRef}
+                id="restaurant-map"
                 className="w-full h-full"
                 style={{ minHeight: '600px' }}
               >
