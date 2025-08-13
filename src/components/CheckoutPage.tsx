@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -69,7 +70,6 @@ interface CheckoutPageProps {
 // Global Maps tiplarini e'lon qilish
 declare global {
   interface Window {
-    ymaps: any;
     L: any; // Leaflet
     setSelectedCoordinates: (coords: [number, number]) => void;
     setDeliveryAddress: (address: string) => void;
@@ -109,26 +109,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
   const mapInstanceRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
 
   // Modal state'larini debug qilish
   useEffect(() => {
     console.log('🔄 CheckoutPage - orderConfirmed o\'zgardi:', orderConfirmed);
     console.log('🔄 CheckoutPage - orderDetails o\'zgardi:', orderDetails);
   }, [orderConfirmed, orderDetails]);
-
-  // Modal render event'ini tinglash
-  useEffect(() => {
-    const handleModalRendered = (event: any) => {
-      console.log('🎉 Modal render event qabul qilindi:', event.detail);
-    };
-
-    window.addEventListener('orderModalRendered', handleModalRendered);
-
-    return () => {
-      window.removeEventListener('orderModalRendered', handleModalRendered);
-    };
-  }, []);
 
   // Mahsulotlar ro'yxatini yaratish
   const cartProducts = cart ? Object.entries(cart).map(([productId, quantity]) => {
@@ -163,38 +149,64 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
     };
   }, []);
 
-  // Bepul manzil qidirish (Nominatim API)
-  const searchAddressFree = async (query: string): Promise<string[]> => {
+  // Leaflet xaritasini ishga tushirish
+  const initializeLeafletMap = async () => {
     try {
-      console.log('🔍 Bepul Nominatim API orqali qidirish:', query);
+      console.log('🚀 Leaflet xaritasi ishga tushirilmoqda...');
+      setGeocodingError(null);
 
-      const searchQuery = `${query}, Tashkent, Uzbekistan`;
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=uz&accept-language=uz,en`
-      );
+      // Leaflet kutubxonasini yuklash
+      await leafletMapService.loadLeaflet();
+      setIsLeafletLoaded(true);
+      console.log('✅ Leaflet API yuklandi');
 
-      if (!response.ok) {
-        throw new Error('Nominatim API xatosi');
+      // Xaritani yaratish
+      if (mapRef.current && !mapInstanceRef.current) {
+        try {
+          console.log('🗺️ Leaflet xaritasi yaratilmoqda...');
+
+          // Eski xarita kontentini tozalash
+          mapRef.current.innerHTML = '';
+
+          mapInstanceRef.current = leafletMapService.createMap(mapRef.current.id || 'leaflet-map', {
+            center: [41.311158, 69.240562], // Toshkent koordinatalari
+            zoom: 12
+          });
+
+          console.log('✅ Leaflet xaritasi muvaffaqiyatli yaratildi');
+          setIsMapInitialized(true);
+          setGeocodingError(null);
+
+          // Xarita click hodisasini qo'shish
+          mapInstanceRef.current.on('click', handleLeafletMapClick);
+
+        } catch (mapError) {
+          console.error('❌ Leaflet xaritani yaratishda xato:', mapError);
+          setGeocodingError('Xaritani yaratishda xato yuz berdi: ' + mapError.message);
+          await initSimpleMap();
+        }
       }
-
-      const data = await response.json();
-      console.log('📊 Nominatim qidiruv natijasi:', data);
-
-      if (Array.isArray(data) && data.length > 0) {
-        const suggestions = data
-          .filter(item => item.display_name && item.display_name.includes('Tashkent'))
-          .map(item => item.display_name)
-          .slice(0, 5);
-
-        console.log('✅ Bepul qidiruvdan topilgan manzillar:', suggestions);
-        return suggestions;
-      }
-
-      return [];
 
     } catch (error) {
-      console.error('❌ Bepul manzil qidirishda xato:', error);
-      return [];
+      console.error('❌ Leaflet ishga tushirishda xato:', error);
+
+      let errorMessage = 'Xaritani yuklashda xato yuz berdi';
+      if (error && typeof error === 'object') {
+        if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'Internet aloqasi muammosi. Qaytadan urinib ko\'ring.';
+        } else if (error.message.includes('timeout')) {
+          errorMessage = 'Xarita yuklash vaqti tugadi. Qaytadan urinib ko\'ring.';
+        } else {
+          errorMessage = `Xato: ${error.message}`;
+        }
+      }
+
+      setGeocodingError(errorMessage);
+      setIsLeafletLoaded(false);
+      setIsMapInitialized(false);
+
+      // Fallback - oddiy xarita
+      await initSimpleMap();
     }
   };
 
@@ -266,7 +278,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
         cleanup();
       }, 100);
     };
-  }, []); // Dependencies olib tashlandi
+  }, []);
 
   // Cart bo'sh bo'lganda avtomatik bosh sahifaga qaytish
   useEffect(() => {
@@ -705,8 +717,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       console.log('📋 OrderDetails o\'rnatilmoqda:', newOrderDetails);
 
       // Buyurtma tasdiqlash oynasini ko'rsatish
-      console.log('✅ Buyurtma muvaffaqiyatli yaratildi:', orderResult.orderUniqueId);
-
+      console.log('✅ Modal ko\'rsatilmoqda - orderConfirmed: true, orderDetails:', newOrderDetails);
       setOrderDetails(newOrderDetails);
       setOrderConfirmed(true);
 
@@ -812,16 +823,19 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       />
 
       {/* Buyurtma tasdiqlash modali */}
+      {console.log('🔄 Modal render qilish - isVisible:', orderConfirmed, ', orderDetails:', orderDetails)}
       <OrderConfirmationModal
         isVisible={orderConfirmed}
         orderDetails={orderDetails}
         totalPrice={totalPrice}
         userInfo={userInfo}
         onClose={() => {
+          console.log('🚪 Modal yopilmoqda');
           setOrderConfirmed(false);
           setOrderDetails(null);
         }}
         onBackToHome={() => {
+          console.log('🏠 Bosh sahifaga qaytish');
           setOrderConfirmed(false);
           setOrderDetails(null);
           onOrderComplete();
