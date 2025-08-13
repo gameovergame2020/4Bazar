@@ -754,23 +754,21 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       setOrderDetails(newOrderDetails);
 
       // Buyurtma tasdiqlash oynasini ko'rsatish
-      console.log('🎯 setOrderConfirmed(true) chaqirilmoqda...');
+      console.log('🎯 Modal ochilish jarayoni boshlandi...');
       
-      // State'ni majburiy yangilash
-      setOrderConfirmed(false); // Avval false qilib
-      setOrderDetails(newOrderDetails); // OrderDetails'ni o'rnatish
+      // Avval orderDetails'ni o'rnatish
+      console.log('📋 OrderDetails o\'rnatilmoqda:', newOrderDetails);
+      setOrderDetails(newOrderDetails);
       
-      // Kichik kechikish bilan true qilish
-      setTimeout(() => {
-        console.log('🔄 Modal ochilish majburiy ravishda amalga oshirilmoqda...');
-        setOrderConfirmed(true);
-        
-        // Yana bir bor tekshirish
-        setTimeout(() => {
-          console.log('🔍 Final OrderConfirmed holati:', orderConfirmed);
-          console.log('🔍 Final OrderDetails holati:', orderDetails);
-        }, 200);
-      }, 50);
+      // Bir xil vaqtda orderConfirmed'ni true qilish
+      console.log('✅ OrderConfirmed true qilinmoqda...');
+      setOrderConfirmed(true);
+      
+      // Tekshirish uchun log
+      console.log('🔍 State o\'rnatildi:', { 
+        newOrderDetails, 
+        orderConfirmed: true 
+      });
 
       console.log('✅ Buyurtma tasdiqlash oynasi ochish buyrug\'i yuborildi');
 
@@ -818,13 +816,20 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ cart, cakes, onBack, onOrde
       
       alert('Buyurtma yuborishda xato yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
       
-      // Test uchun - xato bo'lganda ham modal ko'rsatish
-      console.log('🧪 Test uchun - xato bo\'lganda ham modal ochish');
-      setOrderDetails({ 
-        orderId: 'TEST-' + Date.now(),
+      // Xato bo'lganda ham test modal ko'rsatish
+      console.log('🧪 Xato holatida test modal ko\'rsatilmoqda');
+      const testOrderDetails = { 
+        orderId: 'TEST-ERROR-' + Date.now(),
         operatorPhone: '+998 90 123 45 67'
-      });
-      setOrderConfirmed(true);
+      };
+      
+      console.log('📋 Test OrderDetails:', testOrderDetails);
+      setOrderDetails(testOrderDetails);
+      
+      setTimeout(() => {
+        console.log('✅ Test modal ochilishi kerak');
+        setOrderConfirmed(true);
+      }, 100);
     }
   };
 
